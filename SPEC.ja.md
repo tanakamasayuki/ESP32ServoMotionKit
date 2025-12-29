@@ -153,75 +153,22 @@ void loop() {
   * `mode: "position"` … 角度（deg）を目標として位置制御（180°サーボ向け）。
   * `mode: "wheel"` … 角度ではなく回転速度（deg/s 相当の正負値）を目標として連続回転（360°サーボ向け）。
 
-#### 共通フィールド（コア）
-
-* `id` : サーボ識別子（文字列、デバイス内で一意）
-* `name` : UI 表示名（任意、推奨）
-* `type` : `"pwm" | "ttl"`（将来拡張可）
-* `mode` : `"position" | "wheel"`
-* `direction` : `1 | -1`（反転）
-* `neutralDeg` : ニュートラル角（deg）
-* `limitDeg` : 動作範囲（deg）
-
-  * `min` / `max`
-
-#### 速度上限（推奨）
-
-同期制御で「速すぎる」動きやギア破損を防ぐため、速度上限を **deg/s** で設定できる。
-
-* `speedLimitDegS` : 角速度の上限（deg/s）
-
-  * `mode: "position"` の場合、ポーズ間遷移での最大角速度として扱う。
-  * `mode: "wheel"` の場合、目標速度（deg/s 相当）の最大値としてクランプする。
-
-> 注: PWM 180°サーボは通常フィードバックを持たないため、`speedLimitDegS` は「目標値の変化速度（コマンド側）」として解釈する。
-
-#### キャリブレーション（推奨）
-
-* `offsetDeg` : ニュートラル補正（deg）
-* `scale` : 角度スケール補正（例: 左右差の微調整、任意）
-* `deadbandDeg` : デッドバンド（deg）
-
-  * 小さな目標変化によるジッタ（細かい振動）を抑制するためのしきい値。
-  * `mode: "position"` の場合、前回目標との差分が `deadbandDeg` 未満なら更新をスキップできる。
-  * `mode: "wheel"` の場合、目標速度の絶対値が `deadbandDeg` 未満なら 0（停止）として扱える。
-
-#### 起動時挙動（推奨）
-
-* `startup` :
-
-  * `enabled` : 起動時に出力を有効化するか
-  * `moveToNeutral` : 起動時にニュートラルへ移動するか
-  * `rampMs` : ソフトスタート時間（ms）
+> 注: 詳細フィールド定義（direction/neutral/limit/speed/offset 等）は後続で追加する。
 
 ---
 
 ### Servo（PWM）
 
 PWM サーボは GPIO ピンに直接接続され、PWM パルス幅で制御される。
-内部では `limitDeg`・`neutralDeg` を基準に `pwm.minUs/maxUs` へマッピングして出力する。
+UI/設定は角度（deg）を基本単位として扱い、PWM 出力（µs）へのマッピングはライブラリで吸収する。
 
-#### PWM 固有フィールド
-
-* `pin` : GPIO 番号
-* `pwm` : PWM パラメータ
-
-  * `freqHz` : 周波数（通常 50）
-  * `minUs` / `maxUs` : パルス幅範囲（µs）
+> 注: PWM 固有フィールド（pin / pwm パラメータ等）の詳細は後続で追加する。
 
 ---
 
 ### Servo（TTL / バス）
 
 TTL/バスサーボは UART 等のバスライン上でアドレス指定して制御する。複数台を同一配線で扱える。
-
-#### TTL 固有フィールド（案）
-
-* `bus` :
-
-  * `busId` : `"uart0"` など
-  * `protocol` : `"dynamixel" | "feetech" | "lx16a" | ...`（将来拡張）
-  * `address` : バス上の ID
 
 > 注: 本ドラフトではまず PWM を実装対象とし、TTL/バスの詳細項目は順次追加する。
 
@@ -237,19 +184,7 @@ TTL/バスサーボは UART 等のバスライン上でアドレス指定して�
       "name": "shoulder_left",
       "type": "pwm",
       "mode": "position",
-
-      "pin": 18,
-      "pwm": { "freqHz": 50, "minUs": 500, "maxUs": 2500 },
-
-      "direction": 1,
-      "neutralDeg": 90,
-      "limitDeg": { "min": 0, "max": 180 },
-      "speedLimitDegS": 240,
-
-      "offsetDeg": 2.5,
-      "scale": 1.0,
-      "deadbandDeg": 0.5,
-      "startup": { "enabled": true, "moveToNeutral": true, "rampMs": 300 }
+      "pin": 18
     }
   ]
 }
@@ -265,19 +200,7 @@ TTL/バスサーボは UART 等のバスライン上でアドレス指定して�
       "name": "wheel_servo",
       "type": "pwm",
       "mode": "wheel",
-
-      "pin": 19,
-      "pwm": { "freqHz": 50, "minUs": 1000, "maxUs": 2000 },
-
-      "direction": -1,
-      "neutralDeg": 0,
-      "limitDeg": { "min": -360, "max": 360 },
-      "speedLimitDegS": 720,
-
-      "offsetDeg": 0,
-      "scale": 1.0,
-      "deadbandDeg": 1.0,
-      "startup": { "enabled": true, "moveToNeutral": true, "rampMs": 200 }
+      "pin": 19
     }
   ]
 }
@@ -310,11 +233,10 @@ auto s1 = kit.servo("s1")
               .position();
 ```
 
-> 注: 追加の設定（direction/neutral/limit/speed など）は後続で拡張する。
+> 注: 詳細項目は後続で拡張する。
 
 #### 変換と解釈のルール
 
-* UI / API は角度（deg）を基本とし、PWM 生成時に `pwm.minUs/maxUs` と `limitDeg` を用いて µs へマッピングする。
-* `direction` は **角度と速度の符号**に適用される。
-* `offsetDeg` は `neutralDeg` に加算して内部ニュートラルとして扱う。
-* `speedLimitDegS` は上限としてクランプし、プロファイルにより滑らかに制限する。
+* UI / API は角度（deg）を基本単位として扱う。
+* PWM/TTL などのプロトコル差分はライブラリで吸収する。
+* 詳細な変換・補正・安全ルールは後続で定義する。

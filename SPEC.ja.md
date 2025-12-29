@@ -68,15 +68,6 @@
 
 UI/デバイス共通のスキーマ識別子とバージョン管理に使う。
 
-```json
-{
-  "meta": {
-    "schema": "motionkit",
-    "version": "0.1.0"
-  }
-}
-```
-
 #### リッチUI JSON
 
 ```json

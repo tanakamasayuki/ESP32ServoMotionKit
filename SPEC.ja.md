@@ -221,7 +221,7 @@ TTL/バスサーボは UART 等のバスライン上でアドレス指定して�
 }
 ```
 
-**対応する C++ API（最小）**
+#### C++ API（最小）
 
 ```cpp
 auto s1 = kit.servo("s1")
@@ -274,7 +274,7 @@ auto s1 = kit.servo("s1")
 }
 ```
 
-**対応する C++ API（最小）**
+#### C++ API（最小）
 
 ```cpp
 auto j1 = kit.joint("j1").servo("s1");
@@ -284,7 +284,7 @@ auto j1 = kit.joint("j1").servo("s1");
 
 * `joints[*].servoRefs`（リッチUI）→ `servoIds`（デバイス向け）へ変換して送る。
 
-# Joint Group（UI専用）
+### Joint Group（UI専用）
 
 ジョイントグループは UI で複数ジョイントをまとめて選択・操作するための論理集合。
 **デバイス側には実体を持たない**（送信時には展開され、グループ情報はシンプルJSONには含めない）。
@@ -293,7 +293,7 @@ auto j1 = kit.joint("j1").servo("s1");
 - **送信**: デバイス向け設定には含めず、必要なら UI 側でジョイントID列へ展開する
 - **互換**: ライブラリはジョイントグループを解釈しない（受信しても無視してよい）
 
-## リッチUI JSON（例）
+#### リッチUI JSON（例）
 
 ```json
 {
@@ -308,12 +308,218 @@ auto j1 = kit.joint("j1").servo("s1");
 }
 ```
 
-## シンプルJSON（デバイス向け）
+#### シンプルJSON（デバイス向け）
 - **出力しない**（デバイスには送らない）
 
-## C++ API（最小）
+#### C++ API（最小）
 - **提供しない**（UI専用概念のため）
 
-## 変換と解釈のルール
+#### 変換と解釈のルール
 - UI では `jointGroups[*].jointIds` を展開して編集対象ジョイントの集合を作る。
 - デバイス向け JSON 生成時は `jointGroups` を含めない。
+
+### Pose（ポーズ）
+
+ポーズはジョイント目標をまとめた名前付きセット。UI 上ではキーフレーム（瞬間状態）としてタイムライン上に配置できる。
+ポーズ自体は「状態」を表し、時間情報（移動時間 / イージング等）はシーケンス側で扱う。
+
+- **内容**: `jointTargets` にジョイントIDと目標値（deg）を保持
+- **用途**: 事前定義プリセット、シーケンスステップの参照先
+- **トリガー**: ポーズ開始 / 到達 / ホールド完了などを設定できる（イベント発行用）
+
+#### リッチUI JSON（例）
+
+```json
+{
+  "poses": [
+    {
+      "id": "p_home",
+      "name": "home",
+      "description": "Neutral pose for setup",
+      "jointTargets": [
+        { "jointId": "j1", "deg": 90 },
+        { "jointId": "j2", "deg": 45 }
+      ],
+      "triggers": [
+        { "at": "start", "eventId": 1 },
+        { "at": "hold_end", "eventId": 2 }
+      ]
+    }
+  ]
+}
+```
+
+#### シンプルJSON（デバイス向け、例）
+
+```json
+{
+  "poses": [
+    {
+      "id": "p_home",
+      "jointTargets": [
+        { "jointId": "j1", "deg": 90 },
+        { "jointId": "j2", "deg": 45 }
+      ]
+    }
+  ]
+}
+```
+
+#### C++ API（最小）
+
+```cpp
+auto p_home = kit.pose("p_home")
+                .target("j1", 90)
+                .target("j2", 45);
+```
+
+#### 変換と解釈のルール
+- リッチUIの `name` / `description` / UI用メタ情報はデバイス向けJSONでは省略する。
+- `triggers` はデバイスで解釈する（実装時に上限・対象イベント範囲を確定）。
+
+### Easing（イージング）
+
+イージングは時間に対する補間カーブの定義。シーケンスのステップに適用して移動の加減速を決める。
+
+- **プリセット**: `linear` / `easeInOut` / `sCurve` など、代表的なカーブをIDで参照して利用できる。
+- **ユーザー定義**: プリセット（例: `sCurve`）にパラメータを追加した **パラメトリックなカーブ**を定義できる想定とする（例: 効果の強さ、加速/減速の配分など）。
+- **注意**: 速度リミットにより指定した移動時間が延長される場合、イージング形状が実質変化する可能性がある（特に加速区間でリミットに達すると全体が遅くなる）。
+
+#### リッチUI JSON（例）
+
+```json
+{
+  "easings": [
+    {
+      "id": "e_linear",
+      "name": "linear",
+      "type": "preset",
+      "preset": "linear"
+    },
+    {
+      "id": "e_smooth",
+      "name": "smooth",
+      "type": "preset",
+      "preset": "easeInOut"
+    },
+    {
+      "id": "e_scurve_strong",
+      "name": "scurve_strong",
+      "type": "custom",
+      "preset": "sCurve",
+      "params": {
+        "strength": 0.8
+      },
+      "description": "Parametric S-curve easing (strong effect)"
+    }
+  ]
+}
+```
+
+#### シンプルJSON（デバイス向け、例）
+
+```json
+{
+  "easings": [
+    { "id": "e_linear", "preset": "linear" },
+    { "id": "e_smooth", "preset": "easeInOut" },
+    {
+      "id": "e_scurve_strong",
+      "preset": "sCurve",
+      "params": { "strength": 0.8 }
+    }
+  ]
+}
+```
+
+#### 対応する C++ API（最小）
+
+```cpp
+auto e_smooth = kit.easing("e_smooth")
+                  .preset("easeInOut");
+
+auto e_scurve_strong = kit.easing("e_scurve_strong")
+                        .preset("sCurve")
+                        .param("strength", 0.8f);
+```
+
+#### 変換と解釈のルール
+- リッチUIの `name` / `description` はデバイス向けJSONでは省略できる。
+- `type: "custom"` はプリセット + パラメータによるパラメトリック定義を想定する。
+- `preset` 以外（完全な任意カーブなど）は後続で追加する。
+
+### Sequence（シーケンス）
+
+シーケンスはポーズを時間軸に並べた再生単位。各ステップで移動時間とイージングを指定できる。
+指定した移動時間での到達を目指すが、各サーボの速度リミットにより必要な速度が上限を超える場合は **時間が自動的に延長**される。
+特にイージングで加速が大きい区間でリミットに達すると、全体として遅くなる可能性がある。
+
+- **内容**: `steps` に pose参照、移動時間、イージング、ホールド時間を保持
+- **用途**: ループ再生、トリガーによるイベント発行、外部デバイスとの同期
+- **トリガー**: シーケンス開始/終了、ステップ開始/完了、ホールド完了などを設定できる
+
+#### リッチUI JSON（例）
+
+```json
+{
+  "sequences": [
+    {
+      "id": "seq_demo",
+      "name": "demo",
+      "description": "Demo motion sequence",
+      "loop": false,
+      "steps": [
+        {
+          "poseId": "p_home",
+          "moveMs": 500,
+          "easingId": "e_smooth",
+          "holdMs": 200,
+          "triggers": [
+            { "at": "pose_start", "eventId": 10 },
+            { "at": "move_end", "eventId": 11 }
+          ]
+        },
+        {
+          "poseId": "p_wave",
+          "moveMs": 800,
+          "easingId": "e_linear"
+        }
+      ],
+      "triggers": [
+        { "at": "sequence_start", "eventId": 100 },
+        { "at": "sequence_end", "eventId": 101 }
+      ]
+    }
+  ]
+}
+```
+
+#### シンプルJSON（デバイス向け、例）
+
+```json
+{
+  "sequences": [
+    {
+      "id": "seq_demo",
+      "steps": [
+        { "poseId": "p_home", "moveMs": 500, "easingId": "e_smooth", "holdMs": 200 },
+        { "poseId": "p_wave", "moveMs": 800, "easingId": "e_linear" }
+      ]
+    }
+  ]
+}
+```
+
+#### C++ API（最小）
+
+```cpp
+auto seq_demo = kit.sequence("seq_demo")
+                 .step("p_home", 500, "e_smooth")
+                 .hold(200)
+                 .step("p_wave", 800, "e_linear");
+```
+
+#### 変換と解釈のルール
+- リッチUIの `name` / `description` はデバイス向けJSONでは省略できる。
+- `steps[*].moveMs` は目標であり、速度リミットにより実際の完了時間が延長される場合がある。
+- `triggers` はデバイス側でイベントキューへ投入され、ユーザーが受信して処理する。

@@ -71,6 +71,8 @@
 
 UI/デバイス共通のスキーマ識別子とバージョン管理に使う。
 
+> 任意項目（例: `description`）は **未設定の場合 JSON に出力しない**（空文字 `""` でも出力しない）。
+
 #### リッチUI JSON
 
 ```json
@@ -143,7 +145,8 @@ TTL/バスサーボは UART 等のバスライン上でアドレス指定して�
       "name": "shoulder_left",
       "type": "pwm",
       "mode": "position",
-      "pin": 18
+      "pin": 18,
+      "description": "Left shoulder servo for v1 prototype"
     }
   ]
 }

@@ -1,4 +1,4 @@
-# ESP32 Servo Motion Kit 仕様書（ドラフト）
+# ESP32 Servo Motion Kit 仕様書
 
 ## 目的とスコープ
 

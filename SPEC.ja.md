@@ -106,40 +106,6 @@ UI/デバイス共通のスキーマ識別子とバージョン管理に使う�
 #define MOTIONKIT_VERSION "0.1.0"
 ```
 
-##### Servo の C++ API（生成ヘッダ＆実行：最小サンプル）
-
-以下は **シンプルJSON（デバイス向け）相当**のサーボ定義を、Arduino/C++ 側で最小限に記述して動かす例。
-（詳細な設定項目は後続で追加する前提とし、ここでは全体の流れのみ示す。）
-
-```cpp
-#include <MotionKit.h>
-
-MotionKit kit;
-
-void setup() {
-  kit.begin();
-
-  // Servo 定義（最小）
-  // - まずは PWM のみを想定
-  // - 角度（deg）を基本単位として扱う
-  auto s1 = kit.servo("s1")
-              .pwm(18)
-              .position();
-
-  // 必要に応じて最終状態を検証（必須不足や矛盾があれば false）
-  if (!s1.ok()) {
-    // エラー内容はハンドルから取得
-    ESP_LOGE("MotionKit", "servo s1 invalid: %s", s1.lastErrorStr());
-  }
-
-  // 再生・実行系 API は後続の設計で追加（ポーズ/モーション/シーケンスなど）
-}
-
-void loop() {
-  kit.update();
-}
-```
-
 ---
 
 ### Servo（共通）

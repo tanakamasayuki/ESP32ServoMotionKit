@@ -42,118 +42,6 @@
 * **シーケンス**: モーション/ポーズの順序リスト。ループやトリガーを持つ再生単位。
 * **プロファイル（イージング）**: 時間に対する位置/速度カーブの定義。リニア、イージイン/アウト、独自カーブなどをモーションに適用する。
 
-## Arduino API（ドラフト）
-
-Arduino 側はチェインスタイルで設定を積み上げ、呼び出した順に **即時に登録/更新**される。`.done()` は提供せず、チェインの最終状態の妥当性は **ハンドルの `ok()`（バリデーション）**で取得する。
-
-* チェイン呼び出しは都度内部状態へ反映される（作成途中の状態も保持される）。
-* `kit.servo(id)` は **Servo 専用のハンドル/ビルダー（`ServoHandle`）** を返し、サーボ定義・設定のみを提供する。
-
-  * `ServoHandle` は軽量参照（`kit*` と `servoIndex` 等）で、コピー可能。
-  * ハンドルは後から再利用して追記・更新できる。
-* トップレベルのチェイン開始（例: `kit.servo("s1")`）は新しい操作コンテキストを開始し、そのチェイン用のエラー状態を自動的にクリアする。
-* チェインは対象ごと（例: 1 サーボ）に閉じる設計とし、1 チェインで複数対象を操作する API は提供しない（`kit.servo(id)` がチェインの開始点）。
-
-### `ServoHandle` の返り値と成功判定（ドラフト）
-
-* 各 setter メソッド（例: `.pwm()`, `.neutralDeg()`）は `ServoHandle&` を返し、チェイン可能。
-* チェインの結果が欲しい場合は `ServoHandle::ok()` を呼ぶ（**最終状態が実行可能か**をバリデートし、必須不足や矛盾があれば false を返す）。
-
-> グローバルな `kit.ok()` のような状態取得 API は提供しない。エラー取得は `ServoHandle`（および将来の `JointHandle` 等）から行う。
-
-* 例: `pin` 未設定、`limitDeg` の矛盾、必須フィールド不足、PWM/TTL の型不整合などは **NG**（false）となる。
-* 長いチェインでは、戻り値のハンドルを変数に保持し、最後に `.ok()` / `.lastError()` を参照する書き方を推奨する。
-
-> `ServoHandle::ok()` はそのサーボの最終状態を検証する。全体の状態取得 API は提供せず、エラーは ServoHandle にのみ保持する。必要に応じて `kit.servo(id)` でハンドルを取得し、`ok()` を呼んで妥当性を確認する。
-
-### サーボ登録（例）
-
-```cpp
-MotionKit kit;
-
-void setup() {
-  kit.begin();
-
-  // 180° サーボ（位置）
-  kit.servo("s1")
-      .pwm(18)
-      .position()
-      .neutralDeg(90)
-      .limitDeg(0, 180)
-      .speedLimitDegS(240)
-      .offsetDeg(2.5)
-      .deadbandDeg(0.5);
-
-  // 結果が欲しいときだけ done() を呼ぶ
-  if (!kit.servo("s1").done()) {
-    Serial.println(kit.lastErrorStr());
-  }
-
-  // 360° サーボ（連続回転）
-  kit.servo("s2")
-      .pwm(19)
-      .wheel()
-      .speedLimitDegS(720)
-      .deadbandDeg(1.0);
-}
-```
-
-### エラー取得（ドラフト）
-
-エラーは **ServoHandle にのみ保持**する。`kit.servo(id)` は ServoHandle を返し、トップレベルのチェイン開始時にその ServoHandle のエラー状態を自動的にクリアする。
-
-* `ServoHandle::ok()` : 最終状態をバリデートし、成功/失敗を返す
-* `ServoHandle::lastError()` / `lastErrorStr()` : 最後のエラー
-* `ServoHandle::errorCount()` / `popError()` : 未処理エラーの取得
-* `ServoHandle::clearErrors()` : 明示的に未処理エラーをクリア（通常はチェイン開始で暗黙クリアされる）
-
-エラーは `.done()` 以外でも取得できるようにする。ログ出力は別途定義し、Arduino 側のログレベルに応じて出力可否を制御する。
-
-* `MotionKitError lastError() const` : 最後のエラーコード
-* `const char* lastErrorStr() const` : 最後のエラー文字列
-* `size_t errorCount() const` : 未処理エラー数
-* `MotionKitError popError()` : 先頭（または末尾）の未処理エラーを取り出し、キューから削除
-* `void clearErrors()` : 未処理エラーをクリア（明示的に消したい場合）
-* **暗黙クリア**: `kit.servo(id)` / `kit.joint(id)` などトップレベルのチェイン開始時に、そのチェイン用のエラーコンテキストを自動的にクリアする（前のチェインのエラーは保持しない）。
-
-### ログ出力方針（ESP-IDF / Arduino）
-
-ライブラリのログは ESP-IDF の `ESP_LOGx` を利用する（`ESP_LOGE/W/I/D/V`）。Arduino IDE 側でログレベル設定済みであることを前提とし、ライブラリ側は **適切なレベルでログを分類して出力**する。
-
-#### ログレベルの対応
-
-* **ERROR**: 実行不能・回復不能な失敗（例: 必須フィールド不足、ピン/バス競合、致命的な範囲矛盾）
-
-  * `ESP_LOGE(tag, ...)`
-* **WARN**: 実行は可能だが危険/非推奨（例: limit が広すぎる、ニュートラルが範囲外、速度上限未設定で急加速の可能性）
-
-  * `ESP_LOGW(tag, ...)`
-* **INFO**: 通常の状態遷移・設定確定（例: サーボ登録/更新、モード変更、保存/ロード完了）
-
-  * `ESP_LOGI(tag, ...)`
-* **DEBUG**: 開発者向け詳細（例: µs 変換結果、クランプ適用、補間ステップ、内部状態）
-
-  * `ESP_LOGD(tag, ...)`
-* **VERBOSE**: 高頻度ログ（例: ループ毎の目標値、送信パケット詳細、タイムステップ）
-
-  * `ESP_LOGV(tag, ...)`
-
-#### ログ方針
-
-* デフォルトのログ出力量は Arduino 側のログレベル設定に従う。
-
-* パフォーマンスのため、高頻度経路（ループ/ISR 相当）は `ESP_LOGV` に限定し、通常は無効化される前提とする。
-
-* `.done()` で検出したエラーは `ESP_LOGE` で出力しつつ、エラーキューにも蓄積する。
-
-* 非推奨/注意事項は `ESP_LOGW` とし、必要に応じて自動補正（クランプ等）した場合は `ESP_LOGW` と `ESP_LOGD` を併用する。
-
-* ライブラリ内部はログレベル（例: ERROR/WARN/INFO/DEBUG/TRACE）を持つ。
-
-* Arduino 側のログレベル設定に応じて、Serial 等へ出力する。
-
-* デフォルトは WARN 以上を出力し、設定で変更可能にする。
-
 ## コンポーネントと役割
 
 * **Arduino ライブラリ (ESP32, v3.0+)**
@@ -217,6 +105,40 @@ UI/デバイス共通のスキーマ識別子とバージョン管理に使う�
 ```cpp
 #define MOTIONKIT_SCHEMA "motionkit"
 #define MOTIONKIT_VERSION "0.1.0"
+```
+
+##### Servo の C++ API（生成ヘッダ＆実行：最小サンプル）
+
+以下は **シンプルJSON（デバイス向け）相当**のサーボ定義を、Arduino/C++ 側で最小限に記述して動かす例。
+（詳細な設定項目は後続で追加する前提とし、ここでは全体の流れのみ示す。）
+
+```cpp
+#include <MotionKit.h>
+
+MotionKit kit;
+
+void setup() {
+  kit.begin();
+
+  // Servo 定義（最小）
+  // - まずは PWM のみを想定
+  // - 角度（deg）を基本単位として扱う
+  auto s1 = kit.servo("s1")
+              .pwm(18)
+              .position();
+
+  // 必要に応じて最終状態を検証（必須不足や矛盾があれば false）
+  if (!s1.ok()) {
+    // エラー内容はハンドルから取得
+    ESP_LOGE("MotionKit", "servo s1 invalid: %s", s1.lastErrorStr());
+  }
+
+  // 再生・実行系 API は後続の設計で追加（ポーズ/モーション/シーケンスなど）
+}
+
+void loop() {
+  kit.update();
+}
 ```
 
 ---
@@ -365,6 +287,8 @@ TTL/バスサーボは UART 等のバスライン上でアドレス指定して�
 
 デバイス向けは実行に必要な最小項目に絞る。初期実装では **短縮キーは用いず**、可読性を優先する（将来的に CBOR 等でバイナリ転送する場合は、エンコード側でサイズ最適化を行う）。
 
+**シンプルJSON（例）**
+
 ```json
 {
   "servos": [
@@ -372,17 +296,21 @@ TTL/バスサーボは UART 等のバスライン上でアドレス指定して�
       "id": "s1",
       "type": "pwm",
       "mode": "position",
-      "pin": 18,
-      "direction": 1,
-      "neutralDeg": 90,
-      "limitDeg": { "min": 0, "max": 180 },
-      "speedLimitDegS": 240,
-      "offsetDeg": 2.5,
-      "deadbandDeg": 0.5
+      "pin": 18
     }
   ]
 }
 ```
+
+**対応する C++ API（最小）**
+
+```cpp
+auto s1 = kit.servo("s1")
+              .pwm(18)
+              .position();
+```
+
+> 注: 追加の設定（direction/neutral/limit/speed など）は後続で拡張する。
 
 #### 変換と解釈のルール
 

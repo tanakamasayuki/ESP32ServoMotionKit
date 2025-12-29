@@ -523,3 +523,95 @@ auto seq_demo = kit.sequence("seq_demo")
 - リッチUIの `name` / `description` はデバイス向けJSONでは省略できる。
 - `steps[*].moveMs` は目標であり、速度リミットにより実際の完了時間が延長される場合がある。
 - `triggers` はデバイス側でイベントキューへ投入され、ユーザーが受信して処理する。
+
+### API 命名（実行系・統一案）
+
+本ライブラリでは「定義（設定）」と「実行（再生/移動）」を分け、実行系 API 名は以下の3系統で統一する。
+
+- **set...** : 状態（ターゲット値）を設定する。時間を伴わない。
+- **moveTo... / moveToDeg** : 指定時間で到達を目指して移動する（速度リミット等により延長される場合がある）。
+- **play...** : シーケンスを再生する。
+
+> 注: `durationMs` は目標であり、速度リミットにより実際の完了時間が延長される場合がある。
+
+#### シーケンス再生（Sequence）
+
+##### 再生
+- `playSequence(sequenceId)`
+
+```cpp
+kit.playSequence("seq_demo");
+```
+
+##### 停止 / 一時停止 / 再開
+- `stop()`
+- `pause()`
+- `resume()`
+
+```cpp
+kit.pause();
+kit.resume();
+kit.stop();
+```
+
+#### ポーズへの移動（Pose）
+
+##### 即適用（ターゲット設定のみ）
+- `setPose(poseId)`
+
+```cpp
+kit.setPose("p_home");
+```
+
+##### 指定して移動（時間のみ）
+- `moveToPose(poseId, durationMs)`
+
+```cpp
+kit.moveToPose("p_home", 500);
+```
+
+##### 指定して移動（時間 + easing）
+- `moveToPose(poseId, durationMs, easingId)`
+
+```cpp
+kit.moveToPose("p_home", 500, "e_smooth");
+```
+
+#### 角度指定（Servo / Joint）
+
+サーボ・ジョイントの単体操作でも、ポーズ移動と同じ語彙で統一する。
+
+##### ServoHandle
+- `setDeg(deg)`
+- `moveToDeg(deg, durationMs)`
+- `moveToDeg(deg, durationMs, easingId)`
+
+```cpp
+auto s1 = kit.servo("s1");
+
+s1.setDeg(90);
+s1.moveToDeg(90, 500);
+s1.moveToDeg(90, 500, "e_smooth");
+```
+
+##### JointHandle
+- `setDeg(deg)`
+- `moveToDeg(deg, durationMs)`
+- `moveToDeg(deg, durationMs, easingId)`
+
+```cpp
+auto j1 = kit.joint("j1");
+
+j1.setDeg(45);
+j1.moveToDeg(45, 500);
+j1.moveToDeg(45, 500, "e_smooth");
+```
+
+#### まとめ（命名の統一表）
+
+| 対象 | 即適用（set） | 時間付き移動（moveTo） | 再生（play） |
+|---|---|---|---|
+| Servo | `setDeg(deg)` | `moveToDeg(deg, durationMs, easingId?)` | — |
+| Joint | `setDeg(deg)` | `moveToDeg(deg, durationMs, easingId?)` | — |
+| Pose | `setPose(id)` | `moveToPose(id, durationMs, easingId?)` | — |
+| Sequence | — | — | `playSequence(id)` |

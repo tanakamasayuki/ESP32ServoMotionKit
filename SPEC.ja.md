@@ -196,3 +196,41 @@ auto s1 = kit.servo("s1")
 * UI / API は角度（deg）を基本単位として扱う。
 * PWM/TTL などのプロトコル差分はライブラリで吸収する。
 * 詳細な変換・補正・安全ルールは後続で定義する。
+
+## 用語の整理
+
+### ライブラリ名
+
+* **ESP32ServoMotionKit**
+
+### リポジトリ
+
+* `https://github.com/tanakamasayuki/ESP32ServoMotionKit`
+
+### C++ 命名（方針）
+
+* **namespace**: `motionkit`
+* **メインクラス**: `motionkit::MotionKit`
+* **サーボハンドル**: `motionkit::ServoHandle`
+
+#### ログ TAG
+
+* `"MotionKit"`
+
+#### サンプルコードのルール
+
+* サンプルでは `using namespace ...` / `using ...` を使わず、**常にネームスペースを明示**して記述する。
+
+**例（最小）**
+
+```cpp
+motionkit::MotionKit kit;
+
+auto s1 = kit.servo("s1")
+              .pwm(18)
+              .position();
+
+if (!s1.ok()) {
+  ESP_LOGE("MotionKit", "%s", s1.lastErrorStr());
+}
+```

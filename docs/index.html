@@ -27,15 +27,25 @@
       </div>
       <div class="hero-panel">
         <div class="hero-tabs" data-hero-tabs>
-          <div class="hero-tablist" role="tablist" aria-label="Hero">
-            <button class="hero-tab is-active" role="tab" data-hero-tab="device" aria-selected="true"
-              aria-controls="hero-device" data-i18n="device.title">
-              Device Link
-            </button>
-            <button class="hero-tab" role="tab" data-hero-tab="preview" aria-selected="false"
-              aria-controls="hero-preview" data-i18n="preview.title">
-              Preview
-            </button>
+          <div class="hero-tabbar">
+            <div class="hero-tablist" role="tablist" aria-label="Hero">
+              <button class="hero-tab is-active" role="tab" data-hero-tab="device" aria-selected="true"
+                aria-controls="hero-device" data-i18n="device.title">
+                Device Link
+              </button>
+              <button class="hero-tab" role="tab" data-hero-tab="preview" aria-selected="false"
+                aria-controls="hero-preview" data-i18n="preview.title">
+                Preview
+              </button>
+            </div>
+            <div class="language-block">
+              <label for="language-select" data-i18n="language.label">Language</label>
+              <select id="language-select" data-i18n-aria="language.aria">
+                <option value="en" data-i18n="language.option.en">English</option>
+                <option value="ja" data-i18n="language.option.ja">日本語</option>
+              </select>
+              <p class="hint" data-i18n="language.hint">Auto-detected from the browser.</p>
+            </div>
           </div>
           <div class="hero-tab-body">
             <section class="card insight-card hero-summary">
@@ -57,14 +67,6 @@
                   <span class="insight-k" data-i18n="insight.sequences">Sequences</span>
                   <span class="insight-v">3</span>
                 </div>
-              </div>
-              <div class="language-block">
-                <label for="language-select" data-i18n="language.label">Language</label>
-                <select id="language-select" data-i18n-aria="language.aria">
-                  <option value="en" data-i18n="language.option.en">English</option>
-                  <option value="ja" data-i18n="language.option.ja">日本語</option>
-                </select>
-                <p class="hint" data-i18n="language.hint">Auto-detected from the browser.</p>
               </div>
               <div class="card-actions">
                 <button class="btn btn-outline" type="button" data-i18n="common.import">Import project</button>

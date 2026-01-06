@@ -147,6 +147,14 @@ a {
   width: 100%;
 }
 
+.hero-tabbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .hero-tab {
   flex: 1 1 0;
   text-align: center;
@@ -180,6 +188,28 @@ a {
   border-radius: 999px;
   border: 1px solid rgba(27, 31, 35, 0.08);
   width: fit-content;
+}
+
+.hero-tabbar .language-block {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.hero-tabbar .language-block label {
+  margin: 0;
+}
+
+.hero-tabbar .language-block select {
+  width: auto;
+  min-width: 120px;
+}
+
+.hero-tabbar .language-block .hint {
+  margin: 0;
+  grid-column: 1 / -1;
+  text-align: right;
 }
 
 .hero-tab {

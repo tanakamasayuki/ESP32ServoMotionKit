@@ -483,6 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const firmwareStartButton = document.getElementById('firmware-start-button');
 
   let updateFirmwareLocale = () => {};
+  let updateHeroPanels = () => {};
 
   const state = {
     status: 'disconnected',
@@ -526,6 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateConnectionUI();
     updateFirmwareLocale();
+    updateHeroPanels();
   };
 
   const detectLanguage = () => {
@@ -931,6 +933,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const initHeroTabs = () => {
+    const heroTabs = Array.from(document.querySelectorAll('.hero-tab'));
+    const heroPanels = Array.from(document.querySelectorAll('.hero-tab-panel'));
+    const heroPanelsContainer = document.querySelector('.hero-tab-panels');
+    if (heroTabs.length === 0 || heroPanels.length === 0) {
+      return;
+    }
+
+    const setActiveHero = (tab) => {
+      heroTabs.forEach((button) => {
+        const isActive = button.dataset.heroTab === tab;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-selected', String(isActive));
+        button.setAttribute('tabindex', isActive ? '0' : '-1');
+      });
+
+      heroPanels.forEach((panel) => {
+        const isActive = panel.dataset.heroPanel === tab;
+        panel.classList.toggle('is-active', isActive);
+        panel.setAttribute('aria-hidden', String(!isActive));
+        panel.hidden = !isActive;
+      });
+    };
+
+    const setHeroPanelsHeight = () => {
+      if (!heroPanelsContainer) {
+        return;
+      }
+      let maxHeight = 0;
+      heroPanels.forEach((panel) => {
+        const wasHidden = panel.hidden;
+        const prevDisplay = panel.style.display;
+        const prevVisibility = panel.style.visibility;
+        panel.hidden = false;
+        panel.style.display = 'block';
+        panel.style.visibility = 'hidden';
+        maxHeight = Math.max(maxHeight, panel.scrollHeight);
+        panel.style.display = prevDisplay;
+        panel.style.visibility = prevVisibility;
+        panel.hidden = wasHidden;
+      });
+      heroPanelsContainer.style.minHeight = maxHeight ? `${maxHeight}px` : '';
+    };
+
+    heroTabs.forEach((button) => {
+      button.addEventListener('click', () => setActiveHero(button.dataset.heroTab));
+    });
+
+    const initial = heroTabs.find((button) => button.classList.contains('is-active')) || heroTabs[0];
+    if (initial) {
+      setActiveHero(initial.dataset.heroTab);
+    }
+
+    updateHeroPanels = setHeroPanelsHeight;
+    setHeroPanelsHeight();
+    window.addEventListener('resize', setHeroPanelsHeight);
+  };
+
   languageSelect.addEventListener('change', () => {
     const next = languageSelect.value;
     localStorage.setItem(storageKey, next);
@@ -997,6 +1057,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initTabs();
+  initHeroTabs();
   const initialLanguage = detectLanguage();
   languageSelect.value = initialLanguage;
   applyTranslations(initialLanguage);

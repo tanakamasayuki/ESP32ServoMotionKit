@@ -753,7 +753,7 @@ a {
   width: 2px;
   height: 24px;
   background: var(--accent-warm);
-  top: 8px;
+  top: 2px;
   left: 50%;
   transform-origin: bottom center;
   transform: translateX(-50%) rotate(0deg);

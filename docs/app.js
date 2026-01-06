@@ -24,6 +24,42 @@ document.addEventListener('DOMContentLoaded', () => {
       'device.meta.mode': 'Mode',
       'device.mode.demo': 'Demo',
       'device.mode.live': 'Live',
+      'firmware.modal.title': 'Flash Preview Firmware',
+      'firmware.modal.description': 'Select a preview firmware package and transfer it over WebSerial.',
+      'firmware.modal.firmwareLabel': 'Firmware package',
+      'firmware.modal.firmwareAria': 'Select firmware package',
+      'firmware.modal.summary.title': 'Summary',
+      'firmware.modal.summary.empty': 'Select a firmware package to see details.',
+      'firmware.modal.baudrateLabel': 'Transfer speed',
+      'firmware.modal.baudrateAria': 'Select transfer speed',
+      'firmware.modal.baudrateHint': 'Choose a speed supported by your board.',
+      'firmware.modal.eraseBefore': 'Erase flash before transfer',
+      'firmware.modal.eraseBeforeHint': 'Runs erase_flash before writing.',
+      'firmware.modal.details.title': 'Flash options',
+      'firmware.modal.details.chip': 'Target',
+      'firmware.modal.details.flashMode': 'Flash mode',
+      'firmware.modal.details.flashFreq': 'Flash frequency',
+      'firmware.modal.details.flashSize': 'Flash size',
+      'firmware.modal.details.unknown': 'Unknown',
+      'firmware.modal.details.keep': 'Keep',
+      'firmware.modal.segments.title': 'Write segments',
+      'firmware.modal.cancel': 'Close',
+      'firmware.modal.erase': 'Erase',
+      'firmware.modal.start': 'Start transfer',
+      'firmware.modal.log.placeholder': 'Transfer log will appear here.',
+      'firmware.modal.log.simulated': 'This is a simulated flow (layout preview).',
+      'firmware.modal.log.select': 'Select a firmware package to continue.',
+      'firmware.modal.log.unsupported': 'WebSerial is not supported in this browser.',
+      'firmware.modal.log.eraseStart': 'Erasing flash...',
+      'firmware.modal.log.eraseDone': 'Erase completed.',
+      'firmware.modal.log.transferStart': 'Starting transfer...',
+      'firmware.modal.log.transferDone': 'Transfer complete.',
+      'firmware.modal.optionPlaceholder': 'Select a firmware',
+      'firmware.modal.baudrateOption': '{baud} bps',
+      'firmware.option.standard': 'Preview firmware (standard)',
+      'firmware.option.fast': 'Preview firmware (fast updates)',
+      'firmware.summary.standard': 'Standard preview firmware with WebSerial control and logging.',
+      'firmware.summary.fast': 'Faster refresh for tuning servo motion and timing.',
       'insight.title': 'Workspace Snapshot',
       'insight.servos': 'Servos',
       'insight.joints': 'Joints',
@@ -168,6 +204,42 @@ document.addEventListener('DOMContentLoaded', () => {
       'device.meta.mode': 'モード',
       'device.mode.demo': 'デモ',
       'device.mode.live': 'ライブ',
+      'firmware.modal.title': 'プレビュー用ファームウェアを転送',
+      'firmware.modal.description': 'プレビュー用ファームウェアを選択し、WebSerial で転送します。',
+      'firmware.modal.firmwareLabel': 'ファームウェア選択',
+      'firmware.modal.firmwareAria': '転送するファームウェアを選択',
+      'firmware.modal.summary.title': '説明',
+      'firmware.modal.summary.empty': 'ファームウェアを選択すると詳細が表示されます。',
+      'firmware.modal.baudrateLabel': '転送速度',
+      'firmware.modal.baudrateAria': '転送速度を選択',
+      'firmware.modal.baudrateHint': 'ボードが対応する速度を選択してください。',
+      'firmware.modal.eraseBefore': '転送前にフラッシュを消去する',
+      'firmware.modal.eraseBeforeHint': '書き込み前に erase_flash を実行します。',
+      'firmware.modal.details.title': '書き込みオプション',
+      'firmware.modal.details.chip': 'ターゲット',
+      'firmware.modal.details.flashMode': 'Flash モード',
+      'firmware.modal.details.flashFreq': 'Flash 周波数',
+      'firmware.modal.details.flashSize': 'Flash サイズ',
+      'firmware.modal.details.unknown': '不明',
+      'firmware.modal.details.keep': '保持',
+      'firmware.modal.segments.title': '書き込みセグメント',
+      'firmware.modal.cancel': '閉じる',
+      'firmware.modal.erase': '消去',
+      'firmware.modal.start': '転送を開始',
+      'firmware.modal.log.placeholder': '転送ログがここに表示されます。',
+      'firmware.modal.log.simulated': 'レイアウト確認用のシミュレーションです。',
+      'firmware.modal.log.select': 'ファームウェアを選択してください。',
+      'firmware.modal.log.unsupported': 'このブラウザでは WebSerial を利用できません。',
+      'firmware.modal.log.eraseStart': 'フラッシュを消去しています...',
+      'firmware.modal.log.eraseDone': '消去が完了しました。',
+      'firmware.modal.log.transferStart': '転送を開始します...',
+      'firmware.modal.log.transferDone': '転送が完了しました。',
+      'firmware.modal.optionPlaceholder': 'ファームウェアを選択',
+      'firmware.modal.baudrateOption': '{baud} bps',
+      'firmware.option.standard': 'プレビュー用ファーム（標準）',
+      'firmware.option.fast': 'プレビュー用ファーム（高速更新）',
+      'firmware.summary.standard': 'WebSerial 操作とログ機能を備えた標準ファームです。',
+      'firmware.summary.fast': 'サーボ調整向けに更新頻度を高めたファームです。',
       'insight.title': 'ワークスペース概要',
       'insight.servos': 'サーボ',
       'insight.joints': 'ジョイント',
@@ -308,6 +380,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const portLabel = document.getElementById('port-label');
   const syncLabel = document.getElementById('sync-label');
   const languageSelect = document.getElementById('language-select');
+  const firmwareModal = document.querySelector('[data-modal="firmware-flash"]');
+  const firmwareSelect = document.getElementById('firmware-select');
+  const firmwareBaudrate = document.getElementById('firmware-baudrate');
+  const firmwareEraseBefore = document.getElementById('firmware-erase-before');
+  const firmwareSummaryText = document.querySelector('[data-firmware-summary-text]');
+  const firmwareSegments = document.querySelector('[data-firmware-segments]');
+  const firmwareProgress = document.querySelector('[data-flash-progress] progress');
+  const firmwareProgressLabel = document.querySelector('[data-flash-progress-label]');
+  const firmwareLog = document.querySelector('[data-flash-log]');
+  const firmwareEraseButton = document.getElementById('firmware-erase-button');
+  const firmwareStartButton = document.getElementById('firmware-start-button');
+
+  let updateFirmwareLocale = () => {};
 
   const state = {
     status: 'disconnected',
@@ -350,6 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     updateConnectionUI();
+    updateFirmwareLocale();
   };
 
   const detectLanguage = () => {
@@ -367,6 +453,287 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     return 'en';
+  };
+
+  const interpolate = (template, params) => {
+    return template.replace(/\{(\w+)\}/g, (_, key) => {
+      return params[key] ?? '';
+    });
+  };
+
+  const firmwareCatalog = [
+    {
+      id: 'preview_standard',
+      optionKey: 'firmware.option.standard',
+      summaryKey: 'firmware.summary.standard',
+      details: {
+        chip: 'ESP32',
+        flashMode: 'dio',
+        flashFreq: '40MHz',
+        flashSize: '4MB'
+      },
+      segments: ['0x1000 bootloader.bin', '0x8000 partitions.bin', '0x10000 motionkit_preview.bin'],
+      baudrates: [115200, 460800, 921600]
+    },
+    {
+      id: 'preview_fast',
+      optionKey: 'firmware.option.fast',
+      summaryKey: 'firmware.summary.fast',
+      details: {
+        chip: 'ESP32',
+        flashMode: 'qio',
+        flashFreq: '80MHz',
+        flashSize: '4MB'
+      },
+      segments: ['0x1000 bootloader.bin', '0x8000 partitions.bin', '0x10000 motionkit_preview_fast.bin'],
+      baudrates: [460800, 921600, 1500000]
+    }
+  ];
+
+  const firmwareState = {
+    selectedId: '',
+    busy: false,
+    timer: null,
+    progress: 0,
+    logIsPlaceholder: true
+  };
+
+  const openModal = (modal) => {
+    if (!modal) {
+      return;
+    }
+    modal.classList.add('is-visible');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+  };
+
+  const closeModal = (modal) => {
+    if (!modal) {
+      return;
+    }
+    modal.classList.remove('is-visible');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+  };
+
+  const setFirmwareProgress = (value) => {
+    const clamped = Math.max(0, Math.min(100, value));
+    firmwareState.progress = clamped;
+    if (firmwareProgress) {
+      firmwareProgress.value = clamped;
+    }
+    if (firmwareProgressLabel) {
+      firmwareProgressLabel.textContent = `${clamped}%`;
+    }
+  };
+
+  const setFirmwareLog = (message) => {
+    if (!firmwareLog) {
+      return;
+    }
+    firmwareLog.textContent = message;
+    firmwareLog.scrollTop = firmwareLog.scrollHeight;
+    firmwareState.logIsPlaceholder = message === getTranslation('firmware.modal.log.placeholder');
+  };
+
+  const appendFirmwareLog = (message) => {
+    if (!firmwareLog) {
+      return;
+    }
+    const placeholder = getTranslation('firmware.modal.log.placeholder');
+    const base = firmwareLog.textContent.trim();
+    const content = base && base !== placeholder ? `${base}\n${message}` : message;
+    firmwareLog.textContent = content;
+    firmwareLog.scrollTop = firmwareLog.scrollHeight;
+    firmwareState.logIsPlaceholder = false;
+  };
+
+  const setFirmwareBusy = (busy) => {
+    firmwareState.busy = busy;
+    const hasSelection = Boolean(firmwareState.selectedId);
+    if (firmwareSelect) {
+      firmwareSelect.disabled = busy;
+    }
+    if (firmwareBaudrate) {
+      firmwareBaudrate.disabled = busy || !hasSelection;
+    }
+    if (firmwareEraseBefore) {
+      firmwareEraseBefore.disabled = busy || !hasSelection;
+    }
+    if (firmwareEraseButton) {
+      firmwareEraseButton.disabled = busy || !hasSelection;
+    }
+    if (firmwareStartButton) {
+      firmwareStartButton.disabled = busy || !hasSelection;
+    }
+  };
+
+  const resetFirmwareModal = () => {
+    if (firmwareState.timer) {
+      clearInterval(firmwareState.timer);
+      firmwareState.timer = null;
+    }
+    setFirmwareProgress(0);
+    setFirmwareBusy(false);
+    if (firmwareEraseBefore) {
+      firmwareEraseBefore.checked = true;
+    }
+    setFirmwareLog(getTranslation('firmware.modal.log.placeholder'));
+  };
+
+  const renderFirmwareOptions = () => {
+    if (!firmwareSelect) {
+      return;
+    }
+    firmwareSelect.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = getTranslation('firmware.modal.optionPlaceholder');
+    firmwareSelect.appendChild(placeholder);
+
+    firmwareCatalog.forEach((firmware) => {
+      const option = document.createElement('option');
+      option.value = firmware.id;
+      option.textContent = getTranslation(firmware.optionKey);
+      firmwareSelect.appendChild(option);
+    });
+  };
+
+  const updateFirmwareDetails = () => {
+    const selected = firmwareCatalog.find((item) => item.id === firmwareState.selectedId);
+    if (!selected) {
+      if (firmwareSummaryText) {
+        firmwareSummaryText.textContent = getTranslation('firmware.modal.summary.empty');
+      }
+      if (firmwareSegments) {
+        firmwareSegments.innerHTML = '';
+      }
+      document.querySelectorAll('[data-firmware-detail]').forEach((node) => {
+        node.textContent = '--';
+      });
+      if (firmwareBaudrate) {
+        firmwareBaudrate.innerHTML = '';
+      }
+      setFirmwareBusy(firmwareState.busy);
+      return;
+    }
+
+    if (firmwareSummaryText) {
+      firmwareSummaryText.textContent = getTranslation(selected.summaryKey);
+    }
+
+    const detailMap = {
+      chip: selected.details.chip || getTranslation('firmware.modal.details.unknown'),
+      'flash-mode': selected.details.flashMode || getTranslation('firmware.modal.details.keep'),
+      'flash-freq': selected.details.flashFreq || getTranslation('firmware.modal.details.keep'),
+      'flash-size': selected.details.flashSize || getTranslation('firmware.modal.details.keep')
+    };
+
+    document.querySelectorAll('[data-firmware-detail]').forEach((node) => {
+      const key = node.dataset.firmwareDetail;
+      node.textContent = detailMap[key] || '--';
+    });
+
+    if (firmwareSegments) {
+      firmwareSegments.innerHTML = '';
+      selected.segments.forEach((segment) => {
+        const item = document.createElement('li');
+        item.textContent = segment;
+        firmwareSegments.appendChild(item);
+      });
+    }
+
+    if (firmwareBaudrate) {
+      firmwareBaudrate.innerHTML = '';
+      selected.baudrates.forEach((baud) => {
+        const option = document.createElement('option');
+        option.value = String(baud);
+        option.textContent = interpolate(getTranslation('firmware.modal.baudrateOption'), { baud });
+        firmwareBaudrate.appendChild(option);
+      });
+      firmwareBaudrate.value = String(selected.baudrates[0]);
+    }
+
+    setFirmwareBusy(firmwareState.busy);
+  };
+
+  const selectFirmware = (id) => {
+    firmwareState.selectedId = id;
+    if (firmwareSelect) {
+      firmwareSelect.value = id;
+    }
+    updateFirmwareDetails();
+  };
+
+  updateFirmwareLocale = () => {
+    renderFirmwareOptions();
+    if (firmwareState.selectedId) {
+      const exists = firmwareCatalog.some((item) => item.id === firmwareState.selectedId);
+      if (!exists) {
+        firmwareState.selectedId = '';
+      }
+    }
+    if (firmwareSelect) {
+      firmwareSelect.value = firmwareState.selectedId;
+    }
+    updateFirmwareDetails();
+    if (firmwareState.logIsPlaceholder) {
+      setFirmwareLog(getTranslation('firmware.modal.log.placeholder'));
+    }
+  };
+
+  const simulateProgress = () => {
+    setFirmwareProgress(0);
+    firmwareState.timer = setInterval(() => {
+      const next = firmwareState.progress + 12;
+      setFirmwareProgress(next);
+      if (next >= 100) {
+        clearInterval(firmwareState.timer);
+        firmwareState.timer = null;
+        appendFirmwareLog(getTranslation('firmware.modal.log.transferDone'));
+        setFirmwareBusy(false);
+      }
+    }, 260);
+  };
+
+  const startEraseOnly = () => {
+    if (!firmwareState.selectedId) {
+      appendFirmwareLog(getTranslation('firmware.modal.log.select'));
+      return;
+    }
+    setFirmwareBusy(true);
+    appendFirmwareLog(getTranslation('firmware.modal.log.simulated'));
+    appendFirmwareLog(getTranslation('firmware.modal.log.eraseStart'));
+    setTimeout(() => {
+      appendFirmwareLog(getTranslation('firmware.modal.log.eraseDone'));
+      setFirmwareBusy(false);
+    }, 700);
+  };
+
+  const startTransfer = () => {
+    if (!state.supported) {
+      appendFirmwareLog(getTranslation('firmware.modal.log.unsupported'));
+      return;
+    }
+    if (!firmwareState.selectedId) {
+      appendFirmwareLog(getTranslation('firmware.modal.log.select'));
+      return;
+    }
+    setFirmwareBusy(true);
+    appendFirmwareLog(getTranslation('firmware.modal.log.simulated'));
+    const runTransfer = () => {
+      appendFirmwareLog(getTranslation('firmware.modal.log.transferStart'));
+      simulateProgress();
+    };
+    if (firmwareEraseBefore && firmwareEraseBefore.checked) {
+      appendFirmwareLog(getTranslation('firmware.modal.log.eraseStart'));
+      setTimeout(() => {
+        appendFirmwareLog(getTranslation('firmware.modal.log.eraseDone'));
+        runTransfer();
+      }, 700);
+    } else {
+      runTransfer();
+    }
   };
 
   const updateConnectionUI = () => {
@@ -491,6 +858,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
   disconnectButton.addEventListener('click', () => {
     disconnectDevice();
+  });
+
+  if (flashButton && firmwareModal) {
+    flashButton.addEventListener('click', () => {
+      resetFirmwareModal();
+      updateFirmwareLocale();
+      openModal(firmwareModal);
+    });
+  }
+
+  if (firmwareSelect) {
+    firmwareSelect.addEventListener('change', (event) => {
+      selectFirmware(event.target.value);
+    });
+  }
+
+  if (firmwareEraseButton) {
+    firmwareEraseButton.addEventListener('click', () => {
+      startEraseOnly();
+    });
+  }
+
+  if (firmwareStartButton) {
+    firmwareStartButton.addEventListener('click', () => {
+      startTransfer();
+    });
+  }
+
+  if (firmwareModal) {
+    firmwareModal.querySelectorAll('[data-modal-close]').forEach((button) => {
+      button.addEventListener('click', () => {
+        resetFirmwareModal();
+        closeModal(firmwareModal);
+      });
+    });
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && firmwareModal && firmwareModal.classList.contains('is-visible')) {
+      resetFirmwareModal();
+      closeModal(firmwareModal);
+    }
   });
 
   if (!state.supported) {

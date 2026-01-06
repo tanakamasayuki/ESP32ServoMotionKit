@@ -496,6 +496,83 @@
     </main>
   </div>
 
+  <div class="modal" data-modal="firmware-flash" aria-hidden="true">
+    <div class="modal__backdrop" data-modal-close></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="firmware-flash-title">
+      <header class="modal__header">
+        <h2 id="firmware-flash-title" data-i18n="firmware.modal.title">Flash Preview Firmware</h2>
+        <p class="modal__detail" data-i18n="firmware.modal.description">
+          Select a preview firmware package and transfer it over WebSerial.
+        </p>
+      </header>
+      <div class="modal__body">
+        <label class="form-field">
+          <span data-i18n="firmware.modal.firmwareLabel">Firmware package</span>
+          <select id="firmware-select" data-i18n-aria="firmware.modal.firmwareAria"></select>
+        </label>
+        <div class="firmware-summary">
+          <h3 data-i18n="firmware.modal.summary.title">Summary</h3>
+          <p data-firmware-summary-text></p>
+        </div>
+        <label class="form-field">
+          <span data-i18n="firmware.modal.baudrateLabel">Transfer speed</span>
+          <select id="firmware-baudrate" data-i18n-aria="firmware.modal.baudrateAria"></select>
+          <span class="field-hint" data-i18n="firmware.modal.baudrateHint">
+            Choose a speed supported by your board.
+          </span>
+        </label>
+        <label class="checkbox-field">
+          <input type="checkbox" id="firmware-erase-before" />
+          <span data-i18n="firmware.modal.eraseBefore">Erase flash before transfer</span>
+        </label>
+        <span class="field-hint" data-i18n="firmware.modal.eraseBeforeHint">
+          Runs erase_flash before writing.
+        </span>
+        <div class="firmware-details">
+          <h3 data-i18n="firmware.modal.details.title">Flash options</h3>
+          <dl class="firmware-detail-list">
+            <div>
+              <dt data-i18n="firmware.modal.details.chip">Target</dt>
+              <dd data-firmware-detail="chip">--</dd>
+            </div>
+            <div>
+              <dt data-i18n="firmware.modal.details.flashMode">Flash mode</dt>
+              <dd data-firmware-detail="flash-mode">--</dd>
+            </div>
+            <div>
+              <dt data-i18n="firmware.modal.details.flashFreq">Flash frequency</dt>
+              <dd data-firmware-detail="flash-freq">--</dd>
+            </div>
+            <div>
+              <dt data-i18n="firmware.modal.details.flashSize">Flash size</dt>
+              <dd data-firmware-detail="flash-size">--</dd>
+            </div>
+          </dl>
+          <div class="firmware-segments">
+            <h4 data-i18n="firmware.modal.segments.title">Write segments</h4>
+            <ul data-firmware-segments></ul>
+          </div>
+        </div>
+        <div class="firmware-status">
+          <div class="flash-progress" data-flash-progress>
+            <progress value="0" max="100"></progress>
+            <span data-flash-progress-label>0%</span>
+          </div>
+          <pre class="flash-log" data-flash-log aria-live="polite"></pre>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn-ghost" type="button" data-modal-close data-i18n="firmware.modal.cancel">Close</button>
+        <button class="btn btn-outline" type="button" id="firmware-erase-button" data-i18n="firmware.modal.erase">
+          Erase
+        </button>
+        <button class="btn btn-primary" type="button" id="firmware-start-button" data-i18n="firmware.modal.start">
+          Start transfer
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="./app.js"></script>
 </body>
 </html>

@@ -631,6 +631,183 @@ a {
   }
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 2000;
+}
+
+.modal.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 22, 24, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(700px, 100%);
+  max-height: min(86vh, 760px);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.modal__header h2 {
+  margin: 0 0 6px;
+}
+
+.modal__detail {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.modal__footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.field-hint {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+.checkbox-field input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.firmware-summary,
+.firmware-details,
+.firmware-status {
+  border: 1px solid rgba(27, 31, 35, 0.08);
+  border-radius: var(--radius-md);
+  background: rgba(11, 139, 123, 0.06);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.firmware-summary h3,
+.firmware-details h3,
+.firmware-details h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.firmware-detail-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.firmware-detail-list div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.firmware-detail-list dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-muted);
+}
+
+.firmware-detail-list dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.firmware-segments h4 {
+  font-size: 0.9rem;
+  margin: 0 0 6px;
+}
+
+.firmware-segments ul {
+  margin: 0;
+  padding-left: 18px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.flash-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.flash-progress progress {
+  width: 100%;
+  height: 10px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
+.flash-log {
+  background: #fff;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border);
+  padding: 12px;
+  min-height: 120px;
+  max-height: 200px;
+  overflow: auto;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  white-space: pre-wrap;
+}
+
 @media (max-width: 1100px) {
   .hero {
     grid-template-columns: 1fr;
@@ -661,6 +838,11 @@ a {
   .status-grid,
   .insight-grid {
     grid-template-columns: 1fr;
+  }
+
+  .modal__footer {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 

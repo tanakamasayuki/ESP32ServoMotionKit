@@ -140,8 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.form.ttl.bus': 'UART bus',
       'servo.card.preview': 'Live Preview',
       'servo.preview.angle': 'Preview angle',
-      'servo.preview.sweep': 'Run sweep',
-      'servo.preview.pulse': 'Send pulse',
+      'servo.preview.apply': 'Preview on device',
+      'servo.preview.apply.checkbox': 'When connected, move real servos with this preview',
       'servo.card.calibration': 'Calibration Notes',
       'servo.calibration.note': 'Keep the horn centered before saving. Use a neutral pose to align all axes.',
       'servo.calibration.item1': 'Neutral pose saved',
@@ -395,8 +395,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.form.ttl.bus': 'UART バス',
       'servo.card.preview': 'ライブプレビュー',
       'servo.preview.angle': 'プレビュー角度',
-      'servo.preview.sweep': 'スイープ実行',
-      'servo.preview.pulse': 'パルス送信',
+      'servo.preview.apply': 'デバイスでプレビュー',
+      'servo.preview.apply.checkbox': '接続中は実サーボを動かしてプレビューする',
       'servo.card.calibration': 'キャリブレーション',
       'servo.calibration.note': '保存前にホーンを中央に合わせ、ニュートラルポーズで全軸を整列します。',
       'servo.calibration.item1': 'ニュートラル保存済み',
@@ -541,6 +541,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const firmwareLog = document.querySelector('[data-flash-log]');
   const firmwareEraseButton = document.getElementById('firmware-erase-button');
   const firmwareStartButton = document.getElementById('firmware-start-button');
+  const servoPreviewAngle = document.getElementById('servo-preview-angle');
+  const servoPreviewAngleInput = document.getElementById('servo-preview-angle-input');
 
   let updateFirmwareLocale = () => {};
   let updateHeroPanels = () => {};
@@ -1009,6 +1011,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const initServoPreviewAngle = () => {
+    if (!servoPreviewAngle || !servoPreviewAngleInput) {
+      return;
+    }
+    const updateValue = () => {
+      servoPreviewAngleInput.value = servoPreviewAngle.value;
+    };
+    const updateFromInput = () => {
+      const value = Math.max(0, Math.min(180, Number(servoPreviewAngleInput.value || 0)));
+      servoPreviewAngle.value = String(value);
+      servoPreviewAngleInput.value = String(value);
+    };
+    servoPreviewAngle.addEventListener('input', updateValue);
+    servoPreviewAngleInput.addEventListener('input', updateFromInput);
+    updateValue();
+  };
+
   const initServoTypeToggle = () => {
     const select = document.querySelector('[data-servo-type-select]');
     const groups = Array.from(document.querySelectorAll('[data-servo-type-group]'));
@@ -1159,6 +1178,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeroTabs();
   initSelectableLists();
   initServoTypeToggle();
+  initServoPreviewAngle();
   const initialLanguage = detectLanguage();
   languageSelect.value = initialLanguage;
   applyTranslations(initialLanguage);

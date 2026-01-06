@@ -499,6 +499,28 @@ a {
   font-weight: 600;
 }
 
+.form-field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.form-value {
+  font-weight: 600;
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+}
+
+.form-field-row input[type="number"] {
+  width: 90px;
+}
+
+.form-field-row input[type="range"] {
+  flex: 1 1 auto;
+  min-width: 220px;
+}
+
 .form-field--full {
   grid-column: 1 / -1;
 }

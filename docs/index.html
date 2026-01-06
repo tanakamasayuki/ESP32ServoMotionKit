@@ -372,23 +372,20 @@
                 <div class="dial-needle"></div>
               </div>
               <label class="form-field">
-                <span data-i18n="servo.preview.angle">Preview angle</span>
-                <input type="range" min="0" max="180" value="90" />
-              </label>
-              <div class="card-actions">
-                <button class="btn btn-outline" type="button" data-i18n="servo.preview.sweep">Run sweep</button>
-                <button class="btn btn-ghost" type="button" data-i18n="servo.preview.pulse">Send pulse</button>
-              </div>
-              <div class="aux-block">
-                <h4 data-i18n="servo.card.calibration">Calibration Notes</h4>
-                <p class="muted" data-i18n="servo.calibration.note">
-                  Keep the horn centered before saving. Use a neutral pose to align all axes.
-                </p>
-                <div class="checklist">
-                  <label><input type="checkbox" /> <span data-i18n="servo.calibration.item1">Neutral pose saved</span></label>
-                  <label><input type="checkbox" /> <span data-i18n="servo.calibration.item2">Limits verified</span></label>
-                  <label><input type="checkbox" /> <span data-i18n="servo.calibration.item3">Direction checked</span></label>
+                <div class="form-field-row">
+                  <span data-i18n="servo.preview.angle">Preview angle</span>
                 </div>
+                <div class="form-field-row">
+                  <input type="range" min="0" max="180" value="90" id="servo-preview-angle" />
+                  <input type="number" min="0" max="180" value="90" id="servo-preview-angle-input" />
+                </div>
+              </label>
+              <div class="form-field">
+                <span data-i18n="servo.preview.apply">Apply while connected</span>
+                <label class="checkbox-field">
+                  <input type="checkbox" id="servo-preview-apply" />
+                  <span data-i18n="servo.preview.apply.checkbox">Reflect while connected</span>
+                </label>
               </div>
             </article>
           </div>

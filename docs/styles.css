@@ -98,6 +98,17 @@ a {
   gap: 12px;
 }
 
+.hero-title-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+}
+
+.hero-title-row .lead {
+  margin: 0;
+}
+
 .eyebrow {
   text-transform: uppercase;
   font-weight: 600;
@@ -108,7 +119,7 @@ a {
 
 .lead {
   font-size: clamp(1rem, 2vw, 1.2rem);
-  max-width: 560px;
+  max-width: none;
 }
 
 .hero-tags {
@@ -913,6 +924,10 @@ body.modal-open {
 
 @media (max-width: 1100px) {
   .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-title-row {
     grid-template-columns: 1fr;
   }
 

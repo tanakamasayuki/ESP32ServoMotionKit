@@ -17,11 +17,13 @@
     <header class="hero">
       <div class="hero-brand">
         <span class="eyebrow" data-i18n="app.eyebrow">ESP32 Servo Motion Kit</span>
-        <h1 data-i18n="app.title">Motion Studio</h1>
-        <p class="lead" data-i18n="app.subtitle">
-          Configure servo, joint, pose, motion, and sequence settings, then export a header for your ESP32 sketch.
-          Preview via WebSerial is optional.
-        </p>
+        <div class="hero-title-row">
+          <h1 data-i18n="app.title">Motion Studio</h1>
+          <p class="lead" data-i18n="app.subtitle">
+            Configure servo, joint, pose, motion, and sequence settings, then export a header for your ESP32 sketch.
+            Preview via WebSerial is optional.
+          </p>
+        </div>
       </div>
       <div class="hero-panel">
         <div class="hero-tabs" data-hero-tabs>
@@ -33,6 +35,10 @@
             <button class="hero-tab" role="tab" data-hero-tab="summary" aria-selected="false"
               aria-controls="hero-summary" data-i18n="insight.title">
               Workspace Snapshot
+            </button>
+            <button class="hero-tab" role="tab" data-hero-tab="preview" aria-selected="false"
+              aria-controls="hero-preview" data-i18n="preview.title">
+              Preview
             </button>
           </div>
           <div class="hero-tab-panels">
@@ -108,6 +114,88 @@
                   <option value="ja" data-i18n="language.option.ja">日本語</option>
                 </select>
                 <p class="hint" data-i18n="language.hint">Auto-detected from the browser.</p>
+              </div>
+            </section>
+            <section class="card hero-tab-panel" id="hero-preview" data-hero-panel="preview" aria-hidden="true" hidden>
+              <header class="panel-header">
+                <div>
+                  <h2 data-i18n="preview.title">Preview</h2>
+                  <p data-i18n="preview.desc">Quickly send angles to all registered servos.</p>
+                </div>
+              </header>
+              <div class="panel-grid panel-grid--workspace">
+                <article class="panel-pane panel-pane--list">
+                  <div class="list-header">
+                    <h3 data-i18n="preview.list.title">Registered servos</h3>
+                    <div class="list-actions">
+                      <button class="btn btn-outline" type="button" data-i18n="preview.list.refresh">Refresh</button>
+                    </div>
+                  </div>
+                  <ul class="list">
+                    <li class="list-item is-active">
+                      <span>servo_front_left</span>
+                      <span class="chip">92°</span>
+                    </li>
+                    <li class="list-item">
+                      <span>servo_front_right</span>
+                      <span class="chip">88°</span>
+                    </li>
+                    <li class="list-item">
+                      <span>servo_tail</span>
+                      <span class="chip">120°</span>
+                    </li>
+                  </ul>
+                </article>
+                <article class="panel-pane panel-pane--editor">
+                  <h3 data-i18n="preview.bulk.title">Bulk angle control</h3>
+                  <div class="form-grid">
+                    <label class="form-field">
+                      <span data-i18n="preview.bulk.angle">Target angle (deg)</span>
+                      <input type="number" value="90" min="0" max="180" />
+                    </label>
+                    <label class="form-field">
+                      <span data-i18n="preview.bulk.duration">Move duration (ms)</span>
+                      <input type="number" value="500" min="0" />
+                    </label>
+                    <label class="form-field">
+                      <span data-i18n="preview.bulk.easing">Easing</span>
+                      <select>
+                        <option value="e_linear" data-i18n="preview.bulk.easing.linear">Linear</option>
+                        <option value="e_smooth" data-i18n="preview.bulk.easing.smooth">Smooth</option>
+                        <option value="e_scurve_strong" data-i18n="preview.bulk.easing.strong">Strong S-curve</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="card-actions">
+                    <button class="btn btn-secondary" type="button" data-i18n="preview.bulk.apply">
+                      Apply to all servos
+                    </button>
+                    <button class="btn btn-ghost" type="button" data-i18n="preview.bulk.neutral">
+                      Send neutral pose
+                    </button>
+                  </div>
+                </article>
+                <article class="panel-pane panel-pane--aux">
+                  <h3 data-i18n="preview.status.title">Servo status</h3>
+                  <div class="mini-list">
+                    <div class="mini-row">
+                      <span class="mini-k">CH0</span>
+                      <span class="mini-v" data-i18n="preview.status.ready">Ready</span>
+                    </div>
+                    <div class="mini-row">
+                      <span class="mini-k">CH1</span>
+                      <span class="mini-v" data-i18n="preview.status.moving">Moving</span>
+                    </div>
+                    <div class="mini-row">
+                      <span class="mini-k">CH2</span>
+                      <span class="mini-v" data-i18n="preview.status.hold">Holding</span>
+                    </div>
+                  </div>
+                  <div class="card-actions">
+                    <button class="btn btn-outline" type="button" data-i18n="preview.status.stop">Stop all</button>
+                    <button class="btn btn-ghost" type="button" data-i18n="preview.status.sync">Sync state</button>
+                  </div>
+                </article>
               </div>
             </section>
           </div>

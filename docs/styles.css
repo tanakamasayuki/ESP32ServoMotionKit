@@ -434,7 +434,8 @@ a {
 .panel-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 4px;
 }

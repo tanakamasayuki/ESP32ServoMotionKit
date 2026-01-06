@@ -143,6 +143,19 @@ a {
   gap: 16px;
 }
 
+.hero-panel--split {
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.hero-summary {
+  min-width: 0;
+}
+
+.hero-tabs--right {
+  min-width: 0;
+}
+
 .hero-tabs {
   display: flex;
   flex-direction: column;
@@ -928,6 +941,10 @@ body.modal-open {
   }
 
   .hero-title-row {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-panel--split {
     grid-template-columns: 1fr;
   }
 

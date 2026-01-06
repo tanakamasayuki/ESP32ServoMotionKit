@@ -12,3 +12,5 @@ arduino_secrets.h
 #sketch.yaml
 temp
 libs/
+docs2/
+memo.txt

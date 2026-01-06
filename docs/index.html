@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ESP32 Servo Motion Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="hero-brand">
+        <span class="eyebrow" data-i18n="app.eyebrow">ESP32 Servo Motion Kit</span>
+        <h1 data-i18n="app.title">Motion Studio</h1>
+        <p class="lead" data-i18n="app.subtitle">
+          Design servo, joint, pose, motion, and sequence layouts before syncing to hardware.
+        </p>
+        <div class="hero-tags">
+          <span class="tag" data-i18n="app.tag.offline">Offline ready</span>
+          <span class="tag" data-i18n="app.tag.webserial">WebSerial optional</span>
+          <span class="tag" data-i18n="app.tag.layout">Layout preview</span>
+        </div>
+      </div>
+      <div class="hero-panel">
+        <section class="card status-card">
+          <div class="status-header">
+            <h2 data-i18n="device.title">Device Link</h2>
+            <div class="status-pill" id="status-pill">
+              <span class="status-dot"></span>
+              <span id="status-label" data-i18n="device.status.disconnected">Disconnected</span>
+            </div>
+          </div>
+          <p class="status-note" data-i18n="device.note">
+            Edit everything without a device. Connect when you want to sync or preview moves.
+          </p>
+          <div class="status-actions">
+            <button class="btn btn-primary" id="connect-button" type="button" data-i18n="device.actions.connect">
+              Connect
+            </button>
+            <button class="btn btn-ghost" id="disconnect-button" type="button" data-i18n="device.actions.disconnect">
+              Disconnect
+            </button>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="demo-toggle" checked />
+            <span data-i18n="device.demo.label">Demo mode (no device needed)</span>
+          </label>
+          <div class="status-grid">
+            <div>
+              <span class="status-k" data-i18n="device.meta.port">Port</span>
+              <span class="status-v" id="port-label">—</span>
+            </div>
+            <div>
+              <span class="status-k" data-i18n="device.meta.firmware">Firmware</span>
+              <span class="status-v" id="firmware-label">—</span>
+            </div>
+            <div>
+              <span class="status-k" data-i18n="device.meta.sync">Last sync</span>
+              <span class="status-v" id="sync-label">—</span>
+            </div>
+            <div>
+              <span class="status-k" data-i18n="device.meta.mode">Mode</span>
+              <span class="status-v" id="mode-label" data-i18n="device.mode.demo">Demo</span>
+            </div>
+          </div>
+        </section>
+        <section class="card insight-card">
+          <h3 data-i18n="insight.title">Workspace Snapshot</h3>
+          <div class="insight-grid">
+            <div>
+              <span class="insight-k" data-i18n="insight.servos">Servos</span>
+              <span class="insight-v">12</span>
+            </div>
+            <div>
+              <span class="insight-k" data-i18n="insight.joints">Joints</span>
+              <span class="insight-v">6</span>
+            </div>
+            <div>
+              <span class="insight-k" data-i18n="insight.poses">Poses</span>
+              <span class="insight-v">8</span>
+            </div>
+            <div>
+              <span class="insight-k" data-i18n="insight.sequences">Sequences</span>
+              <span class="insight-v">3</span>
+            </div>
+          </div>
+          <div class="language-block">
+            <label for="language-select" data-i18n="language.label">Language</label>
+            <select id="language-select" data-i18n-aria="language.aria">
+              <option value="en" data-i18n="language.option.en">English</option>
+              <option value="ja" data-i18n="language.option.ja">日本語</option>
+            </select>
+            <p class="hint" data-i18n="language.hint">Auto-detected from the browser.</p>
+          </div>
+        </section>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="tab-rail" role="tablist" aria-label="Workspace" data-i18n-aria="tabs.heading">
+        <div class="rail-header">
+          <h2 data-i18n="tabs.heading">Workspace</h2>
+          <span class="rail-sub" data-i18n="tabs.subheading">Core editors</span>
+        </div>
+        <button class="tab-button is-active" data-tab="servo" role="tab" aria-selected="true" aria-controls="panel-servo">
+          <span class="tab-title" data-i18n="tabs.servo">Servo</span>
+          <span class="tab-note" data-i18n="tabs.servo.note">PWM, limits, preview</span>
+        </button>
+        <button class="tab-button" data-tab="joint" role="tab" aria-selected="false" aria-controls="panel-joint">
+          <span class="tab-title" data-i18n="tabs.joint">Joint</span>
+          <span class="tab-note" data-i18n="tabs.joint.note">Axis mapping & offsets</span>
+        </button>
+        <button class="tab-button" data-tab="pose" role="tab" aria-selected="false" aria-controls="panel-pose">
+          <span class="tab-title" data-i18n="tabs.pose">Pose</span>
+          <span class="tab-note" data-i18n="tabs.pose.note">Pose library</span>
+        </button>
+        <button class="tab-button" data-tab="motion" role="tab" aria-selected="false" aria-controls="panel-motion">
+          <span class="tab-title" data-i18n="tabs.motion">Motion</span>
+          <span class="tab-note" data-i18n="tabs.motion.note">Transitions & clips</span>
+        </button>
+        <button class="tab-button" data-tab="sequence" role="tab" aria-selected="false" aria-controls="panel-sequence">
+          <span class="tab-title" data-i18n="tabs.sequence">Sequence</span>
+          <span class="tab-note" data-i18n="tabs.sequence.note">Steps & triggers</span>
+        </button>
+      </aside>
+
+      <section class="tab-panels">
+        <section class="tab-panel is-active" id="panel-servo" data-panel="servo" role="tabpanel" aria-label="Servo">
+          <header class="panel-header">
+            <div>
+              <h2 data-i18n="servo.title">Servo Tuning</h2>
+              <p data-i18n="servo.desc">Define PWM range, neutral, and safety limits per servo.</p>
+            </div>
+            <div class="panel-actions">
+              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
+              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+            </div>
+          </header>
+          <div class="panel-grid">
+            <article class="card" style="--delay: 60ms;">
+              <h3 data-i18n="servo.card.profile">Servo Profile</h3>
+              <div class="form-grid">
+                <label class="form-field">
+                  <span data-i18n="servo.form.id">Servo ID</span>
+                  <input type="text" data-i18n-placeholder="servo.form.id.placeholder" placeholder="servo_front_left" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="servo.form.channel">Channel</span>
+                  <input type="number" value="0" min="0" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="servo.form.neutral">Neutral (deg)</span>
+                  <input type="number" value="90" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="servo.form.pwmMin">PWM min (us)</span>
+                  <input type="number" value="500" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="servo.form.pwmMax">PWM max (us)</span>
+                  <input type="number" value="2500" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="servo.form.speed">Speed limit (deg/s)</span>
+                  <input type="range" min="20" max="360" value="120" />
+                </label>
+                <label class="form-field form-field--toggle">
+                  <span data-i18n="servo.form.invert">Invert direction</span>
+                  <input type="checkbox" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="servo.form.torque">Torque guard</span>
+                  <select>
+                    <option value="soft" data-i18n="servo.form.torque.soft">Soft</option>
+                    <option value="balanced" data-i18n="servo.form.torque.balance">Balanced</option>
+                    <option value="firm" data-i18n="servo.form.torque.firm">Firm</option>
+                  </select>
+                </label>
+              </div>
+            </article>
+            <article class="card card--accent" style="--delay: 120ms;">
+              <h3 data-i18n="servo.card.preview">Live Preview</h3>
+              <div class="preview-dial">
+                <div class="dial-face"></div>
+                <div class="dial-needle"></div>
+              </div>
+              <label class="form-field">
+                <span data-i18n="servo.preview.angle">Preview angle</span>
+                <input type="range" min="0" max="180" value="90" />
+              </label>
+              <div class="card-actions">
+                <button class="btn btn-outline" type="button" data-i18n="servo.preview.sweep">Run sweep</button>
+                <button class="btn btn-ghost" type="button" data-i18n="servo.preview.pulse">Send pulse</button>
+              </div>
+            </article>
+            <article class="card" style="--delay: 180ms;">
+              <h3 data-i18n="servo.card.calibration">Calibration Notes</h3>
+              <p class="muted" data-i18n="servo.calibration.note">
+                Keep the horn centered before saving. Use a neutral pose to align all axes.
+              </p>
+              <div class="checklist">
+                <label><input type="checkbox" /> <span data-i18n="servo.calibration.item1">Neutral pose saved</span></label>
+                <label><input type="checkbox" /> <span data-i18n="servo.calibration.item2">Limits verified</span></label>
+                <label><input type="checkbox" /> <span data-i18n="servo.calibration.item3">Direction checked</span></label>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-joint" data-panel="joint" role="tabpanel" aria-label="Joint">
+          <header class="panel-header">
+            <div>
+              <h2 data-i18n="joint.title">Joint Mapping</h2>
+              <p data-i18n="joint.desc">Bind logical axes to one or more servos.</p>
+            </div>
+            <div class="panel-actions">
+              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
+              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+            </div>
+          </header>
+          <div class="panel-grid">
+            <article class="card" style="--delay: 60ms;">
+              <h3 data-i18n="joint.card.definition">Joint Definition</h3>
+              <div class="form-grid">
+                <label class="form-field">
+                  <span data-i18n="joint.form.id">Joint ID</span>
+                  <input type="text" data-i18n-placeholder="joint.form.id.placeholder" placeholder="yaw" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="joint.form.type">Joint type</span>
+                  <select>
+                    <option value="rotational" data-i18n="joint.form.type.rotational">Rotational</option>
+                    <option value="linear" data-i18n="joint.form.type.linear">Linear</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span data-i18n="joint.form.servos">Mapped servos</span>
+                  <input type="text" data-i18n-placeholder="joint.form.servos.placeholder" placeholder="servo_front_left, servo_front_right" />
+                </label>
+                <label class="form-field form-field--toggle">
+                  <span data-i18n="joint.form.mirror">Mirror pair</span>
+                  <input type="checkbox" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="joint.form.offset">Neutral offset (deg)</span>
+                  <input type="number" value="0" />
+                </label>
+              </div>
+            </article>
+            <article class="card" style="--delay: 120ms;">
+              <h3 data-i18n="joint.card.limits">Limits & Gain</h3>
+              <div class="form-grid">
+                <label class="form-field">
+                  <span data-i18n="joint.form.min">Min (deg)</span>
+                  <input type="number" value="-45" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="joint.form.max">Max (deg)</span>
+                  <input type="number" value="45" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="joint.form.gain">Gain</span>
+                  <input type="number" value="1.0" step="0.1" />
+                </label>
+                <label class="form-field form-field--toggle">
+                  <span data-i18n="joint.form.soft">Soft limit</span>
+                  <input type="checkbox" checked />
+                </label>
+              </div>
+            </article>
+            <article class="card" style="--delay: 180ms;">
+              <h3 data-i18n="joint.card.group">Group Tools</h3>
+              <div class="card-actions">
+                <button class="btn btn-outline" type="button" data-i18n="joint.group.sync">Sync offsets</button>
+                <button class="btn btn-ghost" type="button" data-i18n="joint.group.balance">Balance load</button>
+              </div>
+              <div class="card-actions">
+                <button class="btn btn-secondary" type="button" data-i18n="joint.group.test">Test range</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-pose" data-panel="pose" role="tabpanel" aria-label="Pose">
+          <header class="panel-header">
+            <div>
+              <h2 data-i18n="pose.title">Pose Library</h2>
+              <p data-i18n="pose.desc">Capture and edit joint angles as reusable poses.</p>
+            </div>
+            <div class="panel-actions">
+              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
+              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+            </div>
+          </header>
+          <div class="panel-grid">
+            <article class="card" style="--delay: 60ms;">
+              <h3 data-i18n="pose.card.list">Pose List</h3>
+              <ul class="list">
+                <li class="list-item is-active">
+                  <span data-i18n="pose.list.home">Home</span>
+                  <span class="chip">p_home</span>
+                </li>
+                <li class="list-item">
+                  <span data-i18n="pose.list.wave">Wave</span>
+                  <span class="chip">p_wave</span>
+                </li>
+                <li class="list-item">
+                  <span data-i18n="pose.list.ready">Ready</span>
+                  <span class="chip">p_ready</span>
+                </li>
+              </ul>
+              <button class="btn btn-outline" type="button" data-i18n="pose.list.add">Add pose</button>
+            </article>
+            <article class="card" style="--delay: 120ms;">
+              <h3 data-i18n="pose.card.editor">Pose Editor</h3>
+              <div class="form-grid">
+                <label class="form-field">
+                  <span data-i18n="pose.editor.name">Pose name</span>
+                  <input type="text" data-i18n-placeholder="pose.editor.name.placeholder" placeholder="pose_wave" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="pose.editor.hold">Hold (ms)</span>
+                  <input type="number" value="200" />
+                </label>
+              </div>
+              <table class="mini-table">
+                <thead>
+                  <tr>
+                    <th data-i18n="pose.editor.axis">Axis</th>
+                    <th data-i18n="pose.editor.value">Target (deg)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>yaw</td>
+                    <td><input type="number" value="20" /></td>
+                  </tr>
+                  <tr>
+                    <td>pitch</td>
+                    <td><input type="number" value="-10" /></td>
+                  </tr>
+                  <tr>
+                    <td>roll</td>
+                    <td><input type="number" value="5" /></td>
+                  </tr>
+                </tbody>
+              </table>
+            </article>
+            <article class="card" style="--delay: 180ms;">
+              <h3 data-i18n="pose.card.capture">Capture & Preview</h3>
+              <p class="muted" data-i18n="pose.capture.note">Works offline; device sync is optional.</p>
+              <div class="card-actions">
+                <button class="btn btn-outline" type="button" data-i18n="pose.capture.snapshot">Snapshot from device</button>
+                <button class="btn btn-secondary" type="button" data-i18n="pose.capture.preview">Preview pose</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-motion" data-panel="motion" role="tabpanel" aria-label="Motion">
+          <header class="panel-header">
+            <div>
+              <h2 data-i18n="motion.title">Motion Builder</h2>
+              <p data-i18n="motion.desc">Arrange transitions between poses and apply easing.</p>
+            </div>
+            <div class="panel-actions">
+              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
+              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+            </div>
+          </header>
+          <div class="panel-grid">
+            <article class="card" style="--delay: 60ms;">
+              <h3 data-i18n="motion.card.timeline">Timeline</h3>
+              <div class="timeline">
+                <div class="timeline-chip">p_home</div>
+                <div class="timeline-chip">p_wave</div>
+                <div class="timeline-chip">p_ready</div>
+                <div class="timeline-gap" data-i18n="motion.timeline.placeholder">Drop poses to create a flow.</div>
+              </div>
+              <button class="btn btn-outline" type="button" data-i18n="motion.timeline.add">Add segment</button>
+            </article>
+            <article class="card" style="--delay: 120ms;">
+              <h3 data-i18n="motion.card.transition">Transition Settings</h3>
+              <div class="form-grid">
+                <label class="form-field">
+                  <span data-i18n="motion.form.duration">Move duration (ms)</span>
+                  <input type="number" value="500" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="motion.form.easing">Easing</span>
+                  <select>
+                    <option value="e_smooth" data-i18n="motion.form.easing.smooth">Smooth</option>
+                    <option value="e_linear" data-i18n="motion.form.easing.linear">Linear</option>
+                    <option value="e_scurve_strong" data-i18n="motion.form.easing.strong">Strong S-curve</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span data-i18n="motion.form.hold">Hold (ms)</span>
+                  <input type="number" value="200" />
+                </label>
+              </div>
+            </article>
+            <article class="card" style="--delay: 180ms;">
+              <h3 data-i18n="motion.card.preview">Preview & Sync</h3>
+              <div class="card-actions">
+                <button class="btn btn-secondary" type="button" data-i18n="motion.preview.play">Play motion</button>
+                <button class="btn btn-outline" type="button" data-i18n="motion.preview.loop">Loop</button>
+              </div>
+              <button class="btn btn-ghost" type="button" data-i18n="motion.preview.export">Export JSON</button>
+            </article>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-sequence" data-panel="sequence" role="tabpanel" aria-label="Sequence">
+          <header class="panel-header">
+            <div>
+              <h2 data-i18n="sequence.title">Sequence Orchestration</h2>
+              <p data-i18n="sequence.desc">Compose steps, triggers, and optional calls to reusable sequences.</p>
+            </div>
+            <div class="panel-actions">
+              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
+              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+            </div>
+          </header>
+          <div class="panel-grid">
+            <article class="card" style="--delay: 60ms;">
+              <h3 data-i18n="sequence.card.steps">Sequence Steps</h3>
+              <ol class="step-list">
+                <li>
+                  <span class="step-title" data-i18n="sequence.steps.step1">Step 1: p_home</span>
+                  <span class="chip">500ms · e_smooth</span>
+                </li>
+                <li>
+                  <span class="step-title" data-i18n="sequence.steps.step2">Step 2: p_wave</span>
+                  <span class="chip">800ms · e_linear</span>
+                </li>
+                <li>
+                  <span class="step-title" data-i18n="sequence.steps.step3">Step 3: call seq_intro</span>
+                  <span class="chip" data-i18n="sequence.steps.inline">Inline on export</span>
+                </li>
+              </ol>
+              <button class="btn btn-outline" type="button" data-i18n="sequence.steps.add">Add step</button>
+            </article>
+            <article class="card" style="--delay: 120ms;">
+              <h3 data-i18n="sequence.card.rules">Loop & Trigger</h3>
+              <div class="form-grid">
+                <label class="form-field form-field--toggle">
+                  <span data-i18n="sequence.form.loop">Loop playback</span>
+                  <input type="checkbox" checked />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="sequence.form.trigger">Trigger</span>
+                  <select>
+                    <option value="start" data-i18n="sequence.form.trigger.option.start">On sequence start</option>
+                    <option value="end" data-i18n="sequence.form.trigger.option.end">On sequence end</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span data-i18n="sequence.form.eventId">Event ID</span>
+                  <input type="number" value="100" />
+                </label>
+              </div>
+            </article>
+            <article class="card" style="--delay: 180ms;">
+              <h3 data-i18n="sequence.card.axis">Axis Easing</h3>
+              <p class="muted" data-i18n="sequence.axis.note">Override per axis when needed.</p>
+              <div class="mini-list">
+                <div class="mini-row">
+                  <span class="mini-k">yaw</span>
+                  <span class="mini-v">e_linear</span>
+                </div>
+                <div class="mini-row">
+                  <span class="mini-k">pitch</span>
+                  <span class="mini-v">e_smooth</span>
+                </div>
+                <div class="mini-row">
+                  <span class="mini-k">roll</span>
+                  <span class="mini-v">e_scurve_strong</span>
+                </div>
+              </div>
+              <button class="btn btn-ghost" type="button" data-i18n="sequence.axis.edit">Edit overrides</button>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

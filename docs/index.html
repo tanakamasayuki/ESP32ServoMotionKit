@@ -54,6 +54,10 @@
             </select>
             <p class="hint" data-i18n="language.hint">Auto-detected from the browser.</p>
           </div>
+          <div class="card-actions">
+            <button class="btn btn-outline" type="button" data-i18n="common.import">Import project</button>
+            <button class="btn btn-secondary" type="button" data-i18n="common.save">Save project</button>
+          </div>
         </section>
         <div class="hero-tabs hero-tabs--right" data-hero-tabs>
           <div class="hero-tablist" role="tablist" aria-label="Hero">
@@ -242,10 +246,6 @@
               <h2 data-i18n="servo.title">Servo Tuning</h2>
               <p data-i18n="servo.desc">Define PWM range, neutral, and safety limits per servo.</p>
             </div>
-            <div class="panel-actions">
-              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
-              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-            </div>
           </header>
           <div class="panel-grid panel-grid--workspace">
             <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
@@ -253,7 +253,6 @@
                 <h3 data-i18n="servo.card.list">Servo List</h3>
                 <div class="list-actions">
                   <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
-                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
                 </div>
               </div>
               <label class="form-field list-filter">
@@ -283,37 +282,87 @@
                   <input type="text" data-i18n-placeholder="servo.form.id.placeholder" placeholder="servo_front_left" />
                 </label>
                 <label class="form-field">
-                  <span data-i18n="servo.form.channel">Channel</span>
-                  <input type="number" value="0" min="0" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="servo.form.neutral">Neutral (deg)</span>
-                  <input type="number" value="90" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="servo.form.pwmMin">PWM min (us)</span>
-                  <input type="number" value="500" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="servo.form.pwmMax">PWM max (us)</span>
-                  <input type="number" value="2500" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="servo.form.speed">Speed limit (deg/s)</span>
-                  <input type="range" min="20" max="360" value="120" />
-                </label>
-                <label class="form-field form-field--toggle">
-                  <span data-i18n="servo.form.invert">Invert direction</span>
-                  <input type="checkbox" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="servo.form.torque">Torque guard</span>
-                  <select>
-                    <option value="soft" data-i18n="servo.form.torque.soft">Soft</option>
-                    <option value="balanced" data-i18n="servo.form.torque.balance">Balanced</option>
-                    <option value="firm" data-i18n="servo.form.torque.firm">Firm</option>
+                  <span data-i18n="servo.form.type">Type</span>
+                  <select data-servo-type-select>
+                    <option value="pwm" data-i18n="servo.form.type.pwm">PWM</option>
+                    <option value="ttl" data-i18n="servo.form.type.ttl">TTL/Bus</option>
                   </select>
                 </label>
+                <label class="form-field">
+                  <span data-i18n="servo.form.mode">Mode</span>
+                  <select>
+                    <option value="position" data-i18n="servo.form.mode.position">Position (180°)</option>
+                    <option value="wheel" data-i18n="servo.form.mode.wheel">Wheel (360°)</option>
+                  </select>
+                </label>
+                <label class="form-field form-field--full">
+                  <span data-i18n="servo.form.description">Description</span>
+                  <textarea rows="2" data-i18n-placeholder="servo.form.description.placeholder"
+                    placeholder="Left shoulder servo for v1 prototype"></textarea>
+                </label>
+              </div>
+              <div class="servo-type-group is-active" data-servo-type-group="pwm" aria-hidden="false">
+                <div class="form-grid">
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pin">PWM Pin</span>
+                    <input type="number" value="18" min="0" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.freq">PWM Frequency (Hz)</span>
+                    <input type="number" value="50" min="1" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.pulseMin">Pulse min (us)</span>
+                    <input type="number" value="500" min="0" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.pulseMax">Pulse max (us)</span>
+                    <input type="number" value="2400" min="0" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.center">Pulse center (us)</span>
+                    <input type="number" value="1500" min="0" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.deadband">Deadband (us)</span>
+                    <input type="number" value="5" min="0" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.speed">Speed limit (deg/s)</span>
+                    <input type="number" value="300" min="0" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.angleMin">Angle min (deg)</span>
+                    <input type="number" value="0" min="-180" max="180" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.angleMax">Angle max (deg)</span>
+                    <input type="number" value="180" min="-180" max="180" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.offset">Offset (deg)</span>
+                    <input type="number" value="0" />
+                  </label>
+                </div>
+              </div>
+              <div class="servo-type-group" data-servo-type-group="ttl" aria-hidden="true" hidden>
+                <p class="muted" data-i18n="servo.form.ttl.note">
+                  TTL/Bus fields are defined later. Preview UI shows placeholders.
+                </p>
+                <div class="form-grid">
+                  <label class="form-field">
+                    <span data-i18n="servo.form.ttl.address">Bus address</span>
+                    <input type="number" value="1" min="0" disabled />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.ttl.bus">UART bus</span>
+                    <input type="text" value="UART0" disabled />
+                  </label>
+                </div>
+              </div>
+              <div class="card-actions">
+                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
               </div>
             </article>
             <article class="card card--accent panel-pane panel-pane--aux" style="--delay: 180ms;">
@@ -351,10 +400,6 @@
               <h2 data-i18n="joint.title">Joint Mapping</h2>
               <p data-i18n="joint.desc">Bind logical axes to one or more servos.</p>
             </div>
-            <div class="panel-actions">
-              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
-              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-            </div>
           </header>
           <div class="panel-grid panel-grid--workspace">
             <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
@@ -362,7 +407,6 @@
                 <h3 data-i18n="joint.card.list">Joint List</h3>
                 <div class="list-actions">
                   <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
-                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
                 </div>
               </div>
               <label class="form-field list-filter">
@@ -427,6 +471,10 @@
                   <input type="checkbox" checked />
                 </label>
               </div>
+              <div class="card-actions">
+                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+              </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
               <h3 data-i18n="joint.card.group">Group Tools</h3>
@@ -448,10 +496,6 @@
               <h2 data-i18n="jointGroup.title">Joint Groups</h2>
               <p data-i18n="jointGroup.desc">Bundle joints for quick selection and batch edits.</p>
             </div>
-            <div class="panel-actions">
-              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
-              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-            </div>
           </header>
           <div class="panel-grid panel-grid--workspace">
             <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
@@ -459,7 +503,6 @@
                 <h3 data-i18n="jointGroup.card.list">Group List</h3>
                 <div class="list-actions">
                   <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
-                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
                 </div>
               </div>
               <label class="form-field list-filter">
@@ -489,6 +532,10 @@
                   <input type="text" data-i18n-placeholder="jointGroup.form.joints.placeholder" placeholder="yaw, pitch, roll" />
                 </label>
               </div>
+              <div class="card-actions">
+                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+              </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
               <h3 data-i18n="jointGroup.card.actions">Quick Actions</h3>
@@ -507,10 +554,6 @@
               <h2 data-i18n="pose.title">Pose Library</h2>
               <p data-i18n="pose.desc">Capture and edit joint angles as reusable poses.</p>
             </div>
-            <div class="panel-actions">
-              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
-              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-            </div>
           </header>
           <div class="panel-grid panel-grid--workspace">
             <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
@@ -518,7 +561,6 @@
                 <h3 data-i18n="pose.card.list">Pose List</h3>
                 <div class="list-actions">
                   <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
-                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
                 </div>
               </div>
               <label class="form-field list-filter">
@@ -574,6 +616,10 @@
                   </tr>
                 </tbody>
               </table>
+              <div class="card-actions">
+                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+              </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
               <h3 data-i18n="pose.card.capture">Capture & Preview</h3>
@@ -592,10 +638,6 @@
               <h2 data-i18n="sequence.title">Sequence Orchestration</h2>
               <p data-i18n="sequence.desc">Compose steps, triggers, and reusable sequences for header export.</p>
             </div>
-            <div class="panel-actions">
-              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
-              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-            </div>
           </header>
           <div class="panel-grid panel-grid--workspace">
             <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
@@ -603,7 +645,6 @@
                 <h3 data-i18n="sequence.card.list">Sequence List</h3>
                 <div class="list-actions">
                   <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
-                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
                 </div>
               </div>
               <label class="form-field list-filter">
@@ -655,6 +696,10 @@
                   <input type="number" value="100" />
                 </label>
               </div>
+              <div class="card-actions">
+                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+              </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
               <h3 data-i18n="sequence.card.axis">Axis Easing</h3>
@@ -684,10 +729,6 @@
               <h2 data-i18n="easing.title">Easing Library</h2>
               <p data-i18n="easing.desc">Manage easing presets and custom curves.</p>
             </div>
-            <div class="panel-actions">
-              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
-              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-            </div>
           </header>
           <div class="panel-grid panel-grid--workspace">
             <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
@@ -695,7 +736,6 @@
                 <h3 data-i18n="easing.card.list">Easing List</h3>
                 <div class="list-actions">
                   <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
-                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
                 </div>
               </div>
               <label class="form-field list-filter">
@@ -737,6 +777,10 @@
                   <input type="range" min="0" max="1" step="0.1" value="0.6" />
                 </label>
               </div>
+              <div class="card-actions">
+                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+              </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
               <h3 data-i18n="easing.card.preview">Preview</h3>
@@ -755,10 +799,6 @@
               <h2 data-i18n="event.title">Event Setup</h2>
               <p data-i18n="event.desc">Define event IDs and map triggers to cues.</p>
             </div>
-            <div class="panel-actions">
-              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
-              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-            </div>
           </header>
           <div class="panel-grid panel-grid--workspace">
             <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
@@ -766,7 +806,6 @@
                 <h3 data-i18n="event.card.list">Event List</h3>
                 <div class="list-actions">
                   <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
-                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
                 </div>
               </div>
               <label class="form-field list-filter">
@@ -800,6 +839,10 @@
                   <span data-i18n="event.form.eventId">Event ID</span>
                   <input type="number" value="100" />
                 </label>
+              </div>
+              <div class="card-actions">
+                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
               </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">

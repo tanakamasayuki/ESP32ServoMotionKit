@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.import': 'Import',
       'common.save': 'Save',
       'common.add': 'Add',
-      'common.deleteSelected': 'Delete selected',
+      'common.deleteSelected': 'Delete',
       'common.filter.label': 'Filter by ID',
       'common.filter.placeholder': 'Filter by ID',
       'servo.title': 'Servo Tuning',
@@ -117,16 +117,27 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.card.profile': 'Servo Profile',
       'servo.form.id': 'Servo ID',
       'servo.form.id.placeholder': 'servo_front_left',
-      'servo.form.channel': 'Channel',
-      'servo.form.neutral': 'Neutral (deg)',
-      'servo.form.pwmMin': 'PWM min (us)',
-      'servo.form.pwmMax': 'PWM max (us)',
-      'servo.form.speed': 'Speed limit (deg/s)',
-      'servo.form.invert': 'Invert direction',
-      'servo.form.torque': 'Torque guard',
-      'servo.form.torque.soft': 'Soft',
-      'servo.form.torque.balance': 'Balanced',
-      'servo.form.torque.firm': 'Firm',
+      'servo.form.type': 'Type',
+      'servo.form.type.pwm': 'PWM',
+      'servo.form.type.ttl': 'TTL/Bus',
+      'servo.form.mode': 'Mode',
+      'servo.form.mode.position': 'Position (180°)',
+      'servo.form.mode.wheel': 'Wheel (360°)',
+      'servo.form.description': 'Description',
+      'servo.form.description.placeholder': 'Left shoulder servo for v1 prototype',
+      'servo.form.pin': 'PWM Pin',
+      'servo.form.pwm.freq': 'PWM Frequency (Hz)',
+      'servo.form.pwm.pulseMin': 'Pulse min (us)',
+      'servo.form.pwm.pulseMax': 'Pulse max (us)',
+      'servo.form.pwm.center': 'Pulse center (us)',
+      'servo.form.pwm.deadband': 'Deadband (us)',
+      'servo.form.pwm.speed': 'Speed limit (deg/s)',
+      'servo.form.pwm.angleMin': 'Angle min (deg)',
+      'servo.form.pwm.angleMax': 'Angle max (deg)',
+      'servo.form.pwm.offset': 'Offset (deg)',
+      'servo.form.ttl.note': 'TTL/Bus fields are defined later. Preview UI shows placeholders.',
+      'servo.form.ttl.address': 'Bus address',
+      'servo.form.ttl.bus': 'UART bus',
       'servo.card.preview': 'Live Preview',
       'servo.preview.angle': 'Preview angle',
       'servo.preview.sweep': 'Run sweep',
@@ -352,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.import': 'インポート',
       'common.save': '保存',
       'common.add': '追加',
-      'common.deleteSelected': '選択を削除',
+      'common.deleteSelected': '削除',
       'common.filter.label': 'IDで絞り込み',
       'common.filter.placeholder': 'IDで絞り込み',
       'servo.title': 'サーボ調整',
@@ -361,16 +372,27 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.card.profile': 'サーボプロファイル',
       'servo.form.id': 'サーボ ID',
       'servo.form.id.placeholder': 'servo_front_left',
-      'servo.form.channel': 'チャンネル',
-      'servo.form.neutral': 'ニュートラル (deg)',
-      'servo.form.pwmMin': 'PWM 最小 (us)',
-      'servo.form.pwmMax': 'PWM 最大 (us)',
-      'servo.form.speed': '速度リミット (deg/s)',
-      'servo.form.invert': '回転方向を反転',
-      'servo.form.torque': 'トルク保護',
-      'servo.form.torque.soft': 'ソフト',
-      'servo.form.torque.balance': 'バランス',
-      'servo.form.torque.firm': '強め',
+      'servo.form.type': 'タイプ',
+      'servo.form.type.pwm': 'PWM',
+      'servo.form.type.ttl': 'TTL/バス',
+      'servo.form.mode': 'モード',
+      'servo.form.mode.position': '位置 (180°)',
+      'servo.form.mode.wheel': '回転 (360°)',
+      'servo.form.description': '説明',
+      'servo.form.description.placeholder': 'v1 試作の左肩サーボ',
+      'servo.form.pin': 'PWM ピン',
+      'servo.form.pwm.freq': 'PWM 周波数 (Hz)',
+      'servo.form.pwm.pulseMin': 'パルス幅 最小 (us)',
+      'servo.form.pwm.pulseMax': 'パルス幅 最大 (us)',
+      'servo.form.pwm.center': 'パルス幅 センター (us)',
+      'servo.form.pwm.deadband': 'デッドバンド (us)',
+      'servo.form.pwm.speed': '速度制限 (deg/s)',
+      'servo.form.pwm.angleMin': '角度 最小 (deg)',
+      'servo.form.pwm.angleMax': '角度 最大 (deg)',
+      'servo.form.pwm.offset': 'オフセット (deg)',
+      'servo.form.ttl.note': 'TTL/バスの詳細項目は後続で定義します。プレビューでは仮の項目を表示します。',
+      'servo.form.ttl.address': 'バスアドレス',
+      'servo.form.ttl.bus': 'UART バス',
       'servo.card.preview': 'ライブプレビュー',
       'servo.preview.angle': 'プレビュー角度',
       'servo.preview.sweep': 'スイープ実行',
@@ -987,6 +1009,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const initServoTypeToggle = () => {
+    const select = document.querySelector('[data-servo-type-select]');
+    const groups = Array.from(document.querySelectorAll('[data-servo-type-group]'));
+    if (!select || groups.length === 0) {
+      return;
+    }
+
+    const setActive = (type) => {
+      groups.forEach((group) => {
+        const isActive = group.dataset.servoTypeGroup === type;
+        group.classList.toggle('is-active', isActive);
+        group.hidden = !isActive;
+        group.setAttribute('aria-hidden', String(!isActive));
+      });
+    };
+
+    select.addEventListener('change', () => {
+      setActive(select.value);
+    });
+
+    setActive(select.value);
+  };
+
   const initHeroTabs = () => {
     const heroTabs = Array.from(document.querySelectorAll('.hero-tab'));
     const heroPanels = Array.from(document.querySelectorAll('.hero-tab-panel'));
@@ -1113,6 +1158,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   initHeroTabs();
   initSelectableLists();
+  initServoTypeToggle();
   const initialLanguage = detectLanguage();
   languageSelect.value = initialLanguage;
   applyTranslations(initialLanguage);

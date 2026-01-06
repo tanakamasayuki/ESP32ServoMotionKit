@@ -499,6 +499,10 @@ a {
   font-weight: 600;
 }
 
+.form-field--full {
+  grid-column: 1 / -1;
+}
+
 .form-field input,
 .form-field select,
 .form-field textarea {
@@ -522,6 +526,15 @@ a {
 .form-field--toggle input {
   width: 42px;
   height: 22px;
+}
+
+.servo-type-group {
+  display: none;
+  margin-top: 12px;
+}
+
+.servo-type-group.is-active {
+  display: block;
 }
 
 .btn {
@@ -598,6 +611,10 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.panel-pane--editor .card-actions {
+  margin-top: 12px;
 }
 
 .checklist {

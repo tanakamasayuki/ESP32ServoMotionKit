@@ -123,6 +123,10 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.form.mode': 'Mode',
       'servo.form.mode.position': 'Position (180°)',
       'servo.form.mode.wheel': 'Wheel (360°)',
+      'servo.form.previewOffset': 'Preview offset (deg)',
+      'servo.form.previewDirection': 'Preview direction',
+      'servo.form.previewDirection.cw': 'Clockwise',
+      'servo.form.previewDirection.ccw': 'Counterclockwise',
       'servo.form.description': 'Description',
       'servo.form.description.placeholder': 'Left shoulder servo for v1 prototype',
       'servo.form.pin': 'PWM Pin',
@@ -142,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.preview.angle': 'Preview angle',
       'servo.preview.apply': 'Preview on device',
       'servo.preview.apply.checkbox': 'When connected, move real servos with this preview',
+      'servo.preview.offset.note': 'Example: Set preview offset to 270° (or -90°) to start from the left. Use clockwise or counterclockwise to flip the rotation direction.',
       'servo.card.calibration': 'Calibration Notes',
       'servo.calibration.note': 'Keep the horn centered before saving. Use a neutral pose to align all axes.',
       'servo.calibration.item1': 'Neutral pose saved',
@@ -378,6 +383,10 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.form.mode': 'モード',
       'servo.form.mode.position': '位置 (180°)',
       'servo.form.mode.wheel': '回転 (360°)',
+      'servo.form.previewOffset': 'プレビューオフセット (deg)',
+      'servo.form.previewDirection': 'プレビュー回転方向',
+      'servo.form.previewDirection.cw': '右回り',
+      'servo.form.previewDirection.ccw': '左回り',
       'servo.form.description': '説明',
       'servo.form.description.placeholder': 'v1 試作の左肩サーボ',
       'servo.form.pin': 'PWM ピン',
@@ -397,6 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.preview.angle': 'プレビュー角度',
       'servo.preview.apply': 'デバイスでプレビュー',
       'servo.preview.apply.checkbox': '接続中は実サーボを動かしてプレビューする',
+      'servo.preview.offset.note': '例: プレビューオフセットを 270°（または -90°）にすると左側から開始します。回転方向は右回り/左回りで切り替えます。',
       'servo.card.calibration': 'キャリブレーション',
       'servo.calibration.note': '保存前にホーンを中央に合わせ、ニュートラルポーズで全軸を整列します。',
       'servo.calibration.item1': 'ニュートラル保存済み',
@@ -543,6 +553,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const firmwareStartButton = document.getElementById('firmware-start-button');
   const servoPreviewAngle = document.getElementById('servo-preview-angle');
   const servoPreviewAngleInput = document.getElementById('servo-preview-angle-input');
+  const servoPreviewNeedle = document.querySelector('.dial-needle');
+  const servoPreviewOffsetInput = document.querySelector('[data-preview-offset-input]');
+  const servoPreviewDirectionSelect = document.querySelector('[data-preview-direction-select]');
 
   let updateFirmwareLocale = () => {};
   let updateHeroPanels = () => {};
@@ -1015,17 +1028,35 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!servoPreviewAngle || !servoPreviewAngleInput) {
       return;
     }
-    const updateValue = () => {
-      servoPreviewAngleInput.value = servoPreviewAngle.value;
+    const clampAngle = (value) => {
+      return Math.max(0, Math.min(360, Number(value || 0)));
     };
-    const updateFromInput = () => {
-      const value = Math.max(0, Math.min(180, Number(servoPreviewAngleInput.value || 0)));
-      servoPreviewAngle.value = String(value);
-      servoPreviewAngleInput.value = String(value);
+    const getOffset = () => {
+      return Number(servoPreviewOffsetInput?.value || 0);
     };
-    servoPreviewAngle.addEventListener('input', updateValue);
-    servoPreviewAngleInput.addEventListener('input', updateFromInput);
-    updateValue();
+    const getDirection = () => {
+      return servoPreviewDirectionSelect?.value === 'ccw' ? -1 : 1;
+    };
+    const applyAngle = (value) => {
+      const angle = clampAngle(value);
+      const offset = getOffset();
+      const direction = getDirection();
+      const displayAngle = (offset + angle * direction + 3600) % 360;
+      servoPreviewAngle.value = String(angle);
+      servoPreviewAngleInput.value = String(angle);
+      if (servoPreviewNeedle) {
+        servoPreviewNeedle.style.transform = `translateX(-50%) rotate(${displayAngle}deg)`;
+      }
+    };
+    servoPreviewAngle.addEventListener('input', () => applyAngle(servoPreviewAngle.value));
+    servoPreviewAngleInput.addEventListener('input', () => applyAngle(servoPreviewAngleInput.value));
+    if (servoPreviewOffsetInput) {
+      servoPreviewOffsetInput.addEventListener('input', () => applyAngle(servoPreviewAngle.value));
+    }
+    if (servoPreviewDirectionSelect) {
+      servoPreviewDirectionSelect.addEventListener('change', () => applyAngle(servoPreviewAngle.value));
+    }
+    applyAngle(servoPreviewAngle.value);
   };
 
   const initServoTypeToggle = () => {

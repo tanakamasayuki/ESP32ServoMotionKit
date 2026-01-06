@@ -154,8 +154,35 @@
               <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
             </div>
           </header>
-          <div class="panel-grid">
-            <article class="card" style="--delay: 60ms;">
+          <div class="panel-grid panel-grid--workspace">
+            <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
+              <div class="list-header">
+                <h3 data-i18n="servo.card.list">Servo List</h3>
+                <div class="list-actions">
+                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+                </div>
+              </div>
+              <label class="form-field list-filter">
+                <span data-i18n="common.filter.label">Filter by ID</span>
+                <input type="text" data-i18n-placeholder="common.filter.placeholder" placeholder="Filter by ID" />
+              </label>
+              <ul class="list">
+                <li class="list-item is-active">
+                  <span>servo_front_left</span>
+                  <span class="chip">CH0</span>
+                </li>
+                <li class="list-item">
+                  <span>servo_front_right</span>
+                  <span class="chip">CH1</span>
+                </li>
+                <li class="list-item">
+                  <span>servo_tail</span>
+                  <span class="chip">CH2</span>
+                </li>
+              </ul>
+            </article>
+            <article class="card panel-pane panel-pane--editor" style="--delay: 120ms;">
               <h3 data-i18n="servo.card.profile">Servo Profile</h3>
               <div class="form-grid">
                 <label class="form-field">
@@ -196,7 +223,7 @@
                 </label>
               </div>
             </article>
-            <article class="card card--accent" style="--delay: 120ms;">
+            <article class="card card--accent panel-pane panel-pane--aux" style="--delay: 180ms;">
               <h3 data-i18n="servo.card.preview">Live Preview</h3>
               <div class="preview-dial">
                 <div class="dial-face"></div>
@@ -210,16 +237,16 @@
                 <button class="btn btn-outline" type="button" data-i18n="servo.preview.sweep">Run sweep</button>
                 <button class="btn btn-ghost" type="button" data-i18n="servo.preview.pulse">Send pulse</button>
               </div>
-            </article>
-            <article class="card" style="--delay: 180ms;">
-              <h3 data-i18n="servo.card.calibration">Calibration Notes</h3>
-              <p class="muted" data-i18n="servo.calibration.note">
-                Keep the horn centered before saving. Use a neutral pose to align all axes.
-              </p>
-              <div class="checklist">
-                <label><input type="checkbox" /> <span data-i18n="servo.calibration.item1">Neutral pose saved</span></label>
-                <label><input type="checkbox" /> <span data-i18n="servo.calibration.item2">Limits verified</span></label>
-                <label><input type="checkbox" /> <span data-i18n="servo.calibration.item3">Direction checked</span></label>
+              <div class="aux-block">
+                <h4 data-i18n="servo.card.calibration">Calibration Notes</h4>
+                <p class="muted" data-i18n="servo.calibration.note">
+                  Keep the horn centered before saving. Use a neutral pose to align all axes.
+                </p>
+                <div class="checklist">
+                  <label><input type="checkbox" /> <span data-i18n="servo.calibration.item1">Neutral pose saved</span></label>
+                  <label><input type="checkbox" /> <span data-i18n="servo.calibration.item2">Limits verified</span></label>
+                  <label><input type="checkbox" /> <span data-i18n="servo.calibration.item3">Direction checked</span></label>
+                </div>
               </div>
             </article>
           </div>
@@ -236,8 +263,35 @@
               <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
             </div>
           </header>
-          <div class="panel-grid">
-            <article class="card" style="--delay: 60ms;">
+          <div class="panel-grid panel-grid--workspace">
+            <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
+              <div class="list-header">
+                <h3 data-i18n="joint.card.list">Joint List</h3>
+                <div class="list-actions">
+                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+                </div>
+              </div>
+              <label class="form-field list-filter">
+                <span data-i18n="common.filter.label">Filter by ID</span>
+                <input type="text" data-i18n-placeholder="common.filter.placeholder" placeholder="Filter by ID" />
+              </label>
+              <ul class="list">
+                <li class="list-item is-active">
+                  <span>yaw</span>
+                  <span class="chip">2 servos</span>
+                </li>
+                <li class="list-item">
+                  <span>pitch</span>
+                  <span class="chip">1 servo</span>
+                </li>
+                <li class="list-item">
+                  <span>roll</span>
+                  <span class="chip">1 servo</span>
+                </li>
+              </ul>
+            </article>
+            <article class="card panel-pane panel-pane--editor" style="--delay: 120ms;">
               <h3 data-i18n="joint.card.definition">Joint Definition</h3>
               <div class="form-grid">
                 <label class="form-field">
@@ -263,11 +317,6 @@
                   <span data-i18n="joint.form.offset">Neutral offset (deg)</span>
                   <input type="number" value="0" />
                 </label>
-              </div>
-            </article>
-            <article class="card" style="--delay: 120ms;">
-              <h3 data-i18n="joint.card.limits">Limits & Gain</h3>
-              <div class="form-grid">
                 <label class="form-field">
                   <span data-i18n="joint.form.min">Min (deg)</span>
                   <input type="number" value="-45" />
@@ -286,8 +335,9 @@
                 </label>
               </div>
             </article>
-            <article class="card" style="--delay: 180ms;">
+            <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
               <h3 data-i18n="joint.card.group">Group Tools</h3>
+              <p class="muted" data-i18n="joint.group.note">Coordinate limits and offsets across grouped joints.</p>
               <div class="card-actions">
                 <button class="btn btn-outline" type="button" data-i18n="joint.group.sync">Sync offsets</button>
                 <button class="btn btn-ghost" type="button" data-i18n="joint.group.balance">Balance load</button>
@@ -310,9 +360,19 @@
               <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
             </div>
           </header>
-          <div class="panel-grid">
-            <article class="card" style="--delay: 60ms;">
-              <h3 data-i18n="jointGroup.card.list">Group List</h3>
+          <div class="panel-grid panel-grid--workspace">
+            <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
+              <div class="list-header">
+                <h3 data-i18n="jointGroup.card.list">Group List</h3>
+                <div class="list-actions">
+                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+                </div>
+              </div>
+              <label class="form-field list-filter">
+                <span data-i18n="common.filter.label">Filter by ID</span>
+                <input type="text" data-i18n-placeholder="common.filter.placeholder" placeholder="Filter by ID" />
+              </label>
               <ul class="list">
                 <li class="list-item is-active">
                   <span data-i18n="jointGroup.list.arms">Arms</span>
@@ -323,9 +383,8 @@
                   <span class="chip">jg_head</span>
                 </li>
               </ul>
-              <button class="btn btn-outline" type="button" data-i18n="jointGroup.list.add">Add group</button>
             </article>
-            <article class="card" style="--delay: 120ms;">
+            <article class="card panel-pane panel-pane--editor" style="--delay: 120ms;">
               <h3 data-i18n="jointGroup.card.editor">Group Editor</h3>
               <div class="form-grid">
                 <label class="form-field">
@@ -338,7 +397,7 @@
                 </label>
               </div>
             </article>
-            <article class="card" style="--delay: 180ms;">
+            <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
               <h3 data-i18n="jointGroup.card.actions">Quick Actions</h3>
               <p class="muted" data-i18n="jointGroup.actions.note">Groups are UI-only and expanded before export.</p>
               <div class="card-actions">
@@ -360,9 +419,19 @@
               <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
             </div>
           </header>
-          <div class="panel-grid">
-            <article class="card" style="--delay: 60ms;">
-              <h3 data-i18n="pose.card.list">Pose List</h3>
+          <div class="panel-grid panel-grid--workspace">
+            <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
+              <div class="list-header">
+                <h3 data-i18n="pose.card.list">Pose List</h3>
+                <div class="list-actions">
+                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+                </div>
+              </div>
+              <label class="form-field list-filter">
+                <span data-i18n="common.filter.label">Filter by ID</span>
+                <input type="text" data-i18n-placeholder="common.filter.placeholder" placeholder="Filter by ID" />
+              </label>
               <ul class="list">
                 <li class="list-item is-active">
                   <span data-i18n="pose.list.home">Home</span>
@@ -377,9 +446,8 @@
                   <span class="chip">p_ready</span>
                 </li>
               </ul>
-              <button class="btn btn-outline" type="button" data-i18n="pose.list.add">Add pose</button>
             </article>
-            <article class="card" style="--delay: 120ms;">
+            <article class="card panel-pane panel-pane--editor" style="--delay: 120ms;">
               <h3 data-i18n="pose.card.editor">Pose Editor</h3>
               <div class="form-grid">
                 <label class="form-field">
@@ -414,7 +482,7 @@
                 </tbody>
               </table>
             </article>
-            <article class="card" style="--delay: 180ms;">
+            <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
               <h3 data-i18n="pose.card.capture">Capture & Preview</h3>
               <p class="muted" data-i18n="pose.capture.note">Works offline; device sync is optional.</p>
               <div class="card-actions">
@@ -436,8 +504,31 @@
               <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
             </div>
           </header>
-          <div class="panel-grid">
-            <article class="card" style="--delay: 60ms;">
+          <div class="panel-grid panel-grid--workspace">
+            <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
+              <div class="list-header">
+                <h3 data-i18n="sequence.card.list">Sequence List</h3>
+                <div class="list-actions">
+                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+                </div>
+              </div>
+              <label class="form-field list-filter">
+                <span data-i18n="common.filter.label">Filter by ID</span>
+                <input type="text" data-i18n-placeholder="common.filter.placeholder" placeholder="Filter by ID" />
+              </label>
+              <ul class="list">
+                <li class="list-item is-active">
+                  <span>seq_demo</span>
+                  <span class="chip">3 steps</span>
+                </li>
+                <li class="list-item">
+                  <span>seq_intro</span>
+                  <span class="chip">2 steps</span>
+                </li>
+              </ul>
+            </article>
+            <article class="card panel-pane panel-pane--editor" style="--delay: 120ms;">
               <h3 data-i18n="sequence.card.steps">Sequence Steps</h3>
               <ol class="step-list">
                 <li>
@@ -454,9 +545,6 @@
                 </li>
               </ol>
               <button class="btn btn-outline" type="button" data-i18n="sequence.steps.add">Add step</button>
-            </article>
-            <article class="card" style="--delay: 120ms;">
-              <h3 data-i18n="sequence.card.rules">Loop & Trigger</h3>
               <div class="form-grid">
                 <label class="form-field form-field--toggle">
                   <span data-i18n="sequence.form.loop">Loop playback</span>
@@ -475,7 +563,7 @@
                 </label>
               </div>
             </article>
-            <article class="card" style="--delay: 180ms;">
+            <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
               <h3 data-i18n="sequence.card.axis">Axis Easing</h3>
               <p class="muted" data-i18n="sequence.axis.note">Override per axis when needed.</p>
               <div class="mini-list">
@@ -508,9 +596,19 @@
               <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
             </div>
           </header>
-          <div class="panel-grid">
-            <article class="card" style="--delay: 60ms;">
-              <h3 data-i18n="easing.card.list">Easing List</h3>
+          <div class="panel-grid panel-grid--workspace">
+            <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
+              <div class="list-header">
+                <h3 data-i18n="easing.card.list">Easing List</h3>
+                <div class="list-actions">
+                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+                </div>
+              </div>
+              <label class="form-field list-filter">
+                <span data-i18n="common.filter.label">Filter by ID</span>
+                <input type="text" data-i18n-placeholder="common.filter.placeholder" placeholder="Filter by ID" />
+              </label>
               <ul class="list">
                 <li class="list-item is-active">
                   <span>e_smooth</span>
@@ -525,9 +623,8 @@
                   <span class="chip" data-i18n="easing.list.custom">Custom</span>
                 </li>
               </ul>
-              <button class="btn btn-outline" type="button" data-i18n="easing.list.add">Add easing</button>
             </article>
-            <article class="card" style="--delay: 120ms;">
+            <article class="card panel-pane panel-pane--editor" style="--delay: 120ms;">
               <h3 data-i18n="easing.card.editor">Curve Editor</h3>
               <div class="form-grid">
                 <label class="form-field">
@@ -548,7 +645,7 @@
                 </label>
               </div>
             </article>
-            <article class="card" style="--delay: 180ms;">
+            <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
               <h3 data-i18n="easing.card.preview">Preview</h3>
               <p class="muted" data-i18n="easing.preview.note">Use to compare timing curves.</p>
               <div class="card-actions">
@@ -570,9 +667,19 @@
               <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
             </div>
           </header>
-          <div class="panel-grid">
-            <article class="card" style="--delay: 60ms;">
-              <h3 data-i18n="event.card.list">Event List</h3>
+          <div class="panel-grid panel-grid--workspace">
+            <article class="card panel-pane panel-pane--list" style="--delay: 60ms;">
+              <div class="list-header">
+                <h3 data-i18n="event.card.list">Event List</h3>
+                <div class="list-actions">
+                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+                </div>
+              </div>
+              <label class="form-field list-filter">
+                <span data-i18n="common.filter.label">Filter by ID</span>
+                <input type="text" data-i18n-placeholder="common.filter.placeholder" placeholder="Filter by ID" />
+              </label>
               <ul class="list">
                 <li class="list-item is-active">
                   <span data-i18n="event.list.start">Sequence start</span>
@@ -583,9 +690,8 @@
                   <span class="chip">210</span>
                 </li>
               </ul>
-              <button class="btn btn-outline" type="button" data-i18n="event.list.add">Add event</button>
             </article>
-            <article class="card" style="--delay: 120ms;">
+            <article class="card panel-pane panel-pane--editor" style="--delay: 120ms;">
               <h3 data-i18n="event.card.mapping">Trigger Mapping</h3>
               <div class="form-grid">
                 <label class="form-field">
@@ -603,7 +709,7 @@
                 </label>
               </div>
             </article>
-            <article class="card" style="--delay: 180ms;">
+            <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
               <h3 data-i18n="event.card.preview">Event Queue</h3>
               <p class="muted" data-i18n="event.preview.note">Events are queued and handled in the sketch.</p>
               <div class="card-actions">

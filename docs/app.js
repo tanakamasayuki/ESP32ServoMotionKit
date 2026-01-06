@@ -17,12 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
       'device.actions.connect': 'Connect',
       'device.actions.disconnect': 'Disconnect',
       'device.actions.flash': 'Flash preview firmware',
-      'device.demo.label': 'Demo mode (no device needed)',
       'device.meta.port': 'Port',
       'device.meta.firmware': 'Firmware',
       'device.meta.sync': 'Last sync',
       'device.meta.mode': 'Mode',
-      'device.mode.demo': 'Demo',
       'device.mode.live': 'Live',
       'preview.title': 'Preview',
       'preview.desc': 'Quickly send angles to all registered servos.',
@@ -275,12 +273,10 @@ document.addEventListener('DOMContentLoaded', () => {
       'device.actions.connect': '接続',
       'device.actions.disconnect': '切断',
       'device.actions.flash': 'プレビュー用ファームウェア転送',
-      'device.demo.label': 'デモモード（接続不要）',
       'device.meta.port': 'ポート',
       'device.meta.firmware': 'ファームウェア',
       'device.meta.sync': '最終同期',
       'device.meta.mode': 'モード',
-      'device.mode.demo': 'デモ',
       'device.mode.live': 'ライブ',
       'preview.title': 'プレビュー',
       'preview.desc': '登録済みサーボ全体に角度指定をまとめて送れます。',
@@ -531,7 +527,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const connectButton = document.getElementById('connect-button');
   const disconnectButton = document.getElementById('disconnect-button');
   const flashButton = document.getElementById('flash-button');
-  const demoToggle = document.getElementById('demo-toggle');
   const modeLabel = document.getElementById('mode-label');
   const portLabel = document.getElementById('port-label');
   const syncLabel = document.getElementById('sync-label');
@@ -558,7 +553,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const state = {
     status: 'disconnected',
-    demoMode: true,
     supported: 'serial' in navigator,
     port: null
   };
@@ -918,7 +912,7 @@ document.addEventListener('DOMContentLoaded', () => {
     disconnectButton.disabled = state.status !== 'connected';
     flashButton.disabled = !state.supported || state.status === 'connecting';
 
-    modeLabel.textContent = getTranslation(state.demoMode ? 'device.mode.demo' : 'device.mode.live');
+    modeLabel.textContent = getTranslation('device.mode.live');
   };
 
   const setStatus = (status) => {
@@ -1142,10 +1136,6 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTranslations(next);
   });
 
-  demoToggle.addEventListener('change', () => {
-    state.demoMode = demoToggle.checked;
-    updateConnectionUI();
-  });
 
   connectButton.addEventListener('click', () => {
     connectDevice();

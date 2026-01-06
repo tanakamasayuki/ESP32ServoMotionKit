@@ -387,11 +387,6 @@ a {
   margin-bottom: 4px;
 }
 
-.rail-sub {
-  font-size: 0.85rem;
-  color: var(--ink-muted);
-}
-
 .tab-button {
   border: 1px solid transparent;
   background: rgba(255, 255, 255, 0.6);
@@ -441,7 +436,14 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 4px;
+}
+
+.panel-note {
+  margin: 0;
+  color: var(--ink-50);
+  font-size: 0.95rem;
+  text-align: left;
 }
 
 .panel-actions {

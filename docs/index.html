@@ -19,12 +19,13 @@
         <span class="eyebrow" data-i18n="app.eyebrow">ESP32 Servo Motion Kit</span>
         <h1 data-i18n="app.title">Motion Studio</h1>
         <p class="lead" data-i18n="app.subtitle">
-          Design servo, joint, pose, motion, and sequence layouts before syncing to hardware.
+          Configure servo, joint, pose, motion, and sequence settings, then export a header for your ESP32 sketch.
+          Preview via WebSerial is optional.
         </p>
         <div class="hero-tags">
           <span class="tag" data-i18n="app.tag.offline">Offline ready</span>
-          <span class="tag" data-i18n="app.tag.webserial">WebSerial optional</span>
-          <span class="tag" data-i18n="app.tag.layout">Layout preview</span>
+          <span class="tag" data-i18n="app.tag.webserial">WebSerial preview</span>
+          <span class="tag" data-i18n="app.tag.layout">Header export</span>
         </div>
       </div>
       <div class="hero-panel">
@@ -37,7 +38,7 @@
             </div>
           </div>
           <p class="status-note" data-i18n="device.note">
-            Edit everything without a device. Connect when you want to sync or preview moves.
+            Edit offline, then flash preview firmware and connect when you want to preview before exporting the header.
           </p>
           <div class="status-actions">
             <button class="btn btn-primary" id="connect-button" type="button" data-i18n="device.actions.connect">
@@ -45,6 +46,9 @@
             </button>
             <button class="btn btn-ghost" id="disconnect-button" type="button" data-i18n="device.actions.disconnect">
               Disconnect
+            </button>
+            <button class="btn btn-outline" id="flash-button" type="button" data-i18n="device.actions.flash">
+              Flash preview firmware
             </button>
           </div>
           <label class="toggle">
@@ -412,7 +416,7 @@
                 <button class="btn btn-secondary" type="button" data-i18n="motion.preview.play">Play motion</button>
                 <button class="btn btn-outline" type="button" data-i18n="motion.preview.loop">Loop</button>
               </div>
-              <button class="btn btn-ghost" type="button" data-i18n="motion.preview.export">Export JSON</button>
+              <button class="btn btn-ghost" type="button" data-i18n="motion.preview.export">Export header (.h)</button>
             </article>
           </div>
         </section>
@@ -421,7 +425,7 @@
           <header class="panel-header">
             <div>
               <h2 data-i18n="sequence.title">Sequence Orchestration</h2>
-              <p data-i18n="sequence.desc">Compose steps, triggers, and optional calls to reusable sequences.</p>
+              <p data-i18n="sequence.desc">Compose steps, triggers, and reusable sequences for header export.</p>
             </div>
             <div class="panel-actions">
               <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
@@ -442,7 +446,7 @@
                 </li>
                 <li>
                   <span class="step-title" data-i18n="sequence.steps.step3">Step 3: call seq_intro</span>
-                  <span class="chip" data-i18n="sequence.steps.inline">Inline on export</span>
+                  <span class="chip" data-i18n="sequence.steps.inline">Inline on header export</span>
                 </li>
               </ol>
               <button class="btn btn-outline" type="button" data-i18n="sequence.steps.add">Add step</button>

@@ -4,18 +4,19 @@ document.addEventListener('DOMContentLoaded', () => {
       'app.meta.title': 'ESP32 Servo Motion Studio',
       'app.eyebrow': 'ESP32 Servo Motion Kit',
       'app.title': 'Motion Studio',
-      'app.subtitle': 'Design servo, joint, pose, motion, and sequence layouts before syncing to hardware.',
+      'app.subtitle': 'Configure servo, joint, pose, motion, and sequence settings, then export a header for your ESP32 sketch. Preview via WebSerial is optional.',
       'app.tag.offline': 'Offline ready',
-      'app.tag.webserial': 'WebSerial optional',
-      'app.tag.layout': 'Layout preview',
+      'app.tag.webserial': 'WebSerial preview',
+      'app.tag.layout': 'Header export',
       'device.title': 'Device Link',
       'device.status.disconnected': 'Disconnected',
       'device.status.connected': 'Connected',
       'device.status.connecting': 'Connecting...',
       'device.status.unsupported': 'WebSerial unsupported',
-      'device.note': 'Edit everything without a device. Connect when you want to sync or preview moves.',
+      'device.note': 'Edit offline, then flash preview firmware and connect when you want to preview before exporting the header.',
       'device.actions.connect': 'Connect',
       'device.actions.disconnect': 'Disconnect',
+      'device.actions.flash': 'Flash preview firmware',
       'device.demo.label': 'Demo mode (no device needed)',
       'device.meta.port': 'Port',
       'device.meta.firmware': 'Firmware',
@@ -124,14 +125,14 @@ document.addEventListener('DOMContentLoaded', () => {
       'motion.card.preview': 'Preview & Sync',
       'motion.preview.play': 'Play motion',
       'motion.preview.loop': 'Loop',
-      'motion.preview.export': 'Export JSON',
+      'motion.preview.export': 'Export header (.h)',
       'sequence.title': 'Sequence Orchestration',
-      'sequence.desc': 'Compose steps, triggers, and optional calls to reusable sequences.',
+      'sequence.desc': 'Compose steps, triggers, and reusable sequences for header export.',
       'sequence.card.steps': 'Sequence Steps',
       'sequence.steps.step1': 'Step 1: p_home',
       'sequence.steps.step2': 'Step 2: p_wave',
       'sequence.steps.step3': 'Step 3: call seq_intro',
-      'sequence.steps.inline': 'Inline on export',
+      'sequence.steps.inline': 'Inline on header export',
       'sequence.steps.add': 'Add step',
       'sequence.card.rules': 'Loop & Trigger',
       'sequence.form.loop': 'Loop playback',
@@ -147,18 +148,19 @@ document.addEventListener('DOMContentLoaded', () => {
       'app.meta.title': 'ESP32 サーボモーションスタジオ',
       'app.eyebrow': 'ESP32 サーボモーションキット',
       'app.title': 'モーションスタジオ',
-      'app.subtitle': 'サーボ/ジョイント/ポーズ/モーション/シーケンスの設定を、デバイス接続前に設計できます。',
+      'app.subtitle': 'サーボ/ジョイント/ポーズ/モーション/シーケンスの設定を行い、ESP32 スケッチで使えるヘッダを出力します。WebSerial でのプレビューは任意です。',
       'app.tag.offline': 'オフライン編集',
-      'app.tag.webserial': 'WebSerialは任意',
-      'app.tag.layout': 'レイアウト確認',
+      'app.tag.webserial': 'WebSerialプレビュー',
+      'app.tag.layout': 'ヘッダ出力',
       'device.title': 'デバイス接続',
       'device.status.disconnected': '未接続',
       'device.status.connected': '接続済み',
       'device.status.connecting': '接続中…',
       'device.status.unsupported': 'WebSerial 非対応',
-      'device.note': '接続なしでも編集できます。同期やプレビュー時に接続してください。',
+      'device.note': 'オフラインで編集し、プレビュー時はプレビュー用ファームウェアを転送して接続します。ヘッダ出力前の確認に利用できます。',
       'device.actions.connect': '接続',
       'device.actions.disconnect': '切断',
+      'device.actions.flash': 'プレビュー用ファームウェア転送',
       'device.demo.label': 'デモモード（接続不要）',
       'device.meta.port': 'ポート',
       'device.meta.firmware': 'ファームウェア',
@@ -267,14 +269,14 @@ document.addEventListener('DOMContentLoaded', () => {
       'motion.card.preview': 'プレビューと同期',
       'motion.preview.play': 'モーション再生',
       'motion.preview.loop': 'ループ',
-      'motion.preview.export': 'JSON 書き出し',
+      'motion.preview.export': 'ヘッダ(.h)を書き出し',
       'sequence.title': 'シーケンス構成',
-      'sequence.desc': 'ステップ、トリガー、再利用シーケンスの呼び出しを構成します。',
+      'sequence.desc': 'ステップ/トリガー/再利用シーケンスを構成し、ヘッダ出力に反映します。',
       'sequence.card.steps': 'シーケンスステップ',
       'sequence.steps.step1': 'ステップ 1: p_home',
       'sequence.steps.step2': 'ステップ 2: p_wave',
       'sequence.steps.step3': 'ステップ 3: seq_intro を呼び出し',
-      'sequence.steps.inline': '書き出し時に展開',
+      'sequence.steps.inline': 'ヘッダ出力時に展開',
       'sequence.steps.add': 'ステップ追加',
       'sequence.card.rules': 'ループとトリガー',
       'sequence.form.loop': 'ループ再生',
@@ -300,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusPill = document.getElementById('status-pill');
   const connectButton = document.getElementById('connect-button');
   const disconnectButton = document.getElementById('disconnect-button');
+  const flashButton = document.getElementById('flash-button');
   const demoToggle = document.getElementById('demo-toggle');
   const modeLabel = document.getElementById('mode-label');
   const portLabel = document.getElementById('port-label');
@@ -383,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     connectButton.disabled = !state.supported || state.status === 'connected' || state.status === 'connecting';
     disconnectButton.disabled = state.status !== 'connected';
+    flashButton.disabled = !state.supported || state.status === 'connecting';
 
     modeLabel.textContent = getTranslation(state.demoMode ? 'device.mode.demo' : 'device.mode.live');
   };

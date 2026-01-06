@@ -454,9 +454,14 @@ auto e_scurve_strong = kit.easing("e_scurve_strong")
 指定した移動時間での到達を目指すが、各サーボの速度リミットにより必要な速度が上限を超える場合は **時間が自動的に延長**される。
 特にイージングで加速が大きい区間でリミットに達すると、全体として遅くなる可能性がある。
 
-- **内容**: `steps` に pose参照、移動時間、イージング、ホールド時間を保持
+- **内容**: `steps` に pose参照、移動時間、イージング（全軸共通/軸別）、ホールド時間を保持
 - **用途**: ループ再生、トリガーによるイベント発行、外部デバイスとの同期
 - **トリガー**: シーケンス開始/終了、ステップ開始/完了、ホールド完了などを設定できる
+
+#### 軸別イージング
+
+通常は `steps[*].easingId` が全軸に適用される。`axisEasing` を追加すると、軸名（jointId）ごとにイージングを上書きできる。
+`axisEasing` に含まれない軸は `easingId` を使用する。
 
 #### シーケンス呼び出し（UI）
 
@@ -500,6 +505,30 @@ UIでは他のシーケンスを部品として呼び出せる。多重呼び出
 }
 ```
 
+#### リッチUI JSON（軸別イージングの例）
+
+```json
+{
+  "sequences": [
+    {
+      "id": "seq_demo_axis",
+      "name": "demo_axis",
+      "steps": [
+        {
+          "poseId": "p_home",
+          "moveMs": 500,
+          "easingId": "e_smooth",
+          "axisEasing": {
+            "yaw": "e_linear",
+            "pitch": "e_smooth"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
 #### シンプルJSON（デバイス向け、例）
 
 ```json
@@ -516,6 +545,29 @@ UIでは他のシーケンスを部品として呼び出せる。多重呼び出
 }
 ```
 
+#### シンプルJSON（デバイス向け、軸別イージングの例）
+
+```json
+{
+  "sequences": [
+    {
+      "id": "seq_demo_axis",
+      "steps": [
+        {
+          "poseId": "p_home",
+          "moveMs": 500,
+          "easingId": "e_smooth",
+          "axisEasing": {
+            "yaw": "e_linear",
+            "pitch": "e_smooth"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
 #### C++ API（最小）
 
 ```cpp
@@ -525,9 +577,22 @@ auto seq_demo = kit.sequence("seq_demo")
                  .step("p_wave", 800, "e_linear");
 ```
 
+#### C++ API（軸別イージング）
+
+```cpp
+auto seq_demo = kit.sequence("seq_demo")
+                 .step("p_home", 500, "e_smooth",
+                       kit.easingOverride()
+                         .set("yaw", "e_linear")
+                         .set("pitch", "e_smooth"))
+                 .hold(200)
+                 .step("p_wave", 800, "e_linear");
+```
+
 #### 変換と解釈のルール
 - リッチUIの `name` / `description` はデバイス向けJSONでは省略できる。
 - `steps[*].moveMs` は目標であり、速度リミットにより実際の完了時間が延長される場合がある。
+- `axisEasing` は軸別の上書き用マップで、未指定の軸は `easingId` を使用する。
 - `triggers` はデバイス側でイベントキューへ投入され、ユーザーが受信して処理する。
 
 ### API 命名（実行系・統一案）

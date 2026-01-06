@@ -120,17 +120,25 @@
           <span class="tab-title" data-i18n="tabs.joint">Joint</span>
           <span class="tab-note" data-i18n="tabs.joint.note">Axis mapping & offsets</span>
         </button>
+        <button class="tab-button" data-tab="joint-group" role="tab" aria-selected="false" aria-controls="panel-joint-group">
+          <span class="tab-title" data-i18n="tabs.jointGroup">Joint Group</span>
+          <span class="tab-note" data-i18n="tabs.jointGroup.note">Grouped editing</span>
+        </button>
         <button class="tab-button" data-tab="pose" role="tab" aria-selected="false" aria-controls="panel-pose">
           <span class="tab-title" data-i18n="tabs.pose">Pose</span>
           <span class="tab-note" data-i18n="tabs.pose.note">Pose library</span>
         </button>
-        <button class="tab-button" data-tab="motion" role="tab" aria-selected="false" aria-controls="panel-motion">
-          <span class="tab-title" data-i18n="tabs.motion">Motion</span>
-          <span class="tab-note" data-i18n="tabs.motion.note">Transitions & clips</span>
-        </button>
         <button class="tab-button" data-tab="sequence" role="tab" aria-selected="false" aria-controls="panel-sequence">
           <span class="tab-title" data-i18n="tabs.sequence">Sequence</span>
           <span class="tab-note" data-i18n="tabs.sequence.note">Steps & triggers</span>
+        </button>
+        <button class="tab-button" data-tab="easing" role="tab" aria-selected="false" aria-controls="panel-easing">
+          <span class="tab-title" data-i18n="tabs.easing">Easing</span>
+          <span class="tab-note" data-i18n="tabs.easing.note">Curves & presets</span>
+        </button>
+        <button class="tab-button" data-tab="event" role="tab" aria-selected="false" aria-controls="panel-event">
+          <span class="tab-title" data-i18n="tabs.event">Event</span>
+          <span class="tab-note" data-i18n="tabs.event.note">Triggers & cues</span>
         </button>
       </aside>
 
@@ -291,6 +299,56 @@
           </div>
         </section>
 
+        <section class="tab-panel" id="panel-joint-group" data-panel="joint-group" role="tabpanel" aria-label="Joint Group">
+          <header class="panel-header">
+            <div>
+              <h2 data-i18n="jointGroup.title">Joint Groups</h2>
+              <p data-i18n="jointGroup.desc">Bundle joints for quick selection and batch edits.</p>
+            </div>
+            <div class="panel-actions">
+              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
+              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+            </div>
+          </header>
+          <div class="panel-grid">
+            <article class="card" style="--delay: 60ms;">
+              <h3 data-i18n="jointGroup.card.list">Group List</h3>
+              <ul class="list">
+                <li class="list-item is-active">
+                  <span data-i18n="jointGroup.list.arms">Arms</span>
+                  <span class="chip">jg_arms</span>
+                </li>
+                <li class="list-item">
+                  <span data-i18n="jointGroup.list.head">Head</span>
+                  <span class="chip">jg_head</span>
+                </li>
+              </ul>
+              <button class="btn btn-outline" type="button" data-i18n="jointGroup.list.add">Add group</button>
+            </article>
+            <article class="card" style="--delay: 120ms;">
+              <h3 data-i18n="jointGroup.card.editor">Group Editor</h3>
+              <div class="form-grid">
+                <label class="form-field">
+                  <span data-i18n="jointGroup.form.id">Group ID</span>
+                  <input type="text" data-i18n-placeholder="jointGroup.form.id.placeholder" placeholder="jg_upper" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="jointGroup.form.joints">Joint IDs</span>
+                  <input type="text" data-i18n-placeholder="jointGroup.form.joints.placeholder" placeholder="yaw, pitch, roll" />
+                </label>
+              </div>
+            </article>
+            <article class="card" style="--delay: 180ms;">
+              <h3 data-i18n="jointGroup.card.actions">Quick Actions</h3>
+              <p class="muted" data-i18n="jointGroup.actions.note">Groups are UI-only and expanded before export.</p>
+              <div class="card-actions">
+                <button class="btn btn-secondary" type="button" data-i18n="jointGroup.actions.select">Select group</button>
+                <button class="btn btn-ghost" type="button" data-i18n="jointGroup.actions.expand">Expand joints</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
         <section class="tab-panel" id="panel-pose" data-panel="pose" role="tabpanel" aria-label="Pose">
           <header class="panel-header">
             <div>
@@ -367,60 +425,6 @@
           </div>
         </section>
 
-        <section class="tab-panel" id="panel-motion" data-panel="motion" role="tabpanel" aria-label="Motion">
-          <header class="panel-header">
-            <div>
-              <h2 data-i18n="motion.title">Motion Builder</h2>
-              <p data-i18n="motion.desc">Arrange transitions between poses and apply easing.</p>
-            </div>
-            <div class="panel-actions">
-              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
-              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-            </div>
-          </header>
-          <div class="panel-grid">
-            <article class="card" style="--delay: 60ms;">
-              <h3 data-i18n="motion.card.timeline">Timeline</h3>
-              <div class="timeline">
-                <div class="timeline-chip">p_home</div>
-                <div class="timeline-chip">p_wave</div>
-                <div class="timeline-chip">p_ready</div>
-                <div class="timeline-gap" data-i18n="motion.timeline.placeholder">Drop poses to create a flow.</div>
-              </div>
-              <button class="btn btn-outline" type="button" data-i18n="motion.timeline.add">Add segment</button>
-            </article>
-            <article class="card" style="--delay: 120ms;">
-              <h3 data-i18n="motion.card.transition">Transition Settings</h3>
-              <div class="form-grid">
-                <label class="form-field">
-                  <span data-i18n="motion.form.duration">Move duration (ms)</span>
-                  <input type="number" value="500" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="motion.form.easing">Easing</span>
-                  <select>
-                    <option value="e_smooth" data-i18n="motion.form.easing.smooth">Smooth</option>
-                    <option value="e_linear" data-i18n="motion.form.easing.linear">Linear</option>
-                    <option value="e_scurve_strong" data-i18n="motion.form.easing.strong">Strong S-curve</option>
-                  </select>
-                </label>
-                <label class="form-field">
-                  <span data-i18n="motion.form.hold">Hold (ms)</span>
-                  <input type="number" value="200" />
-                </label>
-              </div>
-            </article>
-            <article class="card" style="--delay: 180ms;">
-              <h3 data-i18n="motion.card.preview">Preview & Sync</h3>
-              <div class="card-actions">
-                <button class="btn btn-secondary" type="button" data-i18n="motion.preview.play">Play motion</button>
-                <button class="btn btn-outline" type="button" data-i18n="motion.preview.loop">Loop</button>
-              </div>
-              <button class="btn btn-ghost" type="button" data-i18n="motion.preview.export">Export header (.h)</button>
-            </article>
-          </div>
-        </section>
-
         <section class="tab-panel" id="panel-sequence" data-panel="sequence" role="tabpanel" aria-label="Sequence">
           <header class="panel-header">
             <div>
@@ -489,6 +493,123 @@
                 </div>
               </div>
               <button class="btn btn-ghost" type="button" data-i18n="sequence.axis.edit">Edit overrides</button>
+            </article>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-easing" data-panel="easing" role="tabpanel" aria-label="Easing">
+          <header class="panel-header">
+            <div>
+              <h2 data-i18n="easing.title">Easing Library</h2>
+              <p data-i18n="easing.desc">Manage easing presets and custom curves.</p>
+            </div>
+            <div class="panel-actions">
+              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
+              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+            </div>
+          </header>
+          <div class="panel-grid">
+            <article class="card" style="--delay: 60ms;">
+              <h3 data-i18n="easing.card.list">Easing List</h3>
+              <ul class="list">
+                <li class="list-item is-active">
+                  <span>e_smooth</span>
+                  <span class="chip" data-i18n="easing.list.preset">Preset</span>
+                </li>
+                <li class="list-item">
+                  <span>e_linear</span>
+                  <span class="chip" data-i18n="easing.list.preset">Preset</span>
+                </li>
+                <li class="list-item">
+                  <span>e_scurve_strong</span>
+                  <span class="chip" data-i18n="easing.list.custom">Custom</span>
+                </li>
+              </ul>
+              <button class="btn btn-outline" type="button" data-i18n="easing.list.add">Add easing</button>
+            </article>
+            <article class="card" style="--delay: 120ms;">
+              <h3 data-i18n="easing.card.editor">Curve Editor</h3>
+              <div class="form-grid">
+                <label class="form-field">
+                  <span data-i18n="easing.form.id">Easing ID</span>
+                  <input type="text" value="e_smooth" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="easing.form.preset">Preset</span>
+                  <select>
+                    <option value="linear" data-i18n="easing.form.preset.linear">Linear</option>
+                    <option value="easeInOut" data-i18n="easing.form.preset.smooth">Smooth</option>
+                    <option value="sCurve" data-i18n="easing.form.preset.curve">S-curve</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span data-i18n="easing.form.param">Strength</span>
+                  <input type="range" min="0" max="1" step="0.1" value="0.6" />
+                </label>
+              </div>
+            </article>
+            <article class="card" style="--delay: 180ms;">
+              <h3 data-i18n="easing.card.preview">Preview</h3>
+              <p class="muted" data-i18n="easing.preview.note">Use to compare timing curves.</p>
+              <div class="card-actions">
+                <button class="btn btn-secondary" type="button" data-i18n="easing.preview.apply">Apply to selection</button>
+                <button class="btn btn-ghost" type="button" data-i18n="easing.preview.reset">Reset</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-event" data-panel="event" role="tabpanel" aria-label="Event">
+          <header class="panel-header">
+            <div>
+              <h2 data-i18n="event.title">Event Setup</h2>
+              <p data-i18n="event.desc">Define event IDs and map triggers to cues.</p>
+            </div>
+            <div class="panel-actions">
+              <button class="btn btn-outline" type="button" data-i18n="common.import">Import</button>
+              <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+            </div>
+          </header>
+          <div class="panel-grid">
+            <article class="card" style="--delay: 60ms;">
+              <h3 data-i18n="event.card.list">Event List</h3>
+              <ul class="list">
+                <li class="list-item is-active">
+                  <span data-i18n="event.list.start">Sequence start</span>
+                  <span class="chip">100</span>
+                </li>
+                <li class="list-item">
+                  <span data-i18n="event.list.pose">Pose complete</span>
+                  <span class="chip">210</span>
+                </li>
+              </ul>
+              <button class="btn btn-outline" type="button" data-i18n="event.list.add">Add event</button>
+            </article>
+            <article class="card" style="--delay: 120ms;">
+              <h3 data-i18n="event.card.mapping">Trigger Mapping</h3>
+              <div class="form-grid">
+                <label class="form-field">
+                  <span data-i18n="event.form.trigger">Trigger</span>
+                  <select>
+                    <option value="sequence_start" data-i18n="event.form.trigger.start">Sequence start</option>
+                    <option value="sequence_end" data-i18n="event.form.trigger.end">Sequence end</option>
+                    <option value="pose_start" data-i18n="event.form.trigger.poseStart">Pose start</option>
+                    <option value="pose_end" data-i18n="event.form.trigger.poseEnd">Pose end</option>
+                  </select>
+                </label>
+                <label class="form-field">
+                  <span data-i18n="event.form.eventId">Event ID</span>
+                  <input type="number" value="100" />
+                </label>
+              </div>
+            </article>
+            <article class="card" style="--delay: 180ms;">
+              <h3 data-i18n="event.card.preview">Event Queue</h3>
+              <p class="muted" data-i18n="event.preview.note">Events are queued and handled in the sketch.</p>
+              <div class="card-actions">
+                <button class="btn btn-secondary" type="button" data-i18n="event.preview.simulate">Simulate</button>
+                <button class="btn btn-ghost" type="button" data-i18n="event.preview.clear">Clear</button>
+              </div>
             </article>
           </div>
         </section>

@@ -725,16 +725,63 @@ a {
   font-size: 0.95rem;
 }
 
-.servo-card-meta {
+.servo-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.servo-angle {
+.servo-card-preview {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.mini-dial {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 6px solid rgba(11, 139, 123, 0.2);
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #edf7f6 60%, #dff1ef 100%);
+  position: relative;
+}
+
+.mini-needle {
+  position: absolute;
+  width: 2px;
+  height: 18px;
+  background: var(--accent-warm);
+  top: 6px;
+  left: 50%;
+  transform-origin: bottom center;
+  transform: translateX(-50%) rotate(0deg);
+  border-radius: 99px;
+}
+
+.servo-card-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--ink-muted);
+}
+
+.servo-card-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.servo-card-inputs input[type="range"] {
+  flex: 1 1 auto;
+  min-width: 90px;
+}
+
+.servo-card-inputs input[type="number"] {
+  width: 52px;
+  margin-left: auto;
 }
 
 

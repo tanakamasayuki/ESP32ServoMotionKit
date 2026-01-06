@@ -124,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.card.preview': 'Live Preview',
       'servo.preview.angle': 'Preview angle',
       'servo.preview.offset.note': 'Example: Set preview offset to 270° (or -90°) to start from the left. Use clockwise or counterclockwise to flip the rotation direction.',
+      'servo.preview.card.angle': 'Angle',
       'servo.card.calibration': 'Calibration Notes',
       'servo.calibration.note': 'Keep the horn centered before saving. Use a neutral pose to align all axes.',
       'servo.calibration.item1': 'Neutral pose saved',
@@ -361,6 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.card.preview': 'ライブプレビュー',
       'servo.preview.angle': 'プレビュー角度',
       'servo.preview.offset.note': '例: プレビューオフセットを 270°（または -90°）にすると左側から開始します。回転方向は右回り/左回りで切り替えます。',
+      'servo.preview.card.angle': '角度',
       'servo.card.calibration': 'キャリブレーション',
       'servo.calibration.note': '保存前にホーンを中央に合わせ、ニュートラルポーズで全軸を整列します。',
       'servo.calibration.item1': 'ニュートラル保存済み',
@@ -1011,6 +1013,72 @@ document.addEventListener('DOMContentLoaded', () => {
     applyAngle(servoPreviewAngle.value);
   };
 
+  const initServoPreviewCards = () => {
+    const cards = Array.from(document.querySelectorAll('.servo-card'));
+    if (cards.length === 0) {
+      return;
+    }
+    const clampAngle = (value) => {
+      return Math.max(0, Math.min(360, Number(value || 0)));
+    };
+    const getOffset = () => {
+      return Number(servoPreviewOffsetInput?.value || 0);
+    };
+    const getDirection = () => {
+      return servoPreviewDirectionSelect?.value === 'ccw' ? -1 : 1;
+    };
+    const applyCardAngle = (card, value) => {
+      const angle = clampAngle(value);
+      const offset = getOffset();
+      const direction = getDirection();
+      const displayAngle = (offset + angle * direction + 3600) % 360;
+      const range = card.querySelector('[data-preview-card-angle]');
+      const input = card.querySelector('[data-preview-card-angle-input]');
+      const needle = card.querySelector('.mini-needle');
+      if (range) {
+        range.value = String(angle);
+      }
+      if (input) {
+        input.value = String(angle);
+      }
+      if (needle) {
+        needle.style.transform = `translateX(-50%) rotate(${displayAngle}deg)`;
+      }
+    };
+
+    cards.forEach((card) => {
+      const range = card.querySelector('[data-preview-card-angle]');
+      const input = card.querySelector('[data-preview-card-angle-input]');
+      if (!range || !input) {
+        return;
+      }
+      range.addEventListener('input', () => applyCardAngle(card, range.value));
+      input.addEventListener('input', () => applyCardAngle(card, input.value));
+      applyCardAngle(card, range.value);
+    });
+
+    if (servoPreviewOffsetInput) {
+      servoPreviewOffsetInput.addEventListener('input', () => {
+        cards.forEach((card) => {
+          const range = card.querySelector('[data-preview-card-angle]');
+          if (range) {
+            applyCardAngle(card, range.value);
+          }
+        });
+      });
+    }
+    if (servoPreviewDirectionSelect) {
+      servoPreviewDirectionSelect.addEventListener('change', () => {
+        cards.forEach((card) => {
+          const range = card.querySelector('[data-preview-card-angle]');
+          if (range) {
+            applyCardAngle(card, range.value);
+          }
+        });
+      });
+    }
+  };
+
   const initServoTypeToggle = () => {
     const select = document.querySelector('[data-servo-type-select]');
     const groups = Array.from(document.querySelectorAll('[data-servo-type-group]'));
@@ -1158,6 +1226,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSelectableLists();
   initServoTypeToggle();
   initServoPreviewAngle();
+  initServoPreviewCards();
   const initialLanguage = detectLanguage();
   languageSelect.value = initialLanguage;
   applyTranslations(initialLanguage);

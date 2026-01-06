@@ -971,6 +971,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const initSelectableLists = () => {
+    const listContainers = Array.from(document.querySelectorAll('.list'));
+    listContainers.forEach((list) => {
+      list.addEventListener('click', (event) => {
+        const item = event.target.closest('.list-item');
+        if (!item || !list.contains(item)) {
+          return;
+        }
+        list.querySelectorAll('.list-item').forEach((node) => {
+          node.classList.remove('is-active');
+        });
+        item.classList.add('is-active');
+      });
+    });
+  };
+
   const initHeroTabs = () => {
     const heroTabs = Array.from(document.querySelectorAll('.hero-tab'));
     const heroPanels = Array.from(document.querySelectorAll('.hero-tab-panel'));
@@ -1096,6 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initTabs();
   initHeroTabs();
+  initSelectableLists();
   const initialLanguage = detectLanguage();
   languageSelect.value = initialLanguage;
   applyTranslations(initialLanguage);

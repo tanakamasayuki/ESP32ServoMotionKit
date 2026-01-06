@@ -628,10 +628,17 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .list-item.is-active {
   background: rgba(241, 138, 75, 0.16);
+}
+
+.list-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(11, 23, 28, 0.12);
 }
 
 .chip {

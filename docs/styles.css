@@ -639,6 +639,10 @@ a {
   margin-top: 12px;
 }
 
+.preview-note {
+  margin-top: 12px;
+}
+
 .checklist {
   display: grid;
   gap: 8px;

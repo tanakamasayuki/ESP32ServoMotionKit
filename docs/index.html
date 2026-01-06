@@ -76,9 +76,6 @@
                 <header class="panel-header">
                   <div>
                     <h2 data-i18n="device.title">Device Link</h2>
-                    <p data-i18n="device.note">
-                      Edit offline, then flash preview firmware and connect when you want to preview before exporting the header.
-                    </p>
                   </div>
                   <div class="status-pill" id="status-pill">
                     <span class="status-dot"></span>
@@ -118,81 +115,40 @@
               <section class="card hero-tab-panel" id="hero-preview" data-hero-panel="preview" aria-hidden="true" hidden>
                 <header class="panel-header">
                   <div>
-                    <h2 data-i18n="preview.title">Preview</h2>
-                    <p data-i18n="preview.desc">Quickly send angles to all registered servos.</p>
-                  </div>
+                  <h2 data-i18n="preview.title">Preview</h2>
+                </div>
                 </header>
                 <div class="panel-grid panel-grid--workspace">
                 <article class="panel-pane panel-pane--list">
-                  <div class="list-header">
-                    <h3 data-i18n="preview.list.title">Registered servos</h3>
-                    <div class="list-actions">
-                      <button class="btn btn-outline" type="button" data-i18n="preview.list.refresh">Refresh</button>
+                  <div class="servo-strip" role="list">
+                    <div class="servo-card" role="listitem">
+                      <div class="servo-card-title">servo_front_left</div>
+                      <div class="servo-card-meta">
+                        <span class="chip">PWM</span>
+                        <span class="servo-angle">92°</span>
+                      </div>
                     </div>
-                  </div>
-                  <ul class="list">
-                    <li class="list-item is-active">
-                      <span>servo_front_left</span>
-                      <span class="chip">92°</span>
-                    </li>
-                    <li class="list-item">
-                      <span>servo_front_right</span>
-                      <span class="chip">88°</span>
-                    </li>
-                    <li class="list-item">
-                      <span>servo_tail</span>
-                      <span class="chip">120°</span>
-                    </li>
-                  </ul>
-                </article>
-                <article class="panel-pane panel-pane--editor">
-                  <h3 data-i18n="preview.bulk.title">Bulk angle control</h3>
-                  <div class="form-grid">
-                    <label class="form-field">
-                      <span data-i18n="preview.bulk.angle">Target angle (deg)</span>
-                      <input type="number" value="90" min="0" max="180" />
-                    </label>
-                    <label class="form-field">
-                      <span data-i18n="preview.bulk.duration">Move duration (ms)</span>
-                      <input type="number" value="500" min="0" />
-                    </label>
-                    <label class="form-field">
-                      <span data-i18n="preview.bulk.easing">Easing</span>
-                      <select>
-                        <option value="e_linear" data-i18n="preview.bulk.easing.linear">Linear</option>
-                        <option value="e_smooth" data-i18n="preview.bulk.easing.smooth">Smooth</option>
-                        <option value="e_scurve_strong" data-i18n="preview.bulk.easing.strong">Strong S-curve</option>
-                      </select>
-                    </label>
-                  </div>
-                  <div class="card-actions">
-                    <button class="btn btn-secondary" type="button" data-i18n="preview.bulk.apply">
-                      Apply to all servos
-                    </button>
-                    <button class="btn btn-ghost" type="button" data-i18n="preview.bulk.neutral">
-                      Send neutral pose
-                    </button>
-                  </div>
-                </article>
-                <article class="panel-pane panel-pane--aux">
-                  <h3 data-i18n="preview.status.title">Servo status</h3>
-                  <div class="mini-list">
-                    <div class="mini-row">
-                      <span class="mini-k">CH0</span>
-                      <span class="mini-v" data-i18n="preview.status.ready">Ready</span>
+                    <div class="servo-card" role="listitem">
+                      <div class="servo-card-title">servo_front_right</div>
+                      <div class="servo-card-meta">
+                        <span class="chip">PWM</span>
+                        <span class="servo-angle">88°</span>
+                      </div>
                     </div>
-                    <div class="mini-row">
-                      <span class="mini-k">CH1</span>
-                      <span class="mini-v" data-i18n="preview.status.moving">Moving</span>
+                    <div class="servo-card" role="listitem">
+                      <div class="servo-card-title">servo_tail</div>
+                      <div class="servo-card-meta">
+                        <span class="chip">TTL</span>
+                        <span class="servo-angle">120°</span>
+                      </div>
                     </div>
-                    <div class="mini-row">
-                      <span class="mini-k">CH2</span>
-                      <span class="mini-v" data-i18n="preview.status.hold">Holding</span>
+                    <div class="servo-card" role="listitem">
+                      <div class="servo-card-title">servo_aux_1</div>
+                      <div class="servo-card-meta">
+                        <span class="chip">PWM</span>
+                        <span class="servo-angle">75°</span>
+                      </div>
                     </div>
-                  </div>
-                  <div class="card-actions">
-                    <button class="btn btn-outline" type="button" data-i18n="preview.status.stop">Stop all</button>
-                    <button class="btn btn-ghost" type="button" data-i18n="preview.status.sync">Sync state</button>
                   </div>
                 </article>
               </div>

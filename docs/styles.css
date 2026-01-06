@@ -734,14 +734,14 @@ a {
 
 .servo-card-preview {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 64px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
 }
 
 .mini-dial {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   border: 6px solid rgba(11, 139, 123, 0.2);
   background: radial-gradient(circle at 30% 30%, #ffffff 0%, #edf7f6 60%, #dff1ef 100%);
@@ -751,9 +751,9 @@ a {
 .mini-needle {
   position: absolute;
   width: 2px;
-  height: 18px;
+  height: 24px;
   background: var(--accent-warm);
-  top: 6px;
+  top: 8px;
   left: 50%;
   transform-origin: bottom center;
   transform: translateX(-50%) rotate(0deg);
@@ -770,13 +770,13 @@ a {
 
 .servo-card-inputs {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 8px;
 }
 
 .servo-card-inputs input[type="range"] {
-  flex: 1 1 auto;
-  min-width: 90px;
+  width: 100%;
 }
 
 .servo-card-inputs input[type="number"] {

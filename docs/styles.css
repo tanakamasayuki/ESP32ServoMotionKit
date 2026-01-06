@@ -143,16 +143,24 @@ a {
   gap: 16px;
 }
 
-.hero-panel--split {
+.hero-tablist {
+  width: 100%;
+}
+
+.hero-tab {
+  flex: 1 1 0;
+  text-align: center;
+}
+
+.hero-tab-body {
+  display: grid;
   grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 16px;
   align-items: start;
 }
 
-.hero-summary {
-  min-width: 0;
-}
-
-.hero-tabs--right {
+.hero-summary,
+.hero-tab-panels {
   min-width: 0;
 }
 
@@ -994,7 +1002,7 @@ body.modal-open {
     grid-template-columns: 1fr;
   }
 
-  .hero-panel--split {
+  .hero-tab-body {
     grid-template-columns: 1fr;
   }
 

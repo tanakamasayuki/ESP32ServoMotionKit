@@ -25,41 +25,8 @@
           </p>
         </div>
       </div>
-      <div class="hero-panel hero-panel--split">
-        <section class="card insight-card hero-summary">
-          <h3 data-i18n="insight.title">Workspace Snapshot</h3>
-          <div class="insight-grid">
-            <div>
-              <span class="insight-k" data-i18n="insight.servos">Servos</span>
-              <span class="insight-v">12</span>
-            </div>
-            <div>
-              <span class="insight-k" data-i18n="insight.joints">Joints</span>
-              <span class="insight-v">6</span>
-            </div>
-            <div>
-              <span class="insight-k" data-i18n="insight.poses">Poses</span>
-              <span class="insight-v">8</span>
-            </div>
-            <div>
-              <span class="insight-k" data-i18n="insight.sequences">Sequences</span>
-              <span class="insight-v">3</span>
-            </div>
-          </div>
-          <div class="language-block">
-            <label for="language-select" data-i18n="language.label">Language</label>
-            <select id="language-select" data-i18n-aria="language.aria">
-              <option value="en" data-i18n="language.option.en">English</option>
-              <option value="ja" data-i18n="language.option.ja">日本語</option>
-            </select>
-            <p class="hint" data-i18n="language.hint">Auto-detected from the browser.</p>
-          </div>
-          <div class="card-actions">
-            <button class="btn btn-outline" type="button" data-i18n="common.import">Import project</button>
-            <button class="btn btn-secondary" type="button" data-i18n="common.save">Save project</button>
-          </div>
-        </section>
-        <div class="hero-tabs hero-tabs--right" data-hero-tabs>
+      <div class="hero-panel">
+        <div class="hero-tabs" data-hero-tabs>
           <div class="hero-tablist" role="tablist" aria-label="Hero">
             <button class="hero-tab is-active" role="tab" data-hero-tab="device" aria-selected="true"
               aria-controls="hero-device" data-i18n="device.title">
@@ -70,8 +37,42 @@
               Preview
             </button>
           </div>
-          <div class="hero-tab-panels">
-            <section class="card status-card hero-tab-panel is-active" id="hero-device" data-hero-panel="device" aria-hidden="false">
+          <div class="hero-tab-body">
+            <section class="card insight-card hero-summary">
+              <h3 data-i18n="insight.title">Workspace Snapshot</h3>
+              <div class="insight-grid">
+                <div>
+                  <span class="insight-k" data-i18n="insight.servos">Servos</span>
+                  <span class="insight-v">12</span>
+                </div>
+                <div>
+                  <span class="insight-k" data-i18n="insight.joints">Joints</span>
+                  <span class="insight-v">6</span>
+                </div>
+                <div>
+                  <span class="insight-k" data-i18n="insight.poses">Poses</span>
+                  <span class="insight-v">8</span>
+                </div>
+                <div>
+                  <span class="insight-k" data-i18n="insight.sequences">Sequences</span>
+                  <span class="insight-v">3</span>
+                </div>
+              </div>
+              <div class="language-block">
+                <label for="language-select" data-i18n="language.label">Language</label>
+                <select id="language-select" data-i18n-aria="language.aria">
+                  <option value="en" data-i18n="language.option.en">English</option>
+                  <option value="ja" data-i18n="language.option.ja">日本語</option>
+                </select>
+                <p class="hint" data-i18n="language.hint">Auto-detected from the browser.</p>
+              </div>
+              <div class="card-actions">
+                <button class="btn btn-outline" type="button" data-i18n="common.import">Import project</button>
+                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save project</button>
+              </div>
+            </section>
+            <div class="hero-tab-panels">
+              <section class="card status-card hero-tab-panel is-active" id="hero-device" data-hero-panel="device" aria-hidden="false">
               <div class="status-header">
                 <h2 data-i18n="device.title">Device Link</h2>
                 <div class="status-pill" id="status-pill">
@@ -115,8 +116,8 @@
                   <span class="status-v" id="mode-label" data-i18n="device.mode.demo">Demo</span>
                 </div>
               </div>
-            </section>
-            <section class="card hero-tab-panel" id="hero-preview" data-hero-panel="preview" aria-hidden="true" hidden>
+              </section>
+              <section class="card hero-tab-panel" id="hero-preview" data-hero-panel="preview" aria-hidden="true" hidden>
               <header class="panel-header">
                 <div>
                   <h2 data-i18n="preview.title">Preview</h2>
@@ -197,7 +198,8 @@
                   </div>
                 </article>
               </div>
-            </section>
+              </section>
+            </div>
           </div>
         </div>
       </div>

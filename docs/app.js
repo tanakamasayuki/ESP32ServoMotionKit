@@ -221,7 +221,14 @@ document.addEventListener('DOMContentLoaded', () => {
       'easing.form.param': 'Strength',
       'easing.card.preview': 'Timing Curves',
       'easing.form.type': 'Type',
+      'easing.form.type.warpcurve': '時間変形曲線',
       'easing.editor.note': 'Preset entries are read-only. Custom entries adjust parameters based on a preset.',
+      'easing.param.shape': 'Shape (0-255)',
+      'easing.param.bias': 'Bias (0-255)',
+      'easing.param.symmetry': 'Symmetry (0-255)',
+      'easing.param.overshoot': 'Overshoot (0-255)',
+      'easing.param.overshootTiming': 'Overshoot timing (0-255)',
+      'easing.param.overshootDamping': 'Overshoot damping (0-255)',
       'easing.graph.velocity': 'Velocity over time',
       'easing.graph.distance': 'Distance over time',
       'event.title': 'Event Settings',
@@ -461,7 +468,14 @@ document.addEventListener('DOMContentLoaded', () => {
       'easing.form.param': '強さ',
       'easing.card.preview': 'タイミングカーブ',
       'easing.form.type': '種別',
+      'easing.form.type.warpcurve': '時間変形曲線',
       'easing.editor.note': 'プリセットは編集不可です。カスタムはプリセットを元にパラメーターを調整します。',
+      'easing.param.shape': '曲線強度 (0-255)',
+      'easing.param.bias': '加速前後配分 (0-255)',
+      'easing.param.symmetry': '中央重心 (0-255)',
+      'easing.param.overshoot': 'オーバーシュート (0-255)',
+      'easing.param.overshootTiming': 'オーバーシュート開始 (0-255)',
+      'easing.param.overshootDamping': 'オーバーシュート収束 (0-255)',
       'easing.graph.velocity': '速度の推移',
       'easing.graph.distance': '移動距離の積算',
       'event.title': 'イベント設定',
@@ -1101,6 +1115,166 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const clamp01 = (value) => Math.max(0, Math.min(1, value));
+
+  const warpCurveDistance = (time, params) => {
+    const t = clamp01(time);
+    const shape = clamp01(params.shape / 255);
+    const bias = clamp01(params.bias / 255);
+    const symmetry = clamp01(params.symmetry / 255);
+    const overshoot = clamp01(params.overshoot / 255);
+    const overshootTiming = clamp01(params.overshootTiming / 255);
+    const overshootDamping = clamp01(params.overshootDamping / 255);
+
+    let warped = t;
+    const biasK = (bias - 0.5) * 2;
+    if (biasK < 0) {
+      warped = Math.pow(warped, 1 + (-biasK) * 2);
+    } else if (biasK > 0) {
+      warped = 1 - Math.pow(1 - warped, 1 + biasK * 2);
+    }
+
+    const symmetryK = (symmetry - 0.5) * 2;
+    warped = clamp01(warped + symmetryK * 0.12 * Math.sin(Math.PI * warped));
+
+    const power = 1 + shape * 3;
+    const a = Math.pow(warped, power);
+    const b = Math.pow(1 - warped, power);
+    let distance = (a + b === 0) ? 0 : a / (a + b);
+
+    const overshootAmount = overshoot * 0.4;
+    if (overshootAmount > 0) {
+      const start = Math.min(0.98, overshootTiming);
+      if (t >= start) {
+        const phase = (t - start) / (1 - start);
+        const damping = 1 + overshootDamping * 3;
+        const bump = Math.sin(Math.PI * phase) * Math.exp(-damping * phase);
+        distance += overshootAmount * bump;
+      }
+    }
+
+    return distance;
+  };
+
+  const easingFunctions = {
+    linear: (time) => {
+      const clamped = clamp01(time);
+      return { velocity: 1, distance: clamped };
+    },
+    warpcurve: (time, params) => {
+      const t = clamp01(time);
+      const distance = warpCurveDistance(t, params);
+      const dt = 0.001;
+      const ahead = warpCurveDistance(clamp01(t + dt), params);
+      const behind = warpCurveDistance(clamp01(t - dt), params);
+      const velocity = (ahead - behind) / (2 * dt);
+      return { velocity: clamp01(velocity), distance };
+    }
+  };
+
+  const buildCurvePath = (points) => {
+    if (points.length === 0) {
+      return '';
+    }
+    return points
+      .map((point, index) => {
+        const cmd = index === 0 ? 'M' : 'L';
+        return `${cmd}${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+      })
+      .join(' ');
+  };
+
+  const renderEasingGraphs = () => {
+    const velocityPath = document.querySelector('.curve-line--velocity');
+    const distancePath = document.querySelector('.curve-line--distance');
+    const typeSelect = document.querySelector('[data-easing-type-select]');
+    const paramInputs = Array.from(document.querySelectorAll('[data-easing-param]'));
+    if (!velocityPath || !distancePath) {
+      return;
+    }
+
+    const easingType = typeSelect?.value || 'linear';
+    const easingFn = easingFunctions[easingType] || easingFunctions.linear;
+    if (!easingFn) {
+      return;
+    }
+
+    const params = {
+      shape: 180,
+      bias: 128,
+      symmetry: 128,
+      overshoot: 0,
+      overshootTiming: 0,
+      overshootDamping: 0
+    };
+
+    paramInputs.forEach((input) => {
+      const key = input.dataset.easingParam;
+      if (!key) {
+        return;
+      }
+      const value = Number(input.value);
+      params[key] = Number.isFinite(value) ? value : params[key];
+    });
+
+    const samples = 40;
+    const padding = { x: 8, y: 16 };
+    const width = 240;
+    const height = 120;
+    const innerWidth = width - padding.x * 2;
+    const innerHeight = height - padding.y * 2;
+
+    const velocityPoints = [];
+    const distancePoints = [];
+    const distances = [];
+
+    for (let i = 0; i <= samples; i += 1) {
+      const t = i / samples;
+      const { velocity, distance } = easingFn(t, params);
+      const x = padding.x + innerWidth * t;
+      const velocityY = padding.y + innerHeight * (1 - clamp01(velocity));
+      distances.push(distance);
+      velocityPoints.push({ x, y: velocityY });
+    }
+
+    const maxDistance = Math.max(1, ...distances);
+    for (let i = 0; i <= samples; i += 1) {
+      const t = i / samples;
+      const distance = distances[i];
+      const x = padding.x + innerWidth * t;
+      const distanceY = padding.y + innerHeight * (1 - distance / maxDistance);
+      distancePoints.push({ x, y: distanceY });
+    }
+
+    velocityPath.setAttribute('d', buildCurvePath(velocityPoints));
+    distancePath.setAttribute('d', buildCurvePath(distancePoints));
+  };
+
+  const initEasingTypeToggle = () => {
+    const typeSelect = document.querySelector('[data-easing-type-select]');
+    const paramGroups = Array.from(document.querySelectorAll('[data-easing-type-group]'));
+    const paramInputs = Array.from(document.querySelectorAll('[data-easing-param]'));
+    if (!typeSelect) {
+      return;
+    }
+
+    const update = () => {
+      paramGroups.forEach((group) => {
+        const isActive = group.dataset.easingTypeGroup === typeSelect.value;
+        group.classList.toggle('is-active', isActive);
+        group.hidden = !isActive;
+        group.setAttribute('aria-hidden', String(!isActive));
+      });
+      renderEasingGraphs();
+    };
+
+    typeSelect.addEventListener('change', update);
+    paramInputs.forEach((input) => {
+      input.addEventListener('input', renderEasingGraphs);
+    });
+    update();
+  };
+
   const initServoPreviewAngle = () => {
     if (!servoPreviewAngle || !servoPreviewAngleInput) {
       return;
@@ -1366,6 +1540,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initJointServoSelection();
   initJointGroupSelection();
   initPoseAxisSelection();
+  initEasingTypeToggle();
+  renderEasingGraphs();
   initServoTypeToggle();
   initServoPreviewAngle();
   initServoPreviewCards();

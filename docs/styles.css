@@ -715,6 +715,43 @@ a {
   display: block;
 }
 
+.curve-line {
+  fill: none;
+  stroke-width: 3;
+}
+
+.curve-line--velocity {
+  stroke: #0b8b7b;
+}
+
+.curve-line--distance {
+  stroke: #f18a4b;
+}
+
+.curve-axis {
+  fill: none;
+  stroke: rgba(27, 31, 35, 0.2);
+  stroke-width: 1;
+}
+
+.easing-params {
+  margin-top: 8px;
+}
+
+.easing-params .form-grid {
+  grid-template-columns: 1fr;
+}
+
+.easing-params .form-field input {
+  width: 100%;
+}
+
+.easing-params .form-field--full,
+.easing-params .form-field--full input {
+  width: 100%;
+  max-width: none;
+}
+
 .card-subtitle {
   margin: 12px 0 6px;
   font-size: 0.95rem;

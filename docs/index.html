@@ -898,16 +898,39 @@
                 </label>
                 <label class="form-field form-field--full">
                   <span data-i18n="easing.form.type">Type</span>
-                  <select>
+                  <select data-easing-type-select>
                     <option value="linear" data-i18n="easing.form.preset.linear">Linear</option>
-                    <option value="easeInOut" data-i18n="easing.form.preset.smooth">Smooth</option>
-                    <option value="sCurve" data-i18n="easing.form.preset.curve">S-curve</option>
+                    <option value="warpcurve" data-i18n="easing.form.type.warpcurve">WarpCurve</option>
                   </select>
                 </label>
-                <label class="form-field">
-                  <span data-i18n="easing.form.param">Strength</span>
-                  <input type="range" min="0" max="1" step="0.1" value="0.6" />
-                </label>
+                <div class="easing-params form-field--full" data-easing-type-group="warpcurve" aria-hidden="true" hidden>
+                  <div class="form-grid">
+                    <label class="form-field form-field--full">
+                      <span data-i18n="easing.param.shape">Shape (0-255)</span>
+                      <input type="number" value="180" min="0" max="255" data-easing-param="shape" />
+                    </label>
+                    <label class="form-field form-field--full">
+                      <span data-i18n="easing.param.bias">Bias (0-255)</span>
+                      <input type="number" value="128" min="0" max="255" data-easing-param="bias" />
+                    </label>
+                    <label class="form-field form-field--full">
+                      <span data-i18n="easing.param.symmetry">Symmetry (0-255)</span>
+                      <input type="number" value="128" min="0" max="255" data-easing-param="symmetry" />
+                    </label>
+                    <label class="form-field form-field--full">
+                      <span data-i18n="easing.param.overshoot">Overshoot (0-255)</span>
+                      <input type="number" value="0" min="0" max="255" data-easing-param="overshoot" />
+                    </label>
+                    <label class="form-field form-field--full">
+                      <span data-i18n="easing.param.overshootTiming">Overshoot timing (0-255)</span>
+                      <input type="number" value="0" min="0" max="255" data-easing-param="overshootTiming" />
+                    </label>
+                    <label class="form-field form-field--full">
+                      <span data-i18n="easing.param.overshootDamping">Overshoot damping (0-255)</span>
+                      <input type="number" value="0" min="0" max="255" data-easing-param="overshootDamping" />
+                    </label>
+                  </div>
+                </div>
               </div>
               <p class="muted" data-i18n="easing.editor.note">
                 Preset entries are read-only. Custom entries adjust parameters based on a preset.
@@ -924,9 +947,9 @@
                 <h4 data-i18n="easing.graph.velocity">Velocity over time</h4>
                 <div class="curve-graph" aria-hidden="true">
                   <svg viewBox="0 0 240 120" role="img" aria-label="Velocity graph">
-                    <path d="M8 104 C50 24, 120 24, 232 16" fill="none" stroke="#0b8b7b" stroke-width="3" />
-                    <path d="M8 104 L232 104" stroke="rgba(27,31,35,0.2)" />
-                    <path d="M8 104 L8 16" stroke="rgba(27,31,35,0.2)" />
+                    <path class="curve-line curve-line--velocity" d="M8 104 C50 24, 120 24, 232 16" />
+                    <path class="curve-axis" d="M8 104 L232 104" />
+                    <path class="curve-axis" d="M8 104 L8 16" />
                   </svg>
                 </div>
               </div>
@@ -934,9 +957,9 @@
                 <h4 data-i18n="easing.graph.distance">Distance over time</h4>
                 <div class="curve-graph" aria-hidden="true">
                   <svg viewBox="0 0 240 120" role="img" aria-label="Distance graph">
-                    <path d="M8 104 C90 96, 160 60, 232 16" fill="none" stroke="#f18a4b" stroke-width="3" />
-                    <path d="M8 104 L232 104" stroke="rgba(27,31,35,0.2)" />
-                    <path d="M8 104 L8 16" stroke="rgba(27,31,35,0.2)" />
+                    <path class="curve-line curve-line--distance" d="M8 104 C90 96, 160 60, 232 16" />
+                    <path class="curve-axis" d="M8 104 L232 104" />
+                    <path class="curve-axis" d="M8 104 L8 16" />
                   </svg>
                 </div>
               </div>

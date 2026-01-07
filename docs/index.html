@@ -639,14 +639,6 @@
                   <input type="text" data-i18n-placeholder="pose.editor.id.placeholder" placeholder="p_wave" />
                 </label>
                 <label class="form-field">
-                  <span data-i18n="pose.editor.group">Joint group</span>
-                  <select>
-                    <option>jg_base</option>
-                    <option>jg_arms</option>
-                    <option>jg_head</option>
-                  </select>
-                </label>
-                <label class="form-field">
                   <span data-i18n="common.form.displayOrder">Display order</span>
                   <input type="number" value="10" min="0" data-i18n-placeholder="common.form.displayOrder.placeholder"
                     placeholder="10" />
@@ -655,6 +647,15 @@
                   <span data-i18n="common.form.description">Description</span>
                   <textarea rows="2" data-i18n-placeholder="common.form.description.placeholder"
                     placeholder="Neutral pose for start"></textarea>
+                </label>
+                <label class="form-field">
+                  <span data-i18n="pose.editor.group">Joint group</span>
+                  <select>
+                    <option data-i18n="pose.editor.group.all">All joints</option>
+                    <option>jg_base</option>
+                    <option>jg_arms</option>
+                    <option>jg_head</option>
+                  </select>
                 </label>
               </div>
               <p class="muted" data-i18n="pose.editor.axes.note">Axes from the selected joint group.</p>

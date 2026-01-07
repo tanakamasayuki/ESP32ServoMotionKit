@@ -908,6 +908,8 @@ a {
 .mini-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   padding: 8px 0;
   border-bottom: 1px dashed rgba(27, 31, 35, 0.12);
 }
@@ -922,6 +924,18 @@ a {
 
 .mini-v {
   color: var(--ink-muted);
+}
+
+.mini-row input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+.form-value {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(27, 31, 35, 0.06);
+  font-size: 0.95rem;
+  color: var(--ink-80);
 }
 
 @keyframes cardIn {

@@ -436,46 +436,11 @@
               </ul>
             </article>
             <article class="card panel-pane panel-pane--editor" style="--delay: 120ms;">
-              <h3 data-i18n="joint.card.definition">Joint Definition</h3>
+              <h3 data-i18n="joint.card.settings">Joint Settings</h3>
               <div class="form-grid">
                 <label class="form-field">
                   <span data-i18n="joint.form.id">Joint ID</span>
                   <input type="text" data-i18n-placeholder="joint.form.id.placeholder" placeholder="yaw" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="joint.form.type">Joint type</span>
-                  <select>
-                    <option value="rotational" data-i18n="joint.form.type.rotational">Rotational</option>
-                    <option value="linear" data-i18n="joint.form.type.linear">Linear</option>
-                  </select>
-                </label>
-                <label class="form-field">
-                  <span data-i18n="joint.form.servos">Mapped servos</span>
-                  <input type="text" data-i18n-placeholder="joint.form.servos.placeholder" placeholder="servo_front_left, servo_front_right" />
-                </label>
-                <label class="form-field form-field--toggle">
-                  <span data-i18n="joint.form.mirror">Mirror pair</span>
-                  <input type="checkbox" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="joint.form.offset">Neutral offset (deg)</span>
-                  <input type="number" value="0" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="joint.form.min">Min (deg)</span>
-                  <input type="number" value="-45" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="joint.form.max">Max (deg)</span>
-                  <input type="number" value="45" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="joint.form.gain">Gain</span>
-                  <input type="number" value="1.0" step="0.1" />
-                </label>
-                <label class="form-field form-field--toggle">
-                  <span data-i18n="joint.form.soft">Soft limit</span>
-                  <input type="checkbox" checked />
                 </label>
                 <label class="form-field">
                   <span data-i18n="common.form.displayOrder">Display order</span>
@@ -488,20 +453,56 @@
                     placeholder="Joint for head yaw"></textarea>
                 </label>
               </div>
+              <p class="muted" data-i18n="joint.targets.note">Select target servos.</p>
+              <div class="mini-list">
+                <label class="mini-row">
+                  <input type="checkbox" checked />
+                  <span class="mini-k">servo_front_left</span>
+                  <span class="mini-v">PWM</span>
+                </label>
+                <label class="mini-row">
+                  <input type="checkbox" checked />
+                  <span class="mini-k">servo_front_right</span>
+                  <span class="mini-v">PWM</span>
+                </label>
+                <label class="mini-row">
+                  <input type="checkbox" />
+                  <span class="mini-k">servo_back_left</span>
+                  <span class="mini-v">TTL</span>
+                </label>
+              </div>
               <div class="card-actions">
                 <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
                 <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
               </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
-              <h3 data-i18n="joint.card.group">Group Tools</h3>
-              <p class="muted" data-i18n="joint.group.note">Coordinate limits and offsets across grouped joints.</p>
-              <div class="card-actions">
-                <button class="btn btn-outline" type="button" data-i18n="joint.group.sync">Sync offsets</button>
-                <button class="btn btn-ghost" type="button" data-i18n="joint.group.balance">Balance load</button>
+              <h3 data-i18n="joint.servo.title">Servo Settings</h3>
+              <div class="form-grid">
+                <div class="form-field">
+                  <span data-i18n="joint.servo.id">Target servo</span>
+                  <div class="form-value">servo_front_left</div>
+                </div>
+                <label class="form-field form-field--toggle">
+                  <span data-i18n="joint.servo.direction">Reverse direction</span>
+                  <input type="checkbox" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="joint.servo.offset">Servo offset (deg)</span>
+                  <input type="number" value="0" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="joint.servo.min">Servo min (deg)</span>
+                  <input type="number" value="-45" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="joint.servo.max">Servo max (deg)</span>
+                  <input type="number" value="45" />
+                </label>
               </div>
               <div class="card-actions">
-                <button class="btn btn-secondary" type="button" data-i18n="joint.group.test">Test range</button>
+                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+                <button class="btn btn-ghost" type="button" data-i18n="joint.servo.unassign">Unassign servo</button>
               </div>
             </article>
           </div>

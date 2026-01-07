@@ -565,7 +565,7 @@ a {
 
 .form-field-row input[type="range"] {
   flex: 1 1 auto;
-  min-width: 220px;
+  min-width: 140px;
 }
 
 .form-field--full {
@@ -929,6 +929,7 @@ a {
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -940,6 +941,7 @@ a {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

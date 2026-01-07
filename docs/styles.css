@@ -682,6 +682,34 @@ a {
   gap: 10px;
 }
 
+.card-subtitle {
+  margin: 12px 0 6px;
+  font-size: 0.95rem;
+}
+
+.trigger-list {
+  display: grid;
+  gap: 8px;
+}
+
+.trigger-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.trigger-row select {
+  min-width: 200px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font: inherit;
+  background: #fff;
+}
+
 .panel-pane--editor .card-actions {
   margin-top: 12px;
 }

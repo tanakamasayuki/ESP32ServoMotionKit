@@ -676,6 +676,36 @@
                   <span class="mini-v">5°</span>
                 </div>
               </div>
+              <h4 class="card-subtitle" data-i18n="pose.triggers.title">Trigger Settings</h4>
+              <div class="trigger-list">
+                <label class="trigger-row">
+                  <span data-i18n="pose.triggers.start">Pose start</span>
+                  <select>
+                    <option value="none" data-i18n="pose.triggers.event.none">No event</option>
+                    <option value="100" data-i18n="pose.triggers.event.start">100 - Sequence start</option>
+                    <option value="210" data-i18n="pose.triggers.event.pose">210 - Pose complete</option>
+                  </select>
+                </label>
+                <label class="trigger-row">
+                  <span data-i18n="pose.triggers.reached">Pose reached</span>
+                  <select>
+                    <option value="none" data-i18n="pose.triggers.event.none">No event</option>
+                    <option value="100" data-i18n="pose.triggers.event.start">100 - Sequence start</option>
+                    <option value="210" data-i18n="pose.triggers.event.pose">210 - Pose complete</option>
+                  </select>
+                </label>
+                <label class="trigger-row">
+                  <span data-i18n="pose.triggers.end">Pose end</span>
+                  <select>
+                    <option value="none" data-i18n="pose.triggers.event.none">No event</option>
+                    <option value="100" data-i18n="pose.triggers.event.start">100 - Sequence start</option>
+                    <option value="210" data-i18n="pose.triggers.event.pose">210 - Pose complete</option>
+                  </select>
+                </label>
+              </div>
+              <p class="muted" data-i18n="pose.triggers.note">
+                Pose reached triggers when the sequence movement completes. Pose end triggers after the sequence hold time.
+              </p>
               <div class="card-actions">
                 <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
                 <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>

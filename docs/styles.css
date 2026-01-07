@@ -693,6 +693,28 @@ a {
   gap: 10px;
 }
 
+.curve-panel {
+  margin-top: 12px;
+}
+
+.curve-panel h4 {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+}
+
+.curve-graph {
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(27, 31, 35, 0.12);
+  background: #fff;
+  padding: 8px;
+}
+
+.curve-graph svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 .card-subtitle {
   margin: 12px 0 6px;
   font-size: 0.95rem;

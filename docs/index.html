@@ -897,7 +897,7 @@
                     placeholder="Smooth easing for demo"></textarea>
                 </label>
                 <label class="form-field">
-                  <span data-i18n="easing.form.preset">Preset</span>
+                  <span data-i18n="easing.form.type">Type</span>
                   <select>
                     <option value="linear" data-i18n="easing.form.preset.linear">Linear</option>
                     <option value="easeInOut" data-i18n="easing.form.preset.smooth">Smooth</option>
@@ -909,6 +909,9 @@
                   <input type="range" min="0" max="1" step="0.1" value="0.6" />
                 </label>
               </div>
+              <p class="muted" data-i18n="easing.editor.note">
+                Preset entries are read-only. Custom entries adjust parameters based on a preset.
+              </p>
               <div class="card-actions">
                 <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
                 <button class="btn btn-outline" type="button" data-i18n="common.duplicate">Duplicate</button>
@@ -916,11 +919,26 @@
               </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
-              <h3 data-i18n="easing.card.preview">Preview</h3>
-              <p class="muted" data-i18n="easing.preview.note">Use to compare timing curves.</p>
-              <div class="card-actions">
-                <button class="btn btn-secondary" type="button" data-i18n="easing.preview.apply">Apply to selection</button>
-                <button class="btn btn-ghost" type="button" data-i18n="easing.preview.reset">Reset</button>
+              <h3 data-i18n="easing.card.preview">Timing Curves</h3>
+              <div class="curve-panel">
+                <h4 data-i18n="easing.graph.velocity">Velocity over time</h4>
+                <div class="curve-graph" aria-hidden="true">
+                  <svg viewBox="0 0 240 120" role="img" aria-label="Velocity graph">
+                    <path d="M8 104 C50 24, 120 24, 232 16" fill="none" stroke="#0b8b7b" stroke-width="3" />
+                    <path d="M8 104 L232 104" stroke="rgba(27,31,35,0.2)" />
+                    <path d="M8 104 L8 16" stroke="rgba(27,31,35,0.2)" />
+                  </svg>
+                </div>
+              </div>
+              <div class="curve-panel">
+                <h4 data-i18n="easing.graph.distance">Distance over time</h4>
+                <div class="curve-graph" aria-hidden="true">
+                  <svg viewBox="0 0 240 120" role="img" aria-label="Distance graph">
+                    <path d="M8 104 C90 96, 160 60, 232 16" fill="none" stroke="#f18a4b" stroke-width="3" />
+                    <path d="M8 104 L232 104" stroke="rgba(27,31,35,0.2)" />
+                    <path d="M8 104 L8 16" stroke="rgba(27,31,35,0.2)" />
+                  </svg>
+                </div>
               </div>
             </article>
           </div>

@@ -282,6 +282,15 @@
                   <input type="text" data-i18n-placeholder="servo.form.id.placeholder" placeholder="servo_front_left" />
                 </label>
                 <label class="form-field">
+                  <span data-i18n="servo.form.displayOrder">Display order</span>
+                  <input type="number" value="10" min="0" data-i18n-placeholder="servo.form.displayOrder.placeholder" placeholder="10" />
+                </label>
+                <label class="form-field form-field--full">
+                  <span data-i18n="servo.form.description">Description</span>
+                  <textarea rows="2" data-i18n-placeholder="servo.form.description.placeholder"
+                    placeholder="Left shoulder servo for v1 prototype"></textarea>
+                </label>
+                <label class="form-field">
                   <span data-i18n="servo.form.type">Type</span>
                   <select data-servo-type-select>
                     <option value="pwm" data-i18n="servo.form.type.pwm">PWM</option>
@@ -305,15 +314,6 @@
                     <option value="cw" data-i18n="servo.form.previewDirection.cw">Clockwise</option>
                     <option value="ccw" data-i18n="servo.form.previewDirection.ccw">Counterclockwise</option>
                   </select>
-                </label>
-                <label class="form-field">
-                  <span data-i18n="servo.form.displayOrder">Display order</span>
-                  <input type="number" value="10" min="0" data-i18n-placeholder="servo.form.displayOrder.placeholder" placeholder="10" />
-                </label>
-                <label class="form-field form-field--full">
-                  <span data-i18n="servo.form.description">Description</span>
-                  <textarea rows="2" data-i18n-placeholder="servo.form.description.placeholder"
-                    placeholder="Left shoulder servo for v1 prototype"></textarea>
                 </label>
               </div>
               <div class="servo-type-group is-active" data-servo-type-group="pwm" aria-hidden="false">

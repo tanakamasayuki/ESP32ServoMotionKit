@@ -151,18 +151,17 @@ document.addEventListener('DOMContentLoaded', () => {
       'jointGroup.title': 'Joint Group Settings',
       'jointGroup.desc': 'Bundle joints for quick selection and batch edits.',
       'jointGroup.card.list': 'Group List',
-      'jointGroup.list.arms': 'Arms',
-      'jointGroup.list.head': 'Head',
+      'jointGroup.list.count3': '3 joints',
+      'jointGroup.list.count2': '2 joints',
       'jointGroup.list.add': 'Add group',
       'jointGroup.card.editor': 'Group Editor',
       'jointGroup.form.id': 'Group ID',
       'jointGroup.form.id.placeholder': 'jg_upper',
-      'jointGroup.form.joints': 'Joint IDs',
-      'jointGroup.form.joints.placeholder': 'yaw, pitch, roll',
-      'jointGroup.card.actions': 'Quick Actions',
-      'jointGroup.actions.note': 'Groups are UI-only and expanded before export.',
-      'jointGroup.actions.select': 'Select group',
-      'jointGroup.actions.expand': 'Expand joints',
+      'jointGroup.targets.note': 'Select joints in this group.',
+      'jointGroup.card.summary': 'Selected Joint',
+      'jointGroup.summary.id': 'Joint ID',
+      'jointGroup.summary.type': 'Type',
+      'jointGroup.summary.servos': 'Servos',
       'pose.title': 'Pose Settings',
       'pose.desc': 'Capture and edit joint angles as reusable poses.',
       'pose.card.list': 'Pose List',
@@ -384,18 +383,17 @@ document.addEventListener('DOMContentLoaded', () => {
       'jointGroup.title': 'ジョイントグループ設定',
       'jointGroup.desc': 'ジョイントをまとめて選択し、一括編集できます。',
       'jointGroup.card.list': 'グループ一覧',
-      'jointGroup.list.arms': '腕',
-      'jointGroup.list.head': '頭',
+      'jointGroup.list.count3': '3 ジョイント',
+      'jointGroup.list.count2': '2 ジョイント',
       'jointGroup.list.add': 'グループ追加',
       'jointGroup.card.editor': 'グループ編集',
       'jointGroup.form.id': 'グループ ID',
       'jointGroup.form.id.placeholder': 'jg_upper',
-      'jointGroup.form.joints': 'ジョイント ID',
-      'jointGroup.form.joints.placeholder': 'yaw, pitch, roll',
-      'jointGroup.card.actions': 'クイック操作',
-      'jointGroup.actions.note': 'グループは UI 専用で、出力前に展開されます。',
-      'jointGroup.actions.select': 'グループ選択',
-      'jointGroup.actions.expand': 'ジョイント展開',
+      'jointGroup.targets.note': 'このグループに含めるジョイントを選択します。',
+      'jointGroup.card.summary': '選択中ジョイント',
+      'jointGroup.summary.id': 'ジョイント ID',
+      'jointGroup.summary.type': '種別',
+      'jointGroup.summary.servos': 'サーボ数',
       'pose.title': 'ポーズ設定',
       'pose.desc': 'ジョイント角度をキャプチャし、再利用できるポーズとして編集します。',
       'pose.card.list': 'ポーズ一覧',
@@ -1012,6 +1010,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const initJointGroupSelection = () => {
+    const selectedId = document.querySelector('#joint-group-selected');
+    const selectedType = document.querySelector('#joint-group-type');
+    const selectedServos = document.querySelector('#joint-group-servos');
+    const jointButtons = Array.from(document.querySelectorAll('[data-joint-select]'));
+    const jointRows = Array.from(document.querySelectorAll('[data-joint-row]'));
+    if (!selectedId || jointButtons.length === 0) {
+      return;
+    }
+
+    const setActiveJoint = (jointId, jointType, jointServos) => {
+      selectedId.textContent = jointId;
+      if (selectedType) {
+        selectedType.textContent = jointType || '—';
+      }
+      if (selectedServos) {
+        selectedServos.textContent = jointServos || '—';
+      }
+      jointRows.forEach((row) => {
+        const button = row.querySelector('[data-joint-select]');
+        row.classList.toggle('is-active', button?.dataset.jointSelect === jointId);
+      });
+    };
+
+    jointButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        setActiveJoint(button.dataset.jointSelect, button.dataset.jointType, button.dataset.jointServos);
+      });
+    });
+
+    const initial = jointButtons.find((button) => button.closest('.mini-row')?.classList.contains('is-active')) || jointButtons[0];
+    if (initial) {
+      setActiveJoint(initial.dataset.jointSelect, initial.dataset.jointType, initial.dataset.jointServos);
+    }
+  };
+
   const initServoPreviewAngle = () => {
     if (!servoPreviewAngle || !servoPreviewAngleInput) {
       return;
@@ -1275,6 +1309,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeroTabs();
   initSelectableLists();
   initJointServoSelection();
+  initJointGroupSelection();
   initServoTypeToggle();
   initServoPreviewAngle();
   initServoPreviewCards();

@@ -525,12 +525,12 @@
               </label>
               <ul class="list">
                 <li class="list-item is-active">
-                  <span data-i18n="jointGroup.list.arms">Arms</span>
-                  <span class="chip">jg_arms</span>
+                  <span>jg_arms</span>
+                  <span class="chip" data-i18n="jointGroup.list.count3">3 joints</span>
                 </li>
                 <li class="list-item">
-                  <span data-i18n="jointGroup.list.head">Head</span>
-                  <span class="chip">jg_head</span>
+                  <span>jg_head</span>
+                  <span class="chip" data-i18n="jointGroup.list.count2">2 joints</span>
                 </li>
               </ul>
             </article>
@@ -540,10 +540,6 @@
                 <label class="form-field">
                   <span data-i18n="jointGroup.form.id">Group ID</span>
                   <input type="text" data-i18n-placeholder="jointGroup.form.id.placeholder" placeholder="jg_upper" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="jointGroup.form.joints">Joint IDs</span>
-                  <input type="text" data-i18n-placeholder="jointGroup.form.joints.placeholder" placeholder="yaw, pitch, roll" />
                 </label>
                 <label class="form-field">
                   <span data-i18n="common.form.displayOrder">Display order</span>
@@ -556,17 +552,47 @@
                     placeholder="Upper body group"></textarea>
                 </label>
               </div>
+              <p class="muted" data-i18n="jointGroup.targets.note">Select joints in this group.</p>
+              <div class="mini-list">
+                <div class="mini-row is-active" data-joint-row>
+                  <input type="checkbox" checked />
+                  <button class="mini-select" type="button" data-joint-select="yaw" data-joint-type="Rotational"
+                    data-joint-servos="2">yaw</button>
+                  <span class="mini-v">2 servos</span>
+                </div>
+                <div class="mini-row" data-joint-row>
+                  <input type="checkbox" checked />
+                  <button class="mini-select" type="button" data-joint-select="pitch" data-joint-type="Rotational"
+                    data-joint-servos="1">pitch</button>
+                  <span class="mini-v">1 servo</span>
+                </div>
+                <div class="mini-row" data-joint-row>
+                  <input type="checkbox" />
+                  <button class="mini-select" type="button" data-joint-select="roll" data-joint-type="Rotational"
+                    data-joint-servos="1">roll</button>
+                  <span class="mini-v">1 servo</span>
+                </div>
+              </div>
               <div class="card-actions">
                 <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
                 <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
               </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
-              <h3 data-i18n="jointGroup.card.actions">Quick Actions</h3>
-              <p class="muted" data-i18n="jointGroup.actions.note">Groups are UI-only and expanded before export.</p>
-              <div class="card-actions">
-                <button class="btn btn-secondary" type="button" data-i18n="jointGroup.actions.select">Select group</button>
-                <button class="btn btn-ghost" type="button" data-i18n="jointGroup.actions.expand">Expand joints</button>
+              <h3 data-i18n="jointGroup.card.summary">Selected Joint</h3>
+              <div class="form-grid">
+                <div class="form-field">
+                  <span data-i18n="jointGroup.summary.id">Joint ID</span>
+                  <div class="form-value" id="joint-group-selected">yaw</div>
+                </div>
+                <div class="form-field">
+                  <span data-i18n="jointGroup.summary.type">Type</span>
+                  <div class="form-value" id="joint-group-type">Rotational</div>
+                </div>
+                <div class="form-field">
+                  <span data-i18n="jointGroup.summary.servos">Servos</span>
+                  <div class="form-value" id="joint-group-servos">2</div>
+                </div>
               </div>
             </article>
           </div>

@@ -736,6 +736,22 @@
               </ul>
             </article>
             <article class="card panel-pane panel-pane--editor" style="--delay: 120ms;">
+              <div class="form-grid">
+                <label class="form-field">
+                  <span data-i18n="sequence.form.id">Sequence ID</span>
+                  <input type="text" value="seq_demo" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="common.form.displayOrder">Display order</span>
+                  <input type="number" value="10" min="0" data-i18n-placeholder="common.form.displayOrder.placeholder"
+                    placeholder="10" />
+                </label>
+                <label class="form-field form-field--full">
+                  <span data-i18n="common.form.description">Description</span>
+                  <textarea rows="2" data-i18n-placeholder="common.form.description.placeholder"
+                    placeholder="Sequence used in demo"></textarea>
+                </label>
+              </div>
               <h3 data-i18n="sequence.card.steps">Sequence Steps</h3>
               <ol class="step-list">
                 <li>
@@ -767,16 +783,6 @@
                 <label class="form-field">
                   <span data-i18n="sequence.form.eventId">Event ID</span>
                   <input type="number" value="100" />
-                </label>
-                <label class="form-field">
-                  <span data-i18n="common.form.displayOrder">Display order</span>
-                  <input type="number" value="10" min="0" data-i18n-placeholder="common.form.displayOrder.placeholder"
-                    placeholder="10" />
-                </label>
-                <label class="form-field form-field--full">
-                  <span data-i18n="common.form.description">Description</span>
-                  <textarea rows="2" data-i18n-placeholder="common.form.description.placeholder"
-                    placeholder="Sequence used in demo"></textarea>
                 </label>
               </div>
               <div class="card-actions">

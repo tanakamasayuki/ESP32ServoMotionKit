@@ -686,6 +686,10 @@ a {
   margin-top: 12px;
 }
 
+.panel-pane--aux .card-actions {
+  margin-top: 12px;
+}
+
 .preview-note {
   margin-top: 12px;
 }

@@ -1168,6 +1168,18 @@ document.addEventListener('DOMContentLoaded', () => {
     return distance;
   };
 
+  const finiteDifference = (time, fn, params) => {
+    const t = clamp01(time);
+    const dt = 0.001;
+    if (t <= 0) {
+      return (fn(clamp01(t + dt), params) - fn(t, params)) / dt;
+    }
+    if (t >= 1) {
+      return (fn(t, params) - fn(clamp01(t - dt), params)) / dt;
+    }
+    return (fn(clamp01(t + dt), params) - fn(clamp01(t - dt), params)) / (2 * dt);
+  };
+
   const easingFunctions = {
     linear: (time) => {
       const clamped = clamp01(time);
@@ -1176,10 +1188,7 @@ document.addEventListener('DOMContentLoaded', () => {
     warpcurve: (time, params) => {
       const t = clamp01(time);
       const distance = warpCurveDistance(t, params);
-      const dt = 0.001;
-      const ahead = warpCurveDistance(clamp01(t + dt), params);
-      const behind = warpCurveDistance(clamp01(t - dt), params);
-      const velocity = (ahead - behind) / (2 * dt);
+      const velocity = finiteDifference(t, warpCurveDistance, params);
       return { velocity: clamp01(velocity), distance };
     }
   };
@@ -1239,13 +1248,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const velocityPoints = [];
     const distancePoints = [];
     const distances = [];
+    const enforceMonotonic = params.overshoot === 0;
+    let lastDistance = 0;
 
     for (let i = 0; i <= samples; i += 1) {
       const t = i / samples;
       const { velocity, distance } = easingFn(t, params);
+      const adjustedDistance = enforceMonotonic ? Math.max(distance, lastDistance) : distance;
+      lastDistance = adjustedDistance;
       const x = padding.x + innerWidth * t;
       const velocityY = padding.y + innerHeight * (1 - clamp01(velocity));
-      distances.push(distance);
+      distances.push(adjustedDistance);
       velocityPoints.push({ x, y: velocityY });
     }
 

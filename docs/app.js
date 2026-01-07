@@ -928,6 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const initTabs = () => {
     const tabButtons = Array.from(document.querySelectorAll('.tab-button'));
     const tabPanels = Array.from(document.querySelectorAll('.tab-panel'));
+    const storageKey = 'ui.workspaceTab';
 
     const setActiveTab = (tab) => {
       tabButtons.forEach((button) => {
@@ -942,13 +943,28 @@ document.addEventListener('DOMContentLoaded', () => {
         panel.classList.toggle('is-active', isActive);
         panel.setAttribute('aria-hidden', String(!isActive));
       });
+
+      try {
+        sessionStorage.setItem(storageKey, tab);
+      } catch (error) {
+        // Ignore storage errors for preview-only UI.
+      }
     };
 
     tabButtons.forEach((button) => {
       button.addEventListener('click', () => setActiveTab(button.dataset.tab));
     });
 
-    const initial = tabButtons.find((button) => button.classList.contains('is-active')) || tabButtons[0];
+    let initial = tabButtons.find((button) => button.classList.contains('is-active')) || tabButtons[0];
+    try {
+      const stored = sessionStorage.getItem(storageKey);
+      const storedButton = tabButtons.find((button) => button.dataset.tab === stored);
+      if (storedButton) {
+        initial = storedButton;
+      }
+    } catch (error) {
+      // Ignore storage errors for preview-only UI.
+    }
     if (initial) {
       setActiveTab(initial.dataset.tab);
     }
@@ -1098,6 +1114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroTabs = Array.from(document.querySelectorAll('.hero-tab'));
     const heroPanels = Array.from(document.querySelectorAll('.hero-tab-panel'));
     const heroPanelsContainer = document.querySelector('.hero-tab-panels');
+    const storageKey = 'ui.heroTab';
     if (heroTabs.length === 0 || heroPanels.length === 0) {
       return;
     }
@@ -1116,6 +1133,12 @@ document.addEventListener('DOMContentLoaded', () => {
         panel.setAttribute('aria-hidden', String(!isActive));
         panel.hidden = !isActive;
       });
+
+      try {
+        sessionStorage.setItem(storageKey, tab);
+      } catch (error) {
+        // Ignore storage errors for preview-only UI.
+      }
     };
 
     const setHeroPanelsHeight = () => {
@@ -1142,7 +1165,16 @@ document.addEventListener('DOMContentLoaded', () => {
       button.addEventListener('click', () => setActiveHero(button.dataset.heroTab));
     });
 
-    const initial = heroTabs.find((button) => button.classList.contains('is-active')) || heroTabs[0];
+    let initial = heroTabs.find((button) => button.classList.contains('is-active')) || heroTabs[0];
+    try {
+      const stored = sessionStorage.getItem(storageKey);
+      const storedButton = heroTabs.find((button) => button.dataset.heroTab === stored);
+      if (storedButton) {
+        initial = storedButton;
+      }
+    } catch (error) {
+      // Ignore storage errors for preview-only UI.
+    }
     if (initial) {
       setActiveHero(initial.dataset.heroTab);
     }

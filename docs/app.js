@@ -224,11 +224,17 @@ document.addEventListener('DOMContentLoaded', () => {
       'easing.form.type.warpcurve': '時間変形曲線',
       'easing.editor.note': 'Preset entries are read-only. Custom entries adjust parameters based on a preset.',
       'easing.param.shape': 'Shape (0-255)',
+      'easing.param.shape.note': '0=Linear, 120=Soft, 180=Normal, 230=Hard',
       'easing.param.bias': 'Bias (0-255)',
+      'easing.param.bias.note': '0=EaseIn, 128=InOut, 255=EaseOut',
       'easing.param.symmetry': 'Symmetry (0-255)',
+      'easing.param.symmetry.note': 'Shifts the center position. 128 recommended.',
       'easing.param.overshoot': 'Overshoot (0-255)',
+      'easing.param.overshoot.note': '0=None, 40=Small, 80=Med, 140=Big',
       'easing.param.overshootTiming': 'Overshoot timing (0-255)',
+      'easing.param.overshootTiming.note': 'Start position; 170 (~0.67) recommended.',
       'easing.param.overshootDamping': 'Overshoot damping (0-255)',
+      'easing.param.overshootDamping.note': 'Return speed; 160 (~0.63) recommended.',
       'easing.graph.velocity': 'Velocity over time',
       'easing.graph.distance': 'Distance over time',
       'event.title': 'Event Settings',
@@ -471,11 +477,17 @@ document.addEventListener('DOMContentLoaded', () => {
       'easing.form.type.warpcurve': '時間変形曲線',
       'easing.editor.note': 'プリセットは編集不可です。カスタムはプリセットを元にパラメーターを調整します。',
       'easing.param.shape': '曲線強度 (0-255)',
+      'easing.param.shape.note': '0=リニア, 120=ソフト, 180=標準, 230=ハード',
       'easing.param.bias': '加速前後配分 (0-255)',
+      'easing.param.bias.note': '0=加速寄り, 128=中間, 255=減速寄り',
       'easing.param.symmetry': '中央重心 (0-255)',
+      'easing.param.symmetry.note': '中心座標をずらす。128 推奨',
       'easing.param.overshoot': 'オーバーシュート (0-255)',
+      'easing.param.overshoot.note': '0=なし, 40=小, 80=中, 140=大',
       'easing.param.overshootTiming': 'オーバーシュート開始 (0-255)',
+      'easing.param.overshootTiming.note': '開始位置。170（約0.67）推奨。',
       'easing.param.overshootDamping': 'オーバーシュート収束 (0-255)',
+      'easing.param.overshootDamping.note': '戻りの速さ。160（約0.63）推奨。',
       'easing.graph.velocity': '速度の推移',
       'easing.graph.distance': '移動距離の積算',
       'event.title': 'イベント設定',
@@ -530,8 +542,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const servoPreviewOffsetInput = document.querySelector('[data-preview-offset-input]');
   const servoPreviewDirectionSelect = document.querySelector('[data-preview-direction-select]');
 
-  let updateFirmwareLocale = () => {};
-  let updateHeroPanels = () => {};
+  let updateFirmwareLocale = () => { };
+  let updateHeroPanels = () => { };
 
   const state = {
     status: 'disconnected',

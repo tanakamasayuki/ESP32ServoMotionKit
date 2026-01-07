@@ -899,8 +899,8 @@
                 <label class="form-field form-field--full">
                   <span data-i18n="easing.form.type">Type</span>
                   <select data-easing-type-select>
-                    <option value="linear" data-i18n="easing.form.preset.linear">Linear</option>
                     <option value="warpcurve" data-i18n="easing.form.type.warpcurve">WarpCurve</option>
+                    <option value="linear" data-i18n="easing.form.preset.linear">Linear</option>
                   </select>
                 </label>
                 <div class="easing-params form-field--full" data-easing-type-group="warpcurve" aria-hidden="true" hidden>
@@ -908,26 +908,32 @@
                     <label class="form-field form-field--full">
                       <span data-i18n="easing.param.shape">Shape (0-255)</span>
                       <input type="number" value="180" min="0" max="255" data-easing-param="shape" />
+                      <span class="field-hint" data-i18n="easing.param.shape.note">0=Linear, 120=Soft, 180=Normal, 230=Hard</span>
                     </label>
                     <label class="form-field form-field--full">
                       <span data-i18n="easing.param.bias">Bias (0-255)</span>
                       <input type="number" value="128" min="0" max="255" data-easing-param="bias" />
+                      <span class="field-hint" data-i18n="easing.param.bias.note">0=EaseIn, 128=InOut, 255=EaseOut</span>
                     </label>
                     <label class="form-field form-field--full">
                       <span data-i18n="easing.param.symmetry">Symmetry (0-255)</span>
                       <input type="number" value="128" min="0" max="255" data-easing-param="symmetry" />
+                      <span class="field-hint" data-i18n="easing.param.symmetry.note">128 recommended in v1.</span>
                     </label>
                     <label class="form-field form-field--full">
                       <span data-i18n="easing.param.overshoot">Overshoot (0-255)</span>
                       <input type="number" value="0" min="0" max="255" data-easing-param="overshoot" />
+                      <span class="field-hint" data-i18n="easing.param.overshoot.note">0=None, 40=Small, 80=Med, 140=Big</span>
                     </label>
                     <label class="form-field form-field--full">
                       <span data-i18n="easing.param.overshootTiming">Overshoot timing (0-255)</span>
                       <input type="number" value="0" min="0" max="255" data-easing-param="overshootTiming" />
+                      <span class="field-hint" data-i18n="easing.param.overshootTiming.note">Start position; 170 (~0.67) recommended.</span>
                     </label>
                     <label class="form-field form-field--full">
                       <span data-i18n="easing.param.overshootDamping">Overshoot damping (0-255)</span>
                       <input type="number" value="0" min="0" max="255" data-easing-param="overshootDamping" />
+                      <span class="field-hint" data-i18n="easing.param.overshootDamping.note">Return speed; 160 (~0.63) recommended.</span>
                     </label>
                   </div>
                 </div>

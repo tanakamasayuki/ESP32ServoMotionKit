@@ -618,16 +618,16 @@
               </label>
               <ul class="list">
                 <li class="list-item is-active">
-                  <span data-i18n="pose.list.home">Home</span>
-                  <span class="chip">p_home</span>
+                  <span>p_home</span>
+                  <span class="chip">jg_base</span>
                 </li>
                 <li class="list-item">
-                  <span data-i18n="pose.list.wave">Wave</span>
-                  <span class="chip">p_wave</span>
+                  <span>p_wave</span>
+                  <span class="chip">jg_arms</span>
                 </li>
                 <li class="list-item">
-                  <span data-i18n="pose.list.ready">Ready</span>
-                  <span class="chip">p_ready</span>
+                  <span>p_ready</span>
+                  <span class="chip">jg_head</span>
                 </li>
               </ul>
             </article>
@@ -635,12 +635,16 @@
               <h3 data-i18n="pose.card.editor">Pose Editor</h3>
               <div class="form-grid">
                 <label class="form-field">
-                  <span data-i18n="pose.editor.name">Pose name</span>
-                  <input type="text" data-i18n-placeholder="pose.editor.name.placeholder" placeholder="pose_wave" />
+                  <span data-i18n="pose.editor.id">Pose ID</span>
+                  <input type="text" data-i18n-placeholder="pose.editor.id.placeholder" placeholder="p_wave" />
                 </label>
                 <label class="form-field">
-                  <span data-i18n="pose.editor.hold">Hold (ms)</span>
-                  <input type="number" value="200" />
+                  <span data-i18n="pose.editor.group">Joint group</span>
+                  <select>
+                    <option>jg_base</option>
+                    <option>jg_arms</option>
+                    <option>jg_head</option>
+                  </select>
                 </label>
                 <label class="form-field">
                   <span data-i18n="common.form.displayOrder">Display order</span>
@@ -653,39 +657,50 @@
                     placeholder="Neutral pose for start"></textarea>
                 </label>
               </div>
-              <table class="mini-table">
-                <thead>
-                  <tr>
-                    <th data-i18n="pose.editor.axis">Axis</th>
-                    <th data-i18n="pose.editor.value">Target (deg)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>yaw</td>
-                    <td><input type="number" value="20" /></td>
-                  </tr>
-                  <tr>
-                    <td>pitch</td>
-                    <td><input type="number" value="-10" /></td>
-                  </tr>
-                  <tr>
-                    <td>roll</td>
-                    <td><input type="number" value="5" /></td>
-                  </tr>
-                </tbody>
-              </table>
+              <p class="muted" data-i18n="pose.editor.axes.note">Axes from the selected joint group.</p>
+              <div class="mini-list">
+                <div class="mini-row is-active" data-pose-axis-row>
+                  <input type="checkbox" checked />
+                  <button class="mini-select" type="button" data-pose-axis="yaw" data-pose-angle="20">yaw</button>
+                  <span class="mini-v">20°</span>
+                </div>
+                <div class="mini-row" data-pose-axis-row>
+                  <input type="checkbox" checked />
+                  <button class="mini-select" type="button" data-pose-axis="pitch" data-pose-angle="-10">pitch</button>
+                  <span class="mini-v">-10°</span>
+                </div>
+                <div class="mini-row" data-pose-axis-row>
+                  <input type="checkbox" checked />
+                  <button class="mini-select" type="button" data-pose-axis="roll" data-pose-angle="5">roll</button>
+                  <span class="mini-v">5°</span>
+                </div>
+              </div>
               <div class="card-actions">
                 <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
                 <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
               </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
-              <h3 data-i18n="pose.card.capture">Capture & Preview</h3>
-              <p class="muted" data-i18n="pose.capture.note">Works offline; device sync is optional.</p>
-              <div class="card-actions">
-                <button class="btn btn-outline" type="button" data-i18n="pose.capture.snapshot">Snapshot from device</button>
-                <button class="btn btn-secondary" type="button" data-i18n="pose.capture.preview">Preview pose</button>
+              <h3 data-i18n="pose.axis.title">Axis Settings</h3>
+              <div class="form-grid">
+                <div class="form-field">
+                  <span data-i18n="pose.axis.id">Axis</span>
+                  <div class="form-value" id="pose-axis-target">yaw</div>
+                </div>
+              </div>
+              <div class="servo-preview-card">
+                <div class="dial mini-dial" data-servo-card-dial>
+                  <div class="needle mini-needle" style="transform: translateX(-50%) rotate(10deg);"></div>
+                </div>
+                <div class="servo-inputs">
+                  <label class="form-field">
+                    <span data-i18n="pose.axis.value">Angle (deg)</span>
+                    <div class="form-field-row">
+                      <input type="range" min="-90" max="90" value="20" id="pose-axis-range" />
+                      <input type="number" value="20" id="pose-axis-input" />
+                    </div>
+                  </label>
+                </div>
               </div>
             </article>
           </div>

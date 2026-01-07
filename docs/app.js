@@ -163,22 +163,20 @@ document.addEventListener('DOMContentLoaded', () => {
       'jointGroup.summary.type': 'Type',
       'jointGroup.summary.servos': 'Servos',
       'pose.title': 'Pose Settings',
-      'pose.desc': 'Capture and edit joint angles as reusable poses.',
+      'pose.desc': 'Set joint angles directly in the UI and save them as reusable poses.',
       'pose.card.list': 'Pose List',
       'pose.list.home': 'Home',
       'pose.list.wave': 'Wave',
       'pose.list.ready': 'Ready',
       'pose.list.add': 'Add pose',
       'pose.card.editor': 'Pose Editor',
-      'pose.editor.name': 'Pose name',
-      'pose.editor.name.placeholder': 'pose_wave',
-      'pose.editor.hold': 'Hold (ms)',
-      'pose.editor.axis': 'Axis',
-      'pose.editor.value': 'Target (deg)',
-      'pose.card.capture': 'Capture & Preview',
-      'pose.capture.note': 'Works offline; device sync is optional.',
-      'pose.capture.snapshot': 'Snapshot from device',
-      'pose.capture.preview': 'Preview pose',
+      'pose.editor.id': 'Pose ID',
+      'pose.editor.id.placeholder': 'p_wave',
+      'pose.editor.group': 'Joint group',
+      'pose.editor.axes.note': 'Axes from the selected joint group.',
+      'pose.axis.title': 'Axis Settings',
+      'pose.axis.id': 'Axis',
+      'pose.axis.value': 'Angle (deg)',
       'sequence.title': 'Sequence Settings',
       'sequence.desc': 'Compose steps, triggers, and reusable sequences for header export.',
       'sequence.card.list': 'Sequence List',
@@ -395,22 +393,20 @@ document.addEventListener('DOMContentLoaded', () => {
       'jointGroup.summary.type': '種別',
       'jointGroup.summary.servos': 'サーボ数',
       'pose.title': 'ポーズ設定',
-      'pose.desc': 'ジョイント角度をキャプチャし、再利用できるポーズとして編集します。',
+      'pose.desc': 'UI でジョイントの値を設定し、再利用できるポーズとして保存します。',
       'pose.card.list': 'ポーズ一覧',
       'pose.list.home': 'ホーム',
       'pose.list.wave': 'ウェーブ',
       'pose.list.ready': '準備',
       'pose.list.add': 'ポーズ追加',
       'pose.card.editor': 'ポーズ編集',
-      'pose.editor.name': 'ポーズ名',
-      'pose.editor.name.placeholder': 'pose_wave',
-      'pose.editor.hold': 'ホールド (ms)',
-      'pose.editor.axis': '軸',
-      'pose.editor.value': '目標 (deg)',
-      'pose.card.capture': 'キャプチャとプレビュー',
-      'pose.capture.note': 'オフラインでも利用可能で、デバイス同期は任意です。',
-      'pose.capture.snapshot': 'デバイスから取得',
-      'pose.capture.preview': 'ポーズを再生',
+      'pose.editor.id': 'ポーズ ID',
+      'pose.editor.id.placeholder': 'p_wave',
+      'pose.editor.group': 'ジョイントグループ',
+      'pose.editor.axes.note': '選択したジョイントグループの軸一覧です。',
+      'pose.axis.title': '軸別設定',
+      'pose.axis.id': '軸',
+      'pose.axis.value': '角度 (deg)',
       'sequence.title': 'シーケンス設定',
       'sequence.desc': 'ステップ/トリガー/再利用シーケンスを構成し、ヘッダ出力に反映します。',
       'sequence.card.list': 'シーケンス一覧',
@@ -1046,6 +1042,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const initPoseAxisSelection = () => {
+    const axisLabel = document.querySelector('#pose-axis-target');
+    const axisRange = document.querySelector('#pose-axis-range');
+    const axisInput = document.querySelector('#pose-axis-input');
+    const axisButtons = Array.from(document.querySelectorAll('[data-pose-axis]'));
+    const axisRows = Array.from(document.querySelectorAll('[data-pose-axis-row]'));
+    if (!axisLabel || axisButtons.length === 0) {
+      return;
+    }
+
+    const clampAngle = (value) => {
+      return Math.max(-90, Math.min(90, Number(value || 0)));
+    };
+
+    const setActiveAxis = (axisId, angle) => {
+      axisLabel.textContent = axisId;
+      if (axisRange && axisInput) {
+        const clamped = clampAngle(angle);
+        axisRange.value = String(clamped);
+        axisInput.value = String(clamped);
+      }
+      axisRows.forEach((row) => {
+        const button = row.querySelector('[data-pose-axis]');
+        row.classList.toggle('is-active', button?.dataset.poseAxis === axisId);
+      });
+    };
+
+    axisButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        setActiveAxis(button.dataset.poseAxis, button.dataset.poseAngle);
+      });
+    });
+
+    const initial = axisButtons.find((button) => button.closest('.mini-row')?.classList.contains('is-active')) || axisButtons[0];
+    if (initial) {
+      setActiveAxis(initial.dataset.poseAxis, initial.dataset.poseAngle);
+    }
+  };
+
   const initServoPreviewAngle = () => {
     if (!servoPreviewAngle || !servoPreviewAngleInput) {
       return;
@@ -1310,6 +1345,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSelectableLists();
   initJointServoSelection();
   initJointGroupSelection();
+  initPoseAxisSelection();
   initServoTypeToggle();
   initServoPreviewAngle();
   initServoPreviewCards();

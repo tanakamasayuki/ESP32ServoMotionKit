@@ -986,6 +986,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const initJointServoSelection = () => {
+    const targetLabel = document.querySelector('#joint-servo-target');
+    const servoButtons = Array.from(document.querySelectorAll('[data-servo-select]'));
+    const servoRows = Array.from(document.querySelectorAll('[data-servo-row]'));
+    if (!targetLabel || servoButtons.length === 0) {
+      return;
+    }
+
+    const setActiveServo = (servoId) => {
+      targetLabel.textContent = servoId;
+      servoRows.forEach((row) => {
+        const button = row.querySelector('[data-servo-select]');
+        row.classList.toggle('is-active', button?.dataset.servoSelect === servoId);
+      });
+    };
+
+    servoButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        setActiveServo(button.dataset.servoSelect);
+      });
+    });
+
+    const initial = servoButtons.find((button) => button.closest('.mini-row')?.classList.contains('is-active')) || servoButtons[0];
+    if (initial) {
+      setActiveServo(initial.dataset.servoSelect);
+    }
+  };
+
   const initServoPreviewAngle = () => {
     if (!servoPreviewAngle || !servoPreviewAngleInput) {
       return;
@@ -1248,6 +1276,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   initHeroTabs();
   initSelectableLists();
+  initJointServoSelection();
   initServoTypeToggle();
   initServoPreviewAngle();
   initServoPreviewCards();

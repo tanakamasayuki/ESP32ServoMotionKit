@@ -455,19 +455,19 @@
               </div>
               <p class="muted" data-i18n="joint.targets.note">Select target servos.</p>
               <div class="mini-list">
-                <div class="mini-row">
+                <div class="mini-row is-active" data-servo-row>
                   <input type="checkbox" checked />
-                  <button class="mini-select" type="button">servo_front_left</button>
+                  <button class="mini-select" type="button" data-servo-select="servo_front_left">servo_front_left</button>
                   <span class="mini-v">PWM</span>
                 </div>
-                <div class="mini-row">
+                <div class="mini-row" data-servo-row>
                   <input type="checkbox" checked />
-                  <button class="mini-select" type="button">servo_front_right</button>
+                  <button class="mini-select" type="button" data-servo-select="servo_front_right">servo_front_right</button>
                   <span class="mini-v">PWM</span>
                 </div>
-                <div class="mini-row">
+                <div class="mini-row" data-servo-row>
                   <input type="checkbox" />
-                  <button class="mini-select" type="button">servo_back_left</button>
+                  <button class="mini-select" type="button" data-servo-select="servo_back_left">servo_back_left</button>
                   <span class="mini-v">TTL</span>
                 </div>
               </div>
@@ -481,7 +481,7 @@
               <div class="form-grid">
                 <div class="form-field">
                   <span data-i18n="joint.servo.id">Target servo</span>
-                  <div class="form-value">servo_front_left</div>
+                  <div class="form-value" id="joint-servo-target">servo_front_left</div>
                 </div>
                 <label class="form-field form-field--toggle">
                   <span data-i18n="joint.servo.direction">Reverse direction</span>

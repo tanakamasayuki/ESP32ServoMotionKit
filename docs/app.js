@@ -1216,8 +1216,8 @@ document.addEventListener('DOMContentLoaded', () => {
       bias: 128,
       symmetry: 128,
       overshoot: 0,
-      overshootTiming: 0,
-      overshootDamping: 0
+      overshootTiming: 170,
+      overshootDamping: 160
     };
 
     paramInputs.forEach((input) => {
@@ -1232,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const samples = 40;
     const padding = { x: 8, y: 16 };
     const width = 240;
-    const height = 120;
+    const height = 160;
     const innerWidth = width - padding.x * 2;
     const innerHeight = height - padding.y * 2;
 
@@ -1249,12 +1249,11 @@ document.addEventListener('DOMContentLoaded', () => {
       velocityPoints.push({ x, y: velocityY });
     }
 
-    const maxDistance = Math.max(1, ...distances);
     for (let i = 0; i <= samples; i += 1) {
       const t = i / samples;
       const distance = distances[i];
       const x = padding.x + innerWidth * t;
-      const distanceY = padding.y + innerHeight * (1 - distance / maxDistance);
+      const distanceY = padding.y + innerHeight * (1 - distance);
       distancePoints.push({ x, y: distanceY });
     }
 

@@ -801,6 +801,30 @@ a {
   border-radius: 99px;
 }
 
+.servo-preview-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.servo-preview-card .mini-dial {
+  width: 160px;
+  height: 160px;
+  border-width: 10px;
+  margin: 0 auto;
+}
+
+.servo-preview-card .mini-needle {
+  width: 3px;
+  height: 60px;
+  top: 20px;
+}
+
+.servo-preview-card .servo-inputs {
+  width: 100%;
+}
+
 .servo-card-controls {
   display: flex;
   flex-direction: column;

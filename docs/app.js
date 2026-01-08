@@ -690,7 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addHeader = (labelKey) => {
       const row = document.createElement('div');
-      row.className = 'mini-row';
+      row.className = 'mini-row mini-row--header';
       const label = document.createElement('span');
       label.className = 'mini-k';
       label.textContent = getTranslation(labelKey);

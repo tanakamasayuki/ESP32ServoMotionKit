@@ -931,6 +931,11 @@ a {
   gap: 8px;
 }
 
+.panel-pill .mini-row--header {
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+}
+
 .panel-pill .mini-k {
   min-width: 0;
   text-align: left;

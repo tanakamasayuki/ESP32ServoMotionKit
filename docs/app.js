@@ -162,6 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
       'joint.card.settings': 'Joint Settings',
       'joint.form.id': 'Joint ID',
       'joint.form.id.placeholder': 'yaw',
+      'joint.form.previewOffset': 'Preview offset (deg)',
+      'joint.form.previewDirection': 'Preview direction',
+      'joint.form.previewDirection.cw': 'Clockwise',
+      'joint.form.previewDirection.ccw': 'Counterclockwise',
       'joint.targets.note': 'Select target servos.',
       'joint.servo.title': 'Servo Settings',
       'joint.servo.id': 'Target servo',
@@ -483,6 +487,10 @@ document.addEventListener('DOMContentLoaded', () => {
       'joint.card.settings': 'ジョイント設定',
       'joint.form.id': 'ジョイント ID',
       'joint.form.id.placeholder': 'yaw',
+      'joint.form.previewOffset': 'プレビューオフセット (deg)',
+      'joint.form.previewDirection': 'プレビュー回転方向',
+      'joint.form.previewDirection.cw': '右回り',
+      'joint.form.previewDirection.ccw': '左回り',
       'joint.targets.note': '対象とするサーボを選択します。',
       'joint.servo.title': 'サーボ別設定',
       'joint.servo.id': '対象サーボ',
@@ -2210,6 +2218,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const jointIdError = document.getElementById('joint-id-error');
   const jointOrderInput = document.getElementById('joint-order-input');
   const jointDescriptionInput = document.getElementById('joint-description-input');
+  const jointPreviewOffsetInput = document.getElementById('joint-preview-offset-input');
+  const jointPreviewDirectionSelect = document.getElementById('joint-preview-direction-select');
   const jointRangeMinInput = document.getElementById('joint-range-min-input');
   const jointRangeMaxInput = document.getElementById('joint-range-max-input');
   const jointFilterInput = document.getElementById('joint-filter-input');
@@ -2390,6 +2400,8 @@ document.addEventListener('DOMContentLoaded', () => {
         id: 'yaw',
         displayOrder: 10,
         description: 'Head yaw',
+        previewOffset: 0,
+        previewDirection: 'cw',
         servos: [
           { servoId: 'servo_front_left', reverse: false, offset: 0, min: 0, max: 180 },
           { servoId: 'servo_front_right', reverse: false, offset: 0, min: 0, max: 180 }
@@ -2399,12 +2411,16 @@ document.addEventListener('DOMContentLoaded', () => {
         id: 'pitch',
         displayOrder: 20,
         description: 'Head pitch',
+        previewOffset: 0,
+        previewDirection: 'cw',
         servos: [{ servoId: 'servo_front_left', reverse: false, offset: 0, min: 0, max: 180 }]
       },
       {
         id: 'roll',
         displayOrder: 30,
         description: 'Head roll',
+        previewOffset: 0,
+        previewDirection: 'cw',
         servos: [{ servoId: 'servo_tail', reverse: false, offset: 0, min: 0, max: 180 }]
       }
     ],
@@ -2616,6 +2632,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (joint.description) {
         item.description = joint.description;
+      }
+      if (joint.previewOffset !== null && joint.previewOffset !== undefined) {
+        item.previewOffset = joint.previewOffset;
+      }
+      if (joint.previewDirection) {
+        item.previewDirection = joint.previewDirection;
       }
       if (joint.rangeMin !== null && joint.rangeMin !== undefined) {
         item.rangeMin = joint.rangeMin;
@@ -2868,6 +2890,8 @@ document.addEventListener('DOMContentLoaded', () => {
         displayOrder: item?.displayOrder ?? null,
         description: item?.description || '',
         servos: servoRefs,
+        previewOffset: normalizeServoNumber(item?.previewOffset, 0),
+        previewDirection: item?.previewDirection === 'ccw' ? 'ccw' : 'cw',
         rangeMin: normalizeOptionalNumber(item?.rangeMin),
         rangeMax: normalizeOptionalNumber(item?.rangeMax)
       };
@@ -3799,6 +3823,12 @@ document.addEventListener('DOMContentLoaded', () => {
     jointIdInput.value = joint.id ?? '';
     jointOrderInput.value = joint.displayOrder ?? '';
     jointDescriptionInput.value = joint.description ?? '';
+    if (jointPreviewOffsetInput) {
+      jointPreviewOffsetInput.value = joint.previewOffset ?? 0;
+    }
+    if (jointPreviewDirectionSelect) {
+      jointPreviewDirectionSelect.value = joint.previewDirection || 'cw';
+    }
     renderJointServoList(joint);
     const initialServoId = joint.servos?.[0]?.servoId || eventState.servos[0]?.id || null;
     setActiveJointServo(initialServoId);
@@ -3860,6 +3890,12 @@ document.addEventListener('DOMContentLoaded', () => {
     jointIdInput.value = '';
     jointOrderInput.value = '';
     jointDescriptionInput.value = '';
+    if (jointPreviewOffsetInput) {
+      jointPreviewOffsetInput.value = 0;
+    }
+    if (jointPreviewDirectionSelect) {
+      jointPreviewDirectionSelect.value = 'cw';
+    }
     if (jointRangeMinInput) {
       jointRangeMinInput.value = '';
     }
@@ -3890,6 +3926,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const orderRaw = jointOrderInput?.value ?? '';
     joint.displayOrder = orderRaw === '' ? null : parseNumber(orderRaw, joint.displayOrder ?? null);
     joint.description = (jointDescriptionInput?.value || '').trim();
+    joint.previewOffset = parseNumber(jointPreviewOffsetInput?.value, joint.previewOffset ?? 0);
+    joint.previewDirection = jointPreviewDirectionSelect?.value === 'ccw' ? 'ccw' : 'cw';
     const selectedServoIds = [];
     if (jointServoList) {
       jointServoList.querySelectorAll('input[type="checkbox"][data-servo-id]').forEach((input) => {

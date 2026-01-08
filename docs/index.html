@@ -364,15 +364,15 @@
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.pwm.angleMin">Angle min (deg)</span>
-                    <input type="number" value="0" min="-180" max="180" id="servo-pwm-angle-min-input" />
+                    <input type="number" value="0" min="0" max="360" id="servo-pwm-angle-min-input" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.pwm.angleMax">Angle max (deg)</span>
-                    <input type="number" value="180" min="-180" max="180" id="servo-pwm-angle-max-input" />
+                    <input type="number" value="180" min="0" max="360" id="servo-pwm-angle-max-input" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.pwm.offset">Offset (deg)</span>
-                    <input type="number" value="0" id="servo-pwm-offset-input" />
+                    <input type="number" value="0" min="-90" max="90" id="servo-pwm-offset-input" />
                   </label>
                 </div>
               </div>

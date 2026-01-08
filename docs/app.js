@@ -2132,6 +2132,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tab === 'rich') {
         updateRichJsonOutput();
       }
+      if (tab === 'simple') {
+        updateSimpleJsonOutput();
+      }
     };
 
     dataTabs.forEach((button) => {
@@ -2156,6 +2159,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const eventOrderInput = document.getElementById('event-order-input');
   const eventDescriptionInput = document.getElementById('event-description-input');
   const dataRichOutput = document.getElementById('data-rich-output');
+  const dataSimpleOutput = document.getElementById('data-simple-output');
   const eventFilterInput = document.getElementById('event-filter-input');
   const servoList = document.getElementById('servo-list');
   const servoAddButton = document.getElementById('servo-add');
@@ -2726,6 +2730,31 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   };
 
+  const buildSimpleJson = () => {
+    const richJson = buildRichJson();
+    const simpleJson = JSON.parse(JSON.stringify(richJson));
+    const collections = [
+      'servos',
+      'joints',
+      'jointGroups',
+      'poses',
+      'sequences',
+      'events',
+      'easings'
+    ];
+    collections.forEach((key) => {
+      (simpleJson[key] || []).forEach((item) => {
+        delete item.displayOrder;
+        delete item.description;
+      });
+    });
+    (simpleJson.servos || []).forEach((servo) => {
+      delete servo.previewOffset;
+      delete servo.previewDirection;
+    });
+    return simpleJson;
+  };
+
   const normalizeServoNumber = (value, fallback) => {
     const numeric = Number(value);
     return Number.isFinite(numeric) ? numeric : fallback;
@@ -3039,6 +3068,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const richJson = buildRichJson();
     dataRichOutput.value = JSON.stringify(richJson, null, 2);
+    updateSimpleJsonOutput();
+  };
+
+  const updateSimpleJsonOutput = () => {
+    if (!dataSimpleOutput) {
+      return;
+    }
+    const simpleJson = buildSimpleJson();
+    dataSimpleOutput.value = JSON.stringify(simpleJson, null, 2);
   };
 
   const clearServoIdError = () => {

@@ -98,8 +98,14 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.form.description.placeholder': 'Notes for this item',
       'project.import.invalid': 'Invalid JSON file.',
       'servo.form.id.duplicate': 'Servo ID must be unique.',
+      'servo.usage.title': 'Usage',
+      'servo.delete.confirm': 'Delete "{id}"?',
+      'servo.delete.inUse': 'This servo is used by joints.',
       'joint.form.id.duplicate': 'Joint ID must be unique.',
       'joint.list.count': '{count} servos',
+      'joint.usage.title': 'Usage',
+      'joint.delete.confirm': 'Delete "{id}"?',
+      'joint.delete.inUse': 'This joint is used by joint groups.',
       'jointGroup.form.id.duplicate': 'Group ID must be unique.',
       'jointGroup.list.count': '{count} joints',
       'jointGroup.usage.title': 'Usage',
@@ -407,8 +413,14 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.form.description.placeholder': 'この項目の説明',
       'project.import.invalid': 'JSONファイルを読み込めませんでした。',
       'servo.form.id.duplicate': 'サーボ ID が重複しています。',
+      'servo.usage.title': '利用元',
+      'servo.delete.confirm': '「{id}」を削除しますか？',
+      'servo.delete.inUse': 'このサーボはジョイントで使用中です。',
       'joint.form.id.duplicate': 'ジョイント ID が重複しています。',
       'joint.list.count': '{count} サーボ',
+      'joint.usage.title': '利用元',
+      'joint.delete.confirm': '「{id}」を削除しますか？',
+      'joint.delete.inUse': 'このジョイントはジョイントグループで使用中です。',
       'jointGroup.form.id.duplicate': 'グループ ID が重複しています。',
       'jointGroup.list.count': '{count} ジョイント',
       'jointGroup.usage.title': '利用元',
@@ -867,6 +879,70 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const renderServoUsage = () => {
+    if (!servoUsageList) {
+      return;
+    }
+    servoUsageList.innerHTML = '';
+    if (!selectedServoId) {
+      return;
+    }
+    const usage = eventState.joints
+      .filter((joint) => (joint.servos || []).some((servo) => servo.servoId === selectedServoId))
+      .map((joint) => joint.id);
+    if (usage.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = '—';
+      empty.appendChild(label);
+      servoUsageList.appendChild(empty);
+      return;
+    }
+    usage.forEach((name) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      const key = document.createElement('span');
+      key.className = 'mini-k';
+      key.textContent = name;
+      row.appendChild(key);
+      servoUsageList.appendChild(row);
+    });
+  };
+
+  const renderJointUsage = () => {
+    if (!jointUsageList) {
+      return;
+    }
+    jointUsageList.innerHTML = '';
+    if (!selectedJointId) {
+      return;
+    }
+    const usage = eventState.jointGroups
+      .filter((group) => (group.jointIds || []).includes(selectedJointId))
+      .map((group) => group.id);
+    if (usage.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = '—';
+      empty.appendChild(label);
+      jointUsageList.appendChild(empty);
+      return;
+    }
+    usage.forEach((name) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      const key = document.createElement('span');
+      key.className = 'mini-k';
+      key.textContent = name;
+      row.appendChild(key);
+      jointUsageList.appendChild(row);
+    });
+  };
+
   const renderJointGroupUsage = () => {
     if (!jointGroupUsageList) {
       return;
@@ -916,6 +992,26 @@ document.addEventListener('DOMContentLoaded', () => {
     let count = 0;
     eventState.sequences.forEach((sequence) => {
       if ((sequence.steps || []).some((step) => step.type === 'pose' && step.targetId === poseId)) {
+        count += 1;
+      }
+    });
+    return count;
+  };
+
+  const getJointUsageCount = (jointId) => {
+    let count = 0;
+    eventState.jointGroups.forEach((group) => {
+      if ((group.jointIds || []).includes(jointId)) {
+        count += 1;
+      }
+    });
+    return count;
+  };
+
+  const getServoUsageCount = (servoId) => {
+    let count = 0;
+    eventState.joints.forEach((joint) => {
+      if ((joint.servos || []).some((servo) => servo.servoId === servoId)) {
         count += 1;
       }
     });
@@ -990,11 +1086,13 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPoseList?.();
     renderSequenceList?.();
     renderEasingList?.();
+    renderServoUsage?.();
     renderEventUsage?.();
     renderEasingUsage?.();
     renderSequenceUsage?.();
     renderPoseUsage?.();
     renderJointGroupUsage?.();
+    renderJointUsage?.();
     updatePoseTriggerOptions?.();
     updatePoseControlOptions?.();
     renderPoseControlAxisEasing?.();
@@ -2068,6 +2166,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const servoPwmOffsetInput = document.getElementById('servo-pwm-offset-input');
   const servoTtlAddressInput = document.getElementById('servo-ttl-address-input');
   const servoTtlBusInput = document.getElementById('servo-ttl-bus-input');
+  const servoUsageList = document.getElementById('servo-usage-list');
   const jointList = document.getElementById('joint-list');
   const jointAddButton = document.getElementById('joint-add');
   const jointSaveButton = document.getElementById('joint-save');
@@ -2085,6 +2184,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const jointServoMinInput = document.getElementById('joint-servo-min-input');
   const jointServoMaxInput = document.getElementById('joint-servo-max-input');
   const jointServoSaveButton = document.getElementById('joint-servo-save');
+  const jointUsageList = document.getElementById('joint-usage-list');
   const jointGroupList = document.getElementById('joint-group-list');
   const jointGroupAddButton = document.getElementById('joint-group-add');
   const jointGroupSaveButton = document.getElementById('joint-group-save');
@@ -3028,6 +3128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedServoId = servo.id;
     renderServoList();
     populateServoEditor(servo);
+    renderServoUsage();
   };
 
   const ensureServoSelection = () => {
@@ -3093,6 +3194,7 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderServoList();
     populateServoEditor(servo);
+    renderServoUsage();
     updateRichJsonOutput();
   };
 
@@ -3194,6 +3296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderServoList();
     populateServoEditor(servo);
+    renderServoUsage();
     updateRichJsonOutput();
   };
 
@@ -3228,11 +3331,21 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderServoList();
     populateServoEditor(copy);
+    renderServoUsage();
     updateRichJsonOutput();
   };
 
   const deleteServo = () => {
     if (!selectedServoId) {
+      return;
+    }
+    if (getServoUsageCount(selectedServoId) > 0) {
+      window.alert(getTranslation('servo.delete.inUse'));
+      return;
+    }
+    const label = selectedServoId;
+    const confirmText = getTranslation('servo.delete.confirm').replace('{id}', label);
+    if (!window.confirm(confirmText)) {
       return;
     }
     const index = eventState.servos.findIndex((item) => item.id === selectedServoId);
@@ -3247,6 +3360,7 @@ document.addEventListener('DOMContentLoaded', () => {
       selectServoById(selectedServoId);
     } else {
       clearServoEditor();
+      renderServoUsage();
       updateRichJsonOutput();
     }
   };
@@ -3459,6 +3573,8 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedJointId = joint.id;
     renderJointList();
     populateJointEditor(joint);
+    renderJointUsage();
+    renderServoUsage();
   };
 
   const ensureJointSelection = () => {
@@ -3492,6 +3608,7 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderJointList();
     populateJointEditor(joint);
+    renderServoUsage();
     updateRichJsonOutput();
   };
 
@@ -3545,6 +3662,8 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderJointList();
     populateJointEditor(joint);
+    renderJointUsage();
+    renderServoUsage();
     updateRichJsonOutput();
   };
 
@@ -3578,11 +3697,22 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderJointList();
     populateJointEditor(copy);
+    renderJointUsage();
+    renderServoUsage();
     updateRichJsonOutput();
   };
 
   const deleteJoint = () => {
     if (!selectedJointId) {
+      return;
+    }
+    if (getJointUsageCount(selectedJointId) > 0) {
+      window.alert(getTranslation('joint.delete.inUse'));
+      return;
+    }
+    const label = selectedJointId;
+    const confirmText = getTranslation('joint.delete.confirm').replace('{id}', label);
+    if (!window.confirm(confirmText)) {
       return;
     }
     const index = eventState.joints.findIndex((item) => item.id === selectedJointId);
@@ -3599,6 +3729,8 @@ document.addEventListener('DOMContentLoaded', () => {
       clearJointEditor();
       updateRichJsonOutput();
     }
+    renderJointUsage();
+    renderServoUsage();
   };
 
   const saveJointServoSettings = () => {
@@ -3621,6 +3753,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderJointList();
     renderJointServoList(joint);
     setActiveJointServo(selectedJointServoId);
+    renderServoUsage();
     updateRichJsonOutput();
   };
 
@@ -3833,6 +3966,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderJointGroupList();
     populateJointGroupEditor(group);
     renderJointGroupUsage();
+    renderJointUsage();
   };
 
   const ensureJointGroupSelection = () => {
@@ -3916,6 +4050,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderJointGroupList();
     populateJointGroupEditor(group);
     renderJointGroupUsage();
+    renderJointUsage();
     updateRichJsonOutput();
   };
 
@@ -3950,6 +4085,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderJointGroupList();
     populateJointGroupEditor(copy);
     renderJointGroupUsage();
+    renderJointUsage();
     updateRichJsonOutput();
   };
 
@@ -3981,6 +4117,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateRichJsonOutput();
     }
     renderJointGroupUsage();
+    renderJointUsage();
   };
 
   const initJointGroupEditor = () => {
@@ -5359,6 +5496,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSequenceUsage();
     renderPoseUsage();
     renderJointGroupUsage();
+    renderJointUsage();
     renderPoseUsage();
     if (selectedEventId) {
       selectEventById(selectedEventId);

@@ -2115,6 +2115,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const setEasingEditorLocked = (isPreset) => {
+    if (easingIdInput) {
+      easingIdInput.disabled = isPreset;
+    }
+    if (easingTypeSelect) {
+      easingTypeSelect.disabled = isPreset;
+    }
+    document.querySelectorAll('[data-easing-param]').forEach((input) => {
+      input.disabled = isPreset;
+    });
+    const deleteButton = document.querySelector('#panel-easing .card-actions .btn.btn-ghost');
+    if (deleteButton) {
+      deleteButton.disabled = isPreset;
+    }
+  };
+
   const populateEasingEditor = (easing) => {
     if (!easing || !easingIdInput || !easingOrderInput || !easingDescriptionInput || !easingTypeSelect) {
       return;
@@ -2126,6 +2142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     easingTypeSelect.dispatchEvent(new Event('change', { bubbles: true }));
     applyEasingParams(easing.type, easing.params || []);
     renderEasingGraphs();
+    setEasingEditorLocked(easing.kind === 'preset');
   };
 
   const selectEasingById = (easingId) => {
@@ -2193,6 +2210,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sortEasings();
     persistEventState();
     renderEasingList();
+    setEasingEditorLocked(easing.kind === 'preset');
     updateRichJsonOutput();
   };
 
@@ -2217,7 +2235,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const copy = {
       ...source,
       id,
-      displayOrder: maxOrder + 10
+      displayOrder: maxOrder + 10,
+      kind: source.kind === 'preset' ? 'custom' : source.kind
     };
     eventState.easings.push(copy);
     selectedEasingId = id;

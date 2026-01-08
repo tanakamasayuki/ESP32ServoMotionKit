@@ -513,6 +513,19 @@ a {
   overflow: visible;
 }
 
+#panel-sequence .panel-pane--list .list {
+  max-height: none;
+  overflow: visible;
+}
+
+#panel-pose .panel-pane--list .list,
+#panel-joint-group .panel-pane--list .list,
+#panel-joint .panel-pane--list .list,
+#panel-servo .panel-pane--list .list {
+  max-height: none;
+  overflow: visible;
+}
+
 .list-header {
   display: flex;
   align-items: center;

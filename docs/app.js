@@ -4662,6 +4662,14 @@ document.addEventListener('DOMContentLoaded', () => {
     return { min, max };
   };
 
+  const getPoseAxisPreview = (axisId, angle) => {
+    const joint = eventState.joints.find((item) => item.id === axisId);
+    const offset = Number(joint?.previewOffset || 0);
+    const direction = joint?.previewDirection === 'ccw' ? -1 : 1;
+    const displayAngle = (offset + Number(angle || 0) * direction + 3600) % 360;
+    return Number.isFinite(displayAngle) ? displayAngle : 0;
+  };
+
   const setActivePoseAxis = (axisId, angle, pose = getSelectedPose()) => {
     selectedPoseAxisId = axisId;
     if (poseAxisTarget) {
@@ -4700,7 +4708,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
     if (poseAxisNeedle) {
-      poseAxisNeedle.style.transform = `translateX(-50%) rotate(${angle ?? 0}deg)`;
+      const displayAngle = axisId ? getPoseAxisPreview(axisId, angle) : (angle ?? 0);
+      poseAxisNeedle.style.transform = `translateX(-50%) rotate(${displayAngle}deg)`;
     }
   };
 
@@ -5123,7 +5132,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
         if (poseAxisNeedle) {
-          poseAxisNeedle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+          poseAxisNeedle.style.transform = `translateX(-50%) rotate(${getPoseAxisPreview(selectedPoseAxisId, angle)}deg)`;
         }
       };
       poseAxisRange.addEventListener('input', () => onAngleChange(poseAxisRange.value));

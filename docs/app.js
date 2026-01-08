@@ -5659,7 +5659,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const easing = {
       id,
       type,
-      kind: type === 'linear' ? 'preset' : 'custom',
+      kind: 'custom',
       displayOrder: maxOrder + 10,
       description: '',
       params: getEasingParams(type)

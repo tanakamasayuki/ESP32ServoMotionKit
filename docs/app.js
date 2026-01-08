@@ -2797,6 +2797,10 @@ document.addEventListener('DOMContentLoaded', () => {
       delete servo.previewOffset;
       delete servo.previewDirection;
     });
+    (simpleJson.joints || []).forEach((joint) => {
+      delete joint.previewOffset;
+      delete joint.previewDirection;
+    });
     return simpleJson;
   };
 

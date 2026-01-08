@@ -4595,14 +4595,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  const setActivePoseAxis = (axisId, angle) => {
+  const getPoseAxisRange = (axisId) => {
+    const joint = eventState.joints.find((item) => item.id === axisId);
+    const min = Number.isFinite(joint?.rangeMin) ? joint.rangeMin : 0;
+    const max = Number.isFinite(joint?.rangeMax) ? joint.rangeMax : 360;
+    if (min > max) {
+      return { min: 0, max: 360 };
+    }
+    return { min, max };
+  };
+
+  const setActivePoseAxis = (axisId, angle, pose = getSelectedPose()) => {
     selectedPoseAxisId = axisId;
     if (poseAxisTarget) {
       poseAxisTarget.textContent = axisId || '—';
     }
     if (poseAxisRange && poseAxisInput) {
-      poseAxisRange.value = String(angle ?? 0);
-      poseAxisInput.value = String(angle ?? 0);
+      const range = axisId ? getPoseAxisRange(axisId) : { min: 0, max: 360 };
+      poseAxisRange.min = String(range.min);
+      poseAxisRange.max = String(range.max);
+      poseAxisInput.min = String(range.min);
+      poseAxisInput.max = String(range.max);
+      const clamped = Math.min(Math.max(Number(angle ?? 0), range.min), range.max);
+      poseAxisRange.value = String(clamped);
+      poseAxisInput.value = String(clamped);
+      if (pose && axisId) {
+        updatePoseAxisValue(pose, axisId, clamped);
+      }
+      if (poseAxisList) {
+        const row = poseAxisList.querySelector(`[data-pose-axis="${axisId}"]`);
+        const label = row?.querySelector('.mini-v');
+        if (label) {
+          label.textContent = `${clamped}°`;
+        }
+      }
     }
     if (poseAxisList) {
       poseAxisList.querySelectorAll('.mini-row').forEach((row) => {
@@ -5021,7 +5047,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!pose || !selectedPoseAxisId) {
           return;
         }
-        const angle = Math.max(0, Math.min(360, Number(value || 0)));
+        const range = getPoseAxisRange(selectedPoseAxisId);
+        const angle = Math.min(Math.max(Number(value || 0), range.min), range.max);
         poseAxisRange.value = String(angle);
         poseAxisInput.value = String(angle);
         updatePoseAxisValue(pose, selectedPoseAxisId, angle);

@@ -205,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'pose.triggers.event.led': '210 - event_led_flash',
       'pose.triggers.note': 'Pose reached triggers when the sequence movement completes. Pose end triggers after the sequence hold time.',
       'pose.triggers.overrun.note': 'Time overrun triggers during the move into this pose when speed limits extend the move beyond the specified duration.',
+      'pose.form.id.duplicate': 'Pose ID must be unique.',
       'sequence.title': 'Sequence Settings',
       'sequence.desc': 'Compose steps, triggers, and reusable sequences for header export.',
       'sequence.card.list': 'Sequence List',
@@ -497,6 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'pose.triggers.event.led': '210 - event_led_flash',
       'pose.triggers.note': 'ポーズ到達はシーケンスの移動が完了したとき、ポーズ終了はシーケンスのホールド時間が経過したときに発火します。',
       'pose.triggers.overrun.note': '時間延長時はこのポーズへの移動中に、速度制限に抵触して移動時間が指定を超過した場合に発火します。',
+      'pose.form.id.duplicate': 'ポーズ ID が重複しています。',
       'sequence.title': 'シーケンス設定',
       'sequence.desc': 'ステップ/トリガー/再利用シーケンスを構成し、ヘッダ出力に反映します。',
       'sequence.card.list': 'シーケンス一覧',
@@ -637,7 +639,16 @@ document.addEventListener('DOMContentLoaded', () => {
     renderServoList?.();
     renderJointList?.();
     renderJointGroupList?.();
+    renderPoseList?.();
     renderEasingList?.();
+    updatePoseTriggerOptions?.();
+    updatePoseControlOptions?.();
+    renderPoseControlAxisEasing?.();
+    const pose = getSelectedPose?.();
+    if (pose) {
+      updatePoseGroupOptions?.(pose.groupId);
+      renderPoseAxisList?.(pose);
+    }
   };
 
   const applyTranslations = (lang) => {
@@ -1723,6 +1734,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const jointGroupJointList = document.getElementById('joint-group-joint-list');
   const jointGroupSelectedId = document.getElementById('joint-group-selected');
   const jointGroupSelectedServos = document.getElementById('joint-group-servos');
+  const poseList = document.getElementById('pose-list');
+  const poseAddButton = document.getElementById('pose-add');
+  const poseSaveButton = document.getElementById('pose-save');
+  const poseDuplicateButton = document.getElementById('pose-duplicate');
+  const poseDeleteButton = document.getElementById('pose-delete');
+  const poseIdInput = document.getElementById('pose-id-input');
+  const poseIdError = document.getElementById('pose-id-error');
+  const poseOrderInput = document.getElementById('pose-order-input');
+  const poseDescriptionInput = document.getElementById('pose-description-input');
+  const poseGroupSelect = document.getElementById('pose-group-select');
+  const poseFilterInput = document.getElementById('pose-filter-input');
+  const poseAxisList = document.getElementById('pose-axis-list');
+  const poseAxisTarget = document.getElementById('pose-axis-target');
+  const poseAxisRange = document.getElementById('pose-axis-range');
+  const poseAxisInput = document.getElementById('pose-axis-input');
+  const poseTriggerStart = document.getElementById('pose-trigger-start');
+  const poseTriggerReached = document.getElementById('pose-trigger-reached');
+  const poseTriggerEnd = document.getElementById('pose-trigger-end');
+  const poseTriggerOverrun = document.getElementById('pose-trigger-overrun');
+  const poseControlStart = document.getElementById('pose-control-start');
+  const poseControlDuration = document.getElementById('pose-control-duration');
+  const poseControlEasing = document.getElementById('pose-control-easing');
+  const poseControlAxisEasing = document.getElementById('pose-control-axis-easing');
   const easingList = document.getElementById('easing-list');
   const easingAddButton = document.getElementById('easing-add');
   const easingIdInput = document.getElementById('easing-id-input');
@@ -1857,6 +1891,42 @@ document.addEventListener('DOMContentLoaded', () => {
         jointIds: ['yaw', 'pitch']
       }
     ],
+    poses: [
+      {
+        id: 'p_home',
+        displayOrder: 10,
+        description: 'Neutral pose',
+        groupId: 'all',
+        jointTargets: [
+          { jointId: 'yaw', deg: 0 },
+          { jointId: 'pitch', deg: 0 },
+          { jointId: 'roll', deg: 0 }
+        ],
+        triggers: { start: null, reached: null, end: null, overrun: null }
+      },
+      {
+        id: 'p_wave',
+        displayOrder: 20,
+        description: 'Wave pose',
+        groupId: 'jg_arms',
+        jointTargets: [
+          { jointId: 'yaw', deg: 20 },
+          { jointId: 'pitch', deg: -10 }
+        ],
+        triggers: { start: null, reached: null, end: null, overrun: null }
+      },
+      {
+        id: 'p_ready',
+        displayOrder: 30,
+        description: 'Ready pose',
+        groupId: 'jg_head',
+        jointTargets: [
+          { jointId: 'yaw', deg: 5 },
+          { jointId: 'roll', deg: 5 }
+        ],
+        triggers: { start: null, reached: null, end: null, overrun: null }
+      }
+    ],
     easings: [
       { id: 'e_linear', type: 'linear', kind: 'preset', displayOrder: 10, description: '', params: [] },
       {
@@ -1885,6 +1955,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedJointServoId = null;
   let selectedJointGroupId = null;
   let selectedJointGroupJointId = null;
+  let selectedPoseId = null;
+  let selectedPoseAxisId = null;
   let hasLoadedState = false;
 
   const loadEventState = () => {
@@ -1905,7 +1977,8 @@ document.addEventListener('DOMContentLoaded', () => {
           easings: Array.isArray(parsed.easings) ? parsed.easings : defaultState.easings,
           servos: Array.isArray(parsed.servos) ? parsed.servos : defaultState.servos,
           joints: Array.isArray(parsed.joints) ? parsed.joints : defaultState.joints,
-          jointGroups: Array.isArray(parsed.jointGroups) ? parsed.jointGroups : defaultState.jointGroups
+          jointGroups: Array.isArray(parsed.jointGroups) ? parsed.jointGroups : defaultState.jointGroups,
+          poses: Array.isArray(parsed.poses) ? parsed.poses : defaultState.poses
         };
       }
       hasLoadedState = true;
@@ -1998,6 +2071,33 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return item;
     });
+    const poses = eventState.poses.map((pose) => {
+      const item = {
+        id: pose.id,
+        jointTargets: (pose.jointTargets || []).map((target) => ({
+          jointId: target.jointId,
+          deg: target.deg
+        }))
+      };
+      if (pose.displayOrder !== null && pose.displayOrder !== undefined && pose.displayOrder !== '') {
+        item.displayOrder = pose.displayOrder;
+      }
+      if (pose.description) {
+        item.description = pose.description;
+      }
+      if (pose.groupId && pose.groupId !== 'all') {
+        item.groupId = pose.groupId;
+      }
+      if (pose.triggers) {
+        const triggerItems = Object.entries(pose.triggers)
+          .filter(([, eventId]) => eventId)
+          .map(([key, eventId]) => ({ at: key, eventId }));
+        if (triggerItems.length > 0) {
+          item.triggers = triggerItems;
+        }
+      }
+      return item;
+    });
     const events = eventState.events.map((event) => {
       const item = {
         id: event.id,
@@ -2037,6 +2137,7 @@ document.addEventListener('DOMContentLoaded', () => {
       servos,
       joints,
       jointGroups,
+      poses,
       events,
       easings
     };
@@ -2139,6 +2240,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
   };
 
+  const normalizePoses = (poses) => {
+    if (!Array.isArray(poses)) {
+      return [];
+    }
+    return poses.map((item) => {
+      const targets = Array.isArray(item?.jointTargets)
+        ? item.jointTargets.map((target) => ({
+          jointId: target?.jointId || '',
+          deg: normalizeServoNumber(target?.deg, 0)
+        }))
+        : [];
+      const triggers = Array.isArray(item?.triggers)
+        ? item.triggers.reduce((acc, trigger) => {
+          if (trigger?.at && trigger?.eventId) {
+            acc[trigger.at] = trigger.eventId;
+          }
+          return acc;
+        }, { start: null, reached: null, end: null, overrun: null })
+        : {
+          start: item?.triggers?.start ?? null,
+          reached: item?.triggers?.reached ?? null,
+          end: item?.triggers?.end ?? null,
+          overrun: item?.triggers?.overrun ?? null
+        };
+      return {
+        id: item?.id || 'pose_new',
+        displayOrder: item?.displayOrder ?? null,
+        description: item?.description || '',
+        groupId: item?.groupId || 'all',
+        jointTargets: targets,
+        triggers
+      };
+    });
+  };
+
   const normalizeEasings = (easings) => {
     if (!Array.isArray(easings)) {
       return [];
@@ -2193,6 +2329,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const sortJointGroups = () => {
     eventState.jointGroups.sort((a, b) => {
+      const orderA = a.displayOrder === null || a.displayOrder === undefined ? Number.POSITIVE_INFINITY : a.displayOrder;
+      const orderB = b.displayOrder === null || b.displayOrder === undefined ? Number.POSITIVE_INFINITY : b.displayOrder;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      return String(a.id).localeCompare(String(b.id));
+    });
+  };
+
+  const sortPoses = () => {
+    eventState.poses.sort((a, b) => {
       const orderA = a.displayOrder === null || a.displayOrder === undefined ? Number.POSITIVE_INFINITY : a.displayOrder;
       const orderB = b.displayOrder === null || b.displayOrder === undefined ? Number.POSITIVE_INFINITY : b.displayOrder;
       if (orderA !== orderB) {
@@ -3377,6 +3524,560 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const clearPoseIdError = () => {
+    if (poseIdError) {
+      poseIdError.hidden = true;
+    }
+    if (poseIdInput) {
+      poseIdInput.classList.remove('is-error');
+    }
+  };
+
+  const showPoseIdError = () => {
+    if (poseIdError) {
+      poseIdError.hidden = false;
+    }
+    if (poseIdInput) {
+      poseIdInput.classList.add('is-error');
+    }
+  };
+
+  const hasDuplicatePoseId = (id, currentId) => {
+    return eventState.poses.some((item) => item.id === id && item.id !== currentId);
+  };
+
+  const getSelectedPose = () => {
+    if (!selectedPoseId) {
+      return null;
+    }
+    return eventState.poses.find((item) => item.id === selectedPoseId) || null;
+  };
+
+  const ensurePoseSelection = () => {
+    if (!selectedPoseId && eventState.poses.length > 0) {
+      selectedPoseId = eventState.poses[0].id;
+    }
+  };
+
+  const renderPoseList = () => {
+    if (!poseList) {
+      return;
+    }
+    poseList.innerHTML = '';
+    const filter = poseFilterInput?.value?.trim().toLowerCase() || '';
+    eventState.poses.forEach((pose) => {
+      if (filter && !pose.id.toLowerCase().includes(filter)) {
+        return;
+      }
+      const item = document.createElement('li');
+      item.className = 'list-item';
+      item.dataset.poseId = pose.id;
+      if (pose.id === selectedPoseId) {
+        item.classList.add('is-active');
+      }
+      const name = document.createElement('span');
+      name.textContent = pose.id;
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = pose.groupId && pose.groupId !== 'all'
+        ? pose.groupId
+        : getTranslation('pose.editor.group.all');
+      item.appendChild(name);
+      item.appendChild(chip);
+      poseList.appendChild(item);
+    });
+  };
+
+  const updatePoseGroupOptions = (selected) => {
+    if (!poseGroupSelect) {
+      return;
+    }
+    poseGroupSelect.innerHTML = '';
+    const allOption = document.createElement('option');
+    allOption.value = 'all';
+    allOption.textContent = getTranslation('pose.editor.group.all');
+    poseGroupSelect.appendChild(allOption);
+    eventState.jointGroups.forEach((group) => {
+      const option = document.createElement('option');
+      option.value = group.id;
+      option.textContent = group.id;
+      poseGroupSelect.appendChild(option);
+    });
+    poseGroupSelect.value = selected && selected !== 'all' ? selected : 'all';
+  };
+
+  const getPoseJointIds = (pose) => {
+    if (!pose || !pose.groupId || pose.groupId === 'all') {
+      return eventState.joints.map((joint) => joint.id);
+    }
+    const group = eventState.jointGroups.find((item) => item.id === pose.groupId);
+    if (group?.jointIds?.length) {
+      return group.jointIds;
+    }
+    return eventState.joints.map((joint) => joint.id);
+  };
+
+  const renderPoseAxisList = (pose) => {
+    if (!poseAxisList) {
+      return;
+    }
+    poseAxisList.innerHTML = '';
+    const jointIds = getPoseJointIds(pose);
+    const targetMap = new Map((pose?.jointTargets || []).map((target) => [target.jointId, target.deg]));
+    jointIds.forEach((jointId) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      row.dataset.poseAxisRow = '';
+      row.dataset.poseAxis = jointId;
+      if (jointId === selectedPoseAxisId) {
+        row.classList.add('is-active');
+      }
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.poseAxis = jointId;
+      checkbox.checked = targetMap.has(jointId);
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'mini-select';
+      button.dataset.poseAxis = jointId;
+      button.textContent = jointId;
+
+      const value = document.createElement('span');
+      value.className = 'mini-v';
+      const angle = targetMap.has(jointId) ? targetMap.get(jointId) : 0;
+      value.textContent = `${angle}°`;
+
+      row.appendChild(checkbox);
+      row.appendChild(button);
+      row.appendChild(value);
+      poseAxisList.appendChild(row);
+    });
+  };
+
+  const updatePoseAxisValue = (pose, axisId, angle) => {
+    if (!pose) {
+      return;
+    }
+    const target = pose.jointTargets.find((item) => item.jointId === axisId);
+    if (target) {
+      target.deg = angle;
+    } else {
+      pose.jointTargets.push({ jointId: axisId, deg: angle });
+    }
+  };
+
+  const setActivePoseAxis = (axisId, angle) => {
+    selectedPoseAxisId = axisId;
+    if (poseAxisTarget) {
+      poseAxisTarget.textContent = axisId || '—';
+    }
+    if (poseAxisRange && poseAxisInput) {
+      poseAxisRange.value = String(angle ?? 0);
+      poseAxisInput.value = String(angle ?? 0);
+    }
+    if (poseAxisList) {
+      poseAxisList.querySelectorAll('.mini-row').forEach((row) => {
+        row.classList.toggle('is-active', row.dataset.poseAxis === axisId);
+      });
+    }
+    const needle = document.querySelector('.mini-needle');
+    if (needle) {
+      needle.style.transform = `translateX(-50%) rotate(${angle ?? 0}deg)`;
+    }
+  };
+
+  const updatePoseTriggerOptions = () => {
+    const selects = [poseTriggerStart, poseTriggerReached, poseTriggerEnd, poseTriggerOverrun].filter(Boolean);
+    selects.forEach((select) => {
+      const selected = select.value || 'none';
+      select.innerHTML = '';
+      const none = document.createElement('option');
+      none.value = 'none';
+      none.textContent = getTranslation('pose.triggers.event.none');
+      select.appendChild(none);
+      eventState.events.forEach((event) => {
+        const option = document.createElement('option');
+        option.value = event.id;
+        option.textContent = `${event.number} - ${event.id}`;
+        select.appendChild(option);
+      });
+      select.value = selected;
+    });
+  };
+
+  const updatePoseControlOptions = () => {
+    if (poseControlStart) {
+      const selected = poseControlStart.value;
+      poseControlStart.innerHTML = '';
+      eventState.poses.forEach((pose) => {
+        const option = document.createElement('option');
+        option.value = pose.id;
+        option.textContent = pose.id;
+        poseControlStart.appendChild(option);
+      });
+      poseControlStart.value = selected || eventState.poses[0]?.id || '';
+    }
+    if (poseControlEasing) {
+      const selected = poseControlEasing.value;
+      poseControlEasing.innerHTML = '';
+      eventState.easings.forEach((easing) => {
+        const option = document.createElement('option');
+        option.value = easing.id;
+        option.textContent = easing.id;
+        poseControlEasing.appendChild(option);
+      });
+      poseControlEasing.value = selected || eventState.easings[0]?.id || '';
+    }
+  };
+
+  const renderPoseControlAxisEasing = () => {
+    if (!poseControlAxisEasing) {
+      return;
+    }
+    poseControlAxisEasing.innerHTML = '';
+    const pose = getSelectedPose();
+    const jointIds = getPoseJointIds(pose);
+    jointIds.forEach((jointId) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = jointId;
+      const select = document.createElement('select');
+      select.className = 'mini-select';
+      const base = document.createElement('option');
+      base.value = 'base';
+      base.textContent = getTranslation('pose.control.axisDefault');
+      select.appendChild(base);
+      eventState.easings.forEach((easing) => {
+        const option = document.createElement('option');
+        option.value = easing.id;
+        option.textContent = easing.id;
+        select.appendChild(option);
+      });
+      row.appendChild(label);
+      row.appendChild(select);
+      poseControlAxisEasing.appendChild(row);
+    });
+  };
+
+  const populatePoseEditor = (pose) => {
+    if (!pose || !poseIdInput || !poseOrderInput || !poseDescriptionInput) {
+      return;
+    }
+    poseIdInput.value = pose.id ?? '';
+    poseOrderInput.value = pose.displayOrder ?? '';
+    poseDescriptionInput.value = pose.description ?? '';
+    updatePoseGroupOptions(pose.groupId);
+    renderPoseAxisList(pose);
+    updatePoseTriggerOptions();
+    if (poseTriggerStart) {
+      poseTriggerStart.value = pose.triggers?.start || 'none';
+    }
+    if (poseTriggerReached) {
+      poseTriggerReached.value = pose.triggers?.reached || 'none';
+    }
+    if (poseTriggerEnd) {
+      poseTriggerEnd.value = pose.triggers?.end || 'none';
+    }
+    if (poseTriggerOverrun) {
+      poseTriggerOverrun.value = pose.triggers?.overrun || 'none';
+    }
+    const initialAxis = pose.jointTargets?.[0]?.jointId || getPoseJointIds(pose)[0] || null;
+    const initialAngle = pose.jointTargets?.find((target) => target.jointId === initialAxis)?.deg ?? 0;
+    setActivePoseAxis(initialAxis, initialAngle);
+    updatePoseControlOptions();
+    renderPoseControlAxisEasing();
+    clearPoseIdError();
+  };
+
+  const selectPoseById = (poseId) => {
+    const pose = eventState.poses.find((item) => item.id === poseId) || eventState.poses[0];
+    if (!pose) {
+      return;
+    }
+    selectedPoseId = pose.id;
+    renderPoseList();
+    populatePoseEditor(pose);
+  };
+
+  const addPose = () => {
+    const base = 'pose_new';
+    let index = eventState.poses.length + 1;
+    let id = `${base}_${index}`;
+    while (eventState.poses.some((pose) => pose.id === id)) {
+      index += 1;
+      id = `${base}_${index}`;
+    }
+    const maxOrder = eventState.poses.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
+    const jointId = eventState.joints[0]?.id;
+    const pose = {
+      id,
+      displayOrder: maxOrder + 10,
+      description: '',
+      groupId: 'all',
+      jointTargets: jointId ? [{ jointId, deg: 0 }] : [],
+      triggers: { start: null, reached: null, end: null, overrun: null }
+    };
+    eventState.poses.push(pose);
+    selectedPoseId = pose.id;
+    sortPoses();
+    persistEventState();
+    renderPoseList();
+    populatePoseEditor(pose);
+    updatePoseControlOptions();
+    updateRichJsonOutput();
+  };
+
+  const clearPoseEditor = () => {
+    if (!poseIdInput || !poseOrderInput || !poseDescriptionInput) {
+      return;
+    }
+    poseIdInput.value = '';
+    poseOrderInput.value = '';
+    poseDescriptionInput.value = '';
+    if (poseGroupSelect) {
+      poseGroupSelect.innerHTML = '';
+    }
+    if (poseAxisList) {
+      poseAxisList.innerHTML = '';
+    }
+    clearPoseIdError();
+  };
+
+  const savePose = () => {
+    if (!selectedPoseId) {
+      return;
+    }
+    const pose = eventState.poses.find((item) => item.id === selectedPoseId);
+    if (!pose) {
+      return;
+    }
+    const nextId = (poseIdInput?.value || '').trim() || pose.id;
+    if (hasDuplicatePoseId(nextId, pose.id)) {
+      showPoseIdError();
+      return;
+    }
+    pose.id = nextId;
+    const orderRaw = poseOrderInput?.value ?? '';
+    pose.displayOrder = orderRaw === '' ? null : parseNumber(orderRaw, pose.displayOrder ?? null);
+    pose.description = (poseDescriptionInput?.value || '').trim();
+    pose.groupId = poseGroupSelect?.value || 'all';
+    const selectedAxisIds = [];
+    if (poseAxisList) {
+      poseAxisList.querySelectorAll('input[type="checkbox"][data-pose-axis]').forEach((input) => {
+        if (input.checked) {
+          selectedAxisIds.push(input.dataset.poseAxis);
+        }
+      });
+    }
+    const currentMap = new Map((pose.jointTargets || []).map((target) => [target.jointId, target]));
+    pose.jointTargets = selectedAxisIds.map((axisId) => {
+      const existing = currentMap.get(axisId);
+      return existing ? { ...existing } : { jointId: axisId, deg: 0 };
+    });
+    pose.triggers = {
+      start: poseTriggerStart?.value === 'none' ? null : poseTriggerStart?.value || null,
+      reached: poseTriggerReached?.value === 'none' ? null : poseTriggerReached?.value || null,
+      end: poseTriggerEnd?.value === 'none' ? null : poseTriggerEnd?.value || null,
+      overrun: poseTriggerOverrun?.value === 'none' ? null : poseTriggerOverrun?.value || null
+    };
+    selectedPoseId = pose.id;
+    clearPoseIdError();
+    sortPoses();
+    persistEventState();
+    renderPoseList();
+    populatePoseEditor(pose);
+    updatePoseControlOptions();
+    updateRichJsonOutput();
+  };
+
+  const duplicatePose = () => {
+    if (!selectedPoseId) {
+      return;
+    }
+    const source = eventState.poses.find((item) => item.id === selectedPoseId);
+    if (!source) {
+      return;
+    }
+    const maxOrder = eventState.poses.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
+    let index = 1;
+    let id = `${source.id}_copy`;
+    while (eventState.poses.some((item) => item.id === id)) {
+      index += 1;
+      id = `${source.id}_copy${index}`;
+    }
+    const copy = {
+      ...source,
+      id,
+      displayOrder: maxOrder + 10,
+      jointTargets: (source.jointTargets || []).map((target) => ({ ...target })),
+      triggers: { ...source.triggers }
+    };
+    eventState.poses.push(copy);
+    selectedPoseId = id;
+    sortPoses();
+    persistEventState();
+    renderPoseList();
+    populatePoseEditor(copy);
+    updatePoseControlOptions();
+    updateRichJsonOutput();
+  };
+
+  const deletePose = () => {
+    if (!selectedPoseId) {
+      return;
+    }
+    const index = eventState.poses.findIndex((item) => item.id === selectedPoseId);
+    if (index === -1) {
+      return;
+    }
+    eventState.poses.splice(index, 1);
+    selectedPoseId = eventState.poses[index]?.id || eventState.poses[index - 1]?.id || null;
+    persistEventState();
+    renderPoseList();
+    if (selectedPoseId) {
+      selectPoseById(selectedPoseId);
+    } else {
+      clearPoseEditor();
+      updateRichJsonOutput();
+    }
+    updatePoseControlOptions();
+  };
+
+  const initPoseEditor = () => {
+    if (!poseList || !poseAddButton) {
+      return;
+    }
+    loadEventState();
+    eventState.poses = normalizePoses(eventState.poses);
+    ensurePoseSelection();
+    sortPoses();
+    renderPoseList();
+    if (selectedPoseId) {
+      selectPoseById(selectedPoseId);
+    } else {
+      clearPoseEditor();
+    }
+    updateRichJsonOutput();
+
+    poseList.addEventListener('click', (event) => {
+      const item = event.target.closest('.list-item');
+      if (!item || !poseList.contains(item)) {
+        return;
+      }
+      selectPoseById(item.dataset.poseId);
+    });
+
+    poseAddButton.addEventListener('click', () => {
+      addPose();
+    });
+
+    if (poseSaveButton) {
+      poseSaveButton.addEventListener('click', () => {
+        savePose();
+      });
+    }
+
+    if (poseDuplicateButton) {
+      poseDuplicateButton.addEventListener('click', () => {
+        duplicatePose();
+      });
+    }
+
+    if (poseDeleteButton) {
+      poseDeleteButton.addEventListener('click', () => {
+        deletePose();
+      });
+    }
+
+    if (poseIdInput) {
+      poseIdInput.addEventListener('input', () => {
+        clearPoseIdError();
+      });
+    }
+
+    if (poseFilterInput) {
+      poseFilterInput.addEventListener('input', () => {
+        renderPoseList();
+      });
+    }
+
+    if (poseGroupSelect) {
+      poseGroupSelect.addEventListener('change', () => {
+        const pose = getSelectedPose();
+        if (!pose) {
+          return;
+        }
+        pose.groupId = poseGroupSelect.value;
+        renderPoseAxisList(pose);
+        const jointIds = getPoseJointIds(pose);
+        setActivePoseAxis(jointIds[0] || null, 0);
+        renderPoseControlAxisEasing();
+      });
+    }
+
+    if (poseAxisList) {
+      poseAxisList.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-pose-axis]');
+        if (!button || !poseAxisList.contains(button)) {
+          return;
+        }
+        const pose = getSelectedPose();
+        if (!pose) {
+          return;
+        }
+        const axisId = button.dataset.poseAxis;
+        const target = pose.jointTargets.find((item) => item.jointId === axisId);
+        const angle = target?.deg ?? 0;
+        setActivePoseAxis(axisId, angle);
+      });
+      poseAxisList.addEventListener('change', (event) => {
+        const checkbox = event.target.closest('input[type="checkbox"][data-pose-axis]');
+        if (!checkbox || !poseAxisList.contains(checkbox)) {
+          return;
+        }
+        if (!checkbox.checked && checkbox.dataset.poseAxis === selectedPoseAxisId) {
+          const fallback = poseAxisList.querySelector('input[type="checkbox"][data-pose-axis]:checked');
+          setActivePoseAxis(fallback?.dataset.poseAxis || null, 0);
+        }
+      });
+    }
+
+    if (poseAxisRange && poseAxisInput) {
+      const onAngleChange = (value) => {
+        const pose = getSelectedPose();
+        if (!pose || !selectedPoseAxisId) {
+          return;
+        }
+        const angle = Math.max(0, Math.min(360, Number(value || 0)));
+        poseAxisRange.value = String(angle);
+        poseAxisInput.value = String(angle);
+        updatePoseAxisValue(pose, selectedPoseAxisId, angle);
+        const row = poseAxisList?.querySelector(`[data-pose-axis="${selectedPoseAxisId}"]`);
+        if (row) {
+          const label = row.querySelector('.mini-v');
+          if (label) {
+            label.textContent = `${angle}°`;
+          }
+        }
+        const needle = document.querySelector('.mini-needle');
+        if (needle) {
+          needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+        }
+      };
+      poseAxisRange.addEventListener('input', () => onAngleChange(poseAxisRange.value));
+      poseAxisInput.addEventListener('input', () => onAngleChange(poseAxisInput.value));
+    }
+  };
+
   const clearEasingEditor = () => {
     if (!easingIdInput || !easingOrderInput || !easingDescriptionInput || !easingTypeSelect) {
       return;
@@ -3402,24 +4103,28 @@ document.addEventListener('DOMContentLoaded', () => {
       easings: normalizeEasings(next.easings),
       servos: normalizeServos(next.servos),
       joints: normalizeJoints(next.joints),
-      jointGroups: normalizeJointGroups(next.jointGroups)
+      jointGroups: normalizeJointGroups(next.jointGroups),
+      poses: normalizePoses(next.poses)
     };
     sortEvents();
     sortEasings();
     sortServos();
     sortJoints();
     sortJointGroups();
+    sortPoses();
     persistEventState();
     selectedEventId = eventState.events[0]?.id || null;
     selectedEasingId = eventState.easings[0]?.id || null;
     selectedServoId = eventState.servos[0]?.id || null;
     selectedJointId = eventState.joints[0]?.id || null;
     selectedJointGroupId = eventState.jointGroups[0]?.id || null;
+    selectedPoseId = eventState.poses[0]?.id || null;
     renderEventList();
     renderEasingList();
     renderServoList();
     renderJointList();
     renderJointGroupList();
+    renderPoseList();
     if (selectedEventId) {
       selectEventById(selectedEventId);
     } else {
@@ -3439,6 +4144,11 @@ document.addEventListener('DOMContentLoaded', () => {
       selectJointGroupById(selectedJointGroupId);
     } else {
       clearJointGroupEditor();
+    }
+    if (selectedPoseId) {
+      selectPoseById(selectedPoseId);
+    } else {
+      clearPoseEditor();
     }
     if (selectedServoId) {
       selectServoById(selectedServoId);
@@ -3597,6 +4307,7 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderEventList();
     populateEventEditor(event);
+    updatePoseTriggerOptions();
     updateRichJsonOutput();
   };
 
@@ -3640,6 +4351,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sortEvents();
     persistEventState();
     renderEventList();
+    updatePoseTriggerOptions();
     updateRichJsonOutput();
   };
 
@@ -3672,6 +4384,7 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderEventList();
     populateEventEditor(copy);
+    updatePoseTriggerOptions();
     updateRichJsonOutput();
   };
 
@@ -3699,6 +4412,7 @@ document.addEventListener('DOMContentLoaded', () => {
       clearEventEditor();
       updateRichJsonOutput();
     }
+    updatePoseTriggerOptions();
   };
 
   const initEventEditor = () => {
@@ -3858,6 +4572,8 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderEasingList();
     populateEasingEditor(easing);
+    updatePoseControlOptions();
+    renderPoseControlAxisEasing();
     updateRichJsonOutput();
   };
 
@@ -3880,6 +4596,8 @@ document.addEventListener('DOMContentLoaded', () => {
     sortEasings();
     persistEventState();
     renderEasingList();
+    updatePoseControlOptions();
+    renderPoseControlAxisEasing();
     setEasingEditorLocked(easing.kind === 'preset');
     updateRichJsonOutput();
   };
@@ -3914,6 +4632,8 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderEasingList();
     populateEasingEditor(copy);
+    updatePoseControlOptions();
+    renderPoseControlAxisEasing();
     updateRichJsonOutput();
   };
 
@@ -3941,6 +4661,8 @@ document.addEventListener('DOMContentLoaded', () => {
       easingOrderInput.value = '';
       easingDescriptionInput.value = '';
     }
+    updatePoseControlOptions();
+    renderPoseControlAxisEasing();
     updateRichJsonOutput();
   };
 
@@ -4060,11 +4782,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initSelectableLists();
   initSelectableSteps();
   initFilterClearButtons();
-  initPoseAxisSelection();
   initEasingTypeToggle();
   initServoEditor();
   initJointEditor();
   initJointGroupEditor();
+  initPoseEditor();
   initEventEditor();
   initEasingEditor();
   initProjectImportExport();

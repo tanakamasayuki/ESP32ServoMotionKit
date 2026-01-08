@@ -600,7 +600,7 @@
               <div class="list-header">
                 <h3 data-i18n="pose.card.list">Pose List</h3>
                 <div class="list-actions">
-                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-outline" type="button" data-i18n="common.add" id="pose-add">Add</button>
                 </div>
               </div>
               <label class="form-field list-filter">
@@ -613,99 +613,53 @@
                   </button>
                 </div>
               </label>
-              <ul class="list">
-                <li class="list-item is-active">
-                  <span>p_home</span>
-                  <span class="chip">jg_base</span>
-                </li>
-                <li class="list-item">
-                  <span>p_wave</span>
-                  <span class="chip">jg_arms</span>
-                </li>
-                <li class="list-item">
-                  <span>p_ready</span>
-                  <span class="chip">jg_head</span>
-                </li>
-              </ul>
+              <ul class="list" id="pose-list"></ul>
             </article>
             <article class="card panel-pane panel-pane--editor" style="--delay: 120ms;">
               <h3 data-i18n="pose.card.editor">Pose Editor</h3>
               <div class="form-grid">
                 <label class="form-field">
                   <span data-i18n="pose.editor.id">Pose ID</span>
-                  <input type="text" data-i18n-placeholder="pose.editor.id.placeholder" placeholder="p_wave" />
+                  <input type="text" data-i18n-placeholder="pose.editor.id.placeholder" placeholder="p_wave"
+                    id="pose-id-input" />
+                  <span class="field-hint field-error" data-i18n="pose.form.id.duplicate" id="pose-id-error" hidden>
+                    Pose ID must be unique.
+                  </span>
                 </label>
                 <label class="form-field">
                   <span data-i18n="common.form.displayOrder">Display order</span>
                   <input type="number" value="10" min="0" data-i18n-placeholder="common.form.displayOrder.placeholder"
-                    placeholder="10" />
+                    placeholder="10" id="pose-order-input" />
                 </label>
                 <label class="form-field form-field--full">
                   <span data-i18n="common.form.description">Description</span>
                   <textarea rows="2" data-i18n-placeholder="common.form.description.placeholder"
-                    placeholder="Neutral pose for start"></textarea>
+                    placeholder="Neutral pose for start" id="pose-description-input"></textarea>
                 </label>
                 <label class="form-field">
                   <span data-i18n="pose.editor.group">Joint group</span>
-                  <select>
-                    <option data-i18n="pose.editor.group.all">All joints</option>
-                    <option>jg_base</option>
-                    <option>jg_arms</option>
-                    <option>jg_head</option>
-                  </select>
+                  <select id="pose-group-select"></select>
                 </label>
               </div>
               <p class="muted" data-i18n="pose.editor.axes.note">Axes from the selected joint group.</p>
-              <div class="mini-list">
-                <div class="mini-row is-active" data-pose-axis-row>
-                  <input type="checkbox" checked />
-                  <button class="mini-select" type="button" data-pose-axis="yaw" data-pose-angle="20">yaw</button>
-                  <span class="mini-v">20°</span>
-                </div>
-                <div class="mini-row" data-pose-axis-row>
-                  <input type="checkbox" checked />
-                  <button class="mini-select" type="button" data-pose-axis="pitch" data-pose-angle="-10">pitch</button>
-                  <span class="mini-v">-10°</span>
-                </div>
-                <div class="mini-row" data-pose-axis-row>
-                  <input type="checkbox" checked />
-                  <button class="mini-select" type="button" data-pose-axis="roll" data-pose-angle="5">roll</button>
-                  <span class="mini-v">5°</span>
-                </div>
-              </div>
+              <div class="mini-list" id="pose-axis-list"></div>
               <h4 class="card-subtitle" data-i18n="pose.triggers.title">Trigger Settings</h4>
               <div class="trigger-list">
                 <label class="trigger-row">
                   <span data-i18n="pose.triggers.start">Pose start</span>
-                  <select>
-                    <option value="none" data-i18n="pose.triggers.event.none">No event</option>
-                    <option value="100" data-i18n="pose.triggers.event.sound">100 - event_sound_a</option>
-                    <option value="210" data-i18n="pose.triggers.event.led">210 - event_led_flash</option>
-                  </select>
+                  <select id="pose-trigger-start"></select>
                 </label>
                 <label class="trigger-row">
                   <span data-i18n="pose.triggers.reached">Pose reached</span>
-                  <select>
-                    <option value="none" data-i18n="pose.triggers.event.none">No event</option>
-                    <option value="100" data-i18n="pose.triggers.event.sound">100 - event_sound_a</option>
-                    <option value="210" data-i18n="pose.triggers.event.led">210 - event_led_flash</option>
-                  </select>
+                  <select id="pose-trigger-reached"></select>
                 </label>
                 <label class="trigger-row">
                   <span data-i18n="pose.triggers.end">Pose end</span>
-                  <select>
-                    <option value="none" data-i18n="pose.triggers.event.none">No event</option>
-                    <option value="100" data-i18n="pose.triggers.event.sound">100 - event_sound_a</option>
-                    <option value="210" data-i18n="pose.triggers.event.led">210 - event_led_flash</option>
-                  </select>
+                  <select id="pose-trigger-end"></select>
                 </label>
                 <label class="trigger-row">
                   <span data-i18n="pose.triggers.overrun">Time overrun</span>
-                  <select>
-                    <option value="none" data-i18n="pose.triggers.event.none">No event</option>
-                    <option value="100" data-i18n="pose.triggers.event.sound">100 - event_sound_a</option>
-                    <option value="210" data-i18n="pose.triggers.event.led">210 - event_led_flash</option>
-                  </select>
+                  <select id="pose-trigger-overrun"></select>
                 </label>
               </div>
               <p class="muted" data-i18n="pose.triggers.note">
@@ -715,9 +669,13 @@
                 Time overrun triggers when speed limits extend the move beyond the specified duration.
               </p>
               <div class="card-actions">
-                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-                <button class="btn btn-outline" type="button" data-i18n="common.duplicate">Duplicate</button>
-                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+                <button class="btn btn-secondary" type="button" data-i18n="common.save" id="pose-save">Save</button>
+                <button class="btn btn-outline" type="button" data-i18n="common.duplicate" id="pose-duplicate">
+                  Duplicate
+                </button>
+                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected" id="pose-delete">
+                  Delete selected
+                </button>
               </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
@@ -736,8 +694,8 @@
                   <label class="form-field">
                     <span data-i18n="pose.axis.value">Angle (deg)</span>
                     <div class="form-field-row">
-                      <input type="range" min="-90" max="90" value="20" id="pose-axis-range" />
-                      <input type="number" value="20" id="pose-axis-input" />
+                      <input type="range" min="0" max="360" value="20" id="pose-axis-range" />
+                      <input type="number" value="20" id="pose-axis-input" min="0" max="360" />
                     </div>
                   </label>
                 </div>
@@ -746,54 +704,23 @@
                 <h4 data-i18n="pose.control.title">Control</h4>
                 <label class="form-field">
                   <span data-i18n="pose.control.startPose">Start pose</span>
-                  <select>
-                    <option value="p_home">p_home</option>
-                    <option value="p_ready">p_ready</option>
-                    <option value="p_wave">p_wave</option>
-                  </select>
+                  <select id="pose-control-start"></select>
                 </label>
                 <div class="form-grid">
                   <label class="form-field">
                     <span data-i18n="pose.control.duration">Move duration (ms)</span>
-                    <input type="number" value="500" />
+                    <input type="number" value="500" id="pose-control-duration" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="pose.control.easing">Base easing</span>
-                    <select>
-                      <option value="e_linear">e_linear</option>
-                      <option value="e_smooth">e_smooth</option>
-                      <option value="e_scurve_strong">e_scurve_strong</option>
-                    </select>
+                    <select id="pose-control-easing"></select>
                   </label>
                 </div>
                 <h4 class="card-subtitle" data-i18n="pose.control.axisEasing">Axis easing overrides</h4>
-                <div class="mini-list">
-                  <div class="mini-row">
-                    <span class="mini-k">yaw</span>
-                    <select class="mini-select">
-                      <option value="base" data-i18n="pose.control.axisDefault">Use base easing</option>
-                      <option value="e_linear">e_linear</option>
-                      <option value="e_smooth">e_smooth</option>
-                    </select>
-                  </div>
-                  <div class="mini-row">
-                    <span class="mini-k">pitch</span>
-                    <select class="mini-select">
-                      <option value="base" data-i18n="pose.control.axisDefault">Use base easing</option>
-                      <option value="e_linear">e_linear</option>
-                      <option value="e_smooth">e_smooth</option>
-                    </select>
-                  </div>
-                  <div class="mini-row">
-                    <span class="mini-k">roll</span>
-                    <select class="mini-select">
-                      <option value="base" data-i18n="pose.control.axisDefault">Use base easing</option>
-                      <option value="e_linear">e_linear</option>
-                      <option value="e_smooth">e_smooth</option>
-                    </select>
-                  </div>
-                </div>
-                <button class="btn btn-secondary" type="button" data-i18n="pose.control.go">Move to target</button>
+                <div class="mini-list" id="pose-control-axis-easing"></div>
+                <button class="btn btn-secondary" type="button" data-i18n="pose.control.go" id="pose-control-go">
+                  Move to target
+                </button>
                 <p class="muted" data-i18n="pose.control.note">
                   Move to the base pose first, then preview using the move duration and easing settings.
                 </p>

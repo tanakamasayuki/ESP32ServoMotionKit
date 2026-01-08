@@ -280,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'event.form.id': 'Event ID',
       'event.form.id.duplicate': 'Event ID must be unique.',
       'event.form.number': 'Event number',
+      'event.form.number.duplicate': 'Event number must be unique.',
       'event.delete.confirm': 'Delete "{id}"?',
       'event.card.usage': 'Event Usage',
       'event.usage.poseList': 'Pose usage',
@@ -576,6 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'event.form.id': 'イベント ID',
       'event.form.id.duplicate': 'イベント ID が重複しています。',
       'event.form.number': 'イベント番号',
+      'event.form.number.duplicate': 'イベント番号が重複しています。',
       'event.delete.confirm': '「{id}」を削除しますか？',
       'event.card.usage': '呼び出し元',
       'event.usage.poseList': 'ポーズ一覧',
@@ -1781,6 +1783,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const eventIdInput = document.getElementById('event-id-input');
   const eventIdError = document.getElementById('event-id-error');
   const eventNumberInput = document.getElementById('event-number-input');
+  const eventNumberError = document.getElementById('event-number-error');
   const eventOrderInput = document.getElementById('event-order-input');
   const eventDescriptionInput = document.getElementById('event-description-input');
   const dataRichOutput = document.getElementById('data-rich-output');
@@ -5149,6 +5152,7 @@ document.addEventListener('DOMContentLoaded', () => {
     eventOrderInput.value = event.displayOrder ?? '';
     eventDescriptionInput.value = event.description ?? '';
     clearEventIdError();
+    clearEventNumberError();
   };
 
   const clearEventEditor = () => {
@@ -5180,8 +5184,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const clearEventNumberError = () => {
+    if (eventNumberError) {
+      eventNumberError.hidden = true;
+    }
+    if (eventNumberInput) {
+      eventNumberInput.classList.remove('is-error');
+    }
+  };
+
+  const showEventNumberError = () => {
+    if (eventNumberError) {
+      eventNumberError.hidden = false;
+    }
+    if (eventNumberInput) {
+      eventNumberInput.classList.add('is-error');
+    }
+  };
+
   const hasDuplicateId = (id, currentId) => {
     return eventState.events.some((item) => item.id === id && item.id !== currentId);
+  };
+
+  const hasDuplicateNumber = (number, currentId) => {
+    return eventState.events.some((item) => item.number === number && item.id !== currentId);
   };
 
   const selectEventById = (eventId) => {
@@ -5213,9 +5239,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
       return Math.max(max, value);
     }, 0);
+    const maxNumber = eventState.events.reduce((max, item) => {
+      const value = typeof item.number === 'number' ? item.number : max;
+      return Math.max(max, value);
+    }, 0);
     const event = {
       id,
-      number: 0,
+      number: maxNumber + 10,
       displayOrder: maxOrder + 10,
       description: ''
     };
@@ -5260,12 +5290,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     event.id = nextId;
     const nextNumber = clampUint16(eventNumberInput?.value);
+    if (nextNumber === null) {
+      return;
+    }
+    if (hasDuplicateNumber(nextNumber, event.id)) {
+      showEventNumberError();
+      return;
+    }
     event.number = nextNumber ?? event.number ?? 0;
     const orderRaw = eventOrderInput?.value ?? '';
     event.displayOrder = orderRaw === '' ? null : parseNumber(orderRaw, event.displayOrder ?? null);
     event.description = (eventDescriptionInput?.value || '').trim();
     selectedEventId = event.id;
     clearEventIdError();
+    clearEventNumberError();
     sortEvents();
     persistEventState();
     renderEventList();
@@ -5292,10 +5330,15 @@ document.addEventListener('DOMContentLoaded', () => {
       index += 1;
       id = `${source.id}_copy${index}`;
     }
+    const maxNumber = eventState.events.reduce((max, item) => {
+      const value = typeof item.number === 'number' ? item.number : max;
+      return Math.max(max, value);
+    }, 0);
     const copy = {
       ...source,
       id,
-      displayOrder: maxOrder + 10
+      displayOrder: maxOrder + 10,
+      number: maxNumber + 10
     };
     eventState.events.push(copy);
     selectedEventId = id;
@@ -5370,6 +5413,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (eventIdInput) {
       eventIdInput.addEventListener('input', () => {
         clearEventIdError();
+      });
+    }
+
+    if (eventNumberInput) {
+      eventNumberInput.addEventListener('input', () => {
+        clearEventNumberError();
       });
     }
 

@@ -261,7 +261,8 @@
               </div>
               <label class="form-field list-filter">
                 <span data-i18n="common.filter.label">Filter by ID</span>
-                <input type="text" data-i18n-placeholder="common.filter.placeholder" placeholder="Filter by ID" />
+                <input type="text" data-i18n-placeholder="common.filter.placeholder" placeholder="Filter by ID"
+                  id="event-filter-input" />
               </label>
               <ul class="list">
                 <li class="list-item is-active">
@@ -1120,21 +1121,17 @@
               <div class="list-header">
                 <h3 data-i18n="event.card.list">Event List</h3>
                 <div class="list-actions">
-                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-outline" type="button" data-i18n="common.add" id="event-add">Add</button>
                 </div>
               </div>
               <label class="form-field list-filter">
                 <span data-i18n="common.filter.label">Filter by ID</span>
                 <input type="text" data-i18n-placeholder="common.filter.placeholder" placeholder="Filter by ID" />
               </label>
-              <ul class="list">
+              <ul class="list" id="event-list">
                 <li class="list-item is-active">
                   <span>event_sound_a</span>
                   <span class="chip">100</span>
-                </li>
-                <li class="list-item">
-                  <span>event_led_flash</span>
-                  <span class="chip">210</span>
                 </li>
               </ul>
             </article>
@@ -1143,27 +1140,30 @@
               <div class="form-grid">
                 <label class="form-field">
                   <span data-i18n="event.form.id">Event ID</span>
-                  <input type="text" value="event_sound_a" />
+                  <input type="text" value="event_sound_a" id="event-id-input" />
+                  <span class="field-hint field-error" data-i18n="event.form.id.duplicate" id="event-id-error" hidden>
+                    Event ID must be unique.
+                  </span>
                 </label>
                 <label class="form-field">
                   <span data-i18n="common.form.displayOrder">Display order</span>
                   <input type="number" value="10" min="0" data-i18n-placeholder="common.form.displayOrder.placeholder"
-                    placeholder="10" />
+                    placeholder="10" id="event-order-input" />
                 </label>
                 <label class="form-field form-field--full">
                   <span data-i18n="common.form.description">Description</span>
                   <textarea rows="2" data-i18n-placeholder="common.form.description.placeholder"
-                    placeholder="Play sound A"></textarea>
+                    placeholder="Play sound A" id="event-description-input"></textarea>
                 </label>
                 <label class="form-field">
                   <span data-i18n="event.form.number">Event number</span>
-                  <input type="number" value="100" />
+                  <input type="number" value="100" id="event-number-input" min="0" max="65535" />
                 </label>
               </div>
               <div class="card-actions">
                 <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-                <button class="btn btn-outline" type="button" data-i18n="common.duplicate">Duplicate</button>
-                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+                <button class="btn btn-outline" type="button" data-i18n="common.duplicate" id="event-duplicate">Duplicate</button>
+                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected" id="event-delete">Delete selected</button>
               </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
@@ -1222,7 +1222,7 @@
             </div>
             <section class="data-panel is-active" id="data-rich" data-data-panel="rich" role="tabpanel"
               aria-label="Rich UI JSON">
-              <textarea class="data-output" rows="16" spellcheck="false" aria-label="Rich UI JSON">{
+              <textarea class="data-output" rows="16" spellcheck="false" aria-label="Rich UI JSON" id="data-rich-output">{
   "servos": [],
   "joints": [],
   "poses": [],
@@ -1231,13 +1231,13 @@
             </section>
             <section class="data-panel" id="data-simple" data-data-panel="simple" role="tabpanel"
               aria-label="Simple JSON">
-              <textarea class="data-output" rows="16" spellcheck="false" aria-label="Simple JSON">{
+              <textarea class="data-output" rows="16" spellcheck="false" aria-label="Simple JSON" id="data-simple-output">{
   "poses": [],
   "sequences": []
 }</textarea>
             </section>
             <section class="data-panel" id="data-cpp" data-data-panel="cpp" role="tabpanel" aria-label="C++ API">
-              <textarea class="data-output" rows="16" spellcheck="false" aria-label="C++ API">auto kit = ServoMotionKit();
+              <textarea class="data-output" rows="16" spellcheck="false" aria-label="C++ API" id="data-cpp-output">auto kit = ServoMotionKit();
 auto seq = kit.sequence("seq_demo");
 </textarea>
             </section>

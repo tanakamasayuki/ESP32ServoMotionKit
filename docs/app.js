@@ -268,7 +268,9 @@ document.addEventListener('DOMContentLoaded', () => {
       'event.list.add': 'Add event',
       'event.card.editor': 'Event Editor',
       'event.form.id': 'Event ID',
+      'event.form.id.duplicate': 'Event ID must be unique.',
       'event.form.number': 'Event number',
+      'event.delete.confirm': 'Delete "{id}"?',
       'event.card.usage': 'Event Usage',
       'event.usage.poseList': 'Pose usage',
       'event.usage.poseStart': 'Pose start',
@@ -551,7 +553,9 @@ document.addEventListener('DOMContentLoaded', () => {
       'event.list.add': 'イベント追加',
       'event.card.editor': 'イベント編集',
       'event.form.id': 'イベント ID',
+      'event.form.id.duplicate': 'イベント ID が重複しています。',
       'event.form.number': 'イベント番号',
+      'event.delete.confirm': '「{id}」を削除しますか？',
       'event.card.usage': '呼び出し元',
       'event.usage.poseList': 'ポーズ一覧',
       'event.usage.poseStart': 'ポーズ開始',
@@ -1041,6 +1045,10 @@ document.addEventListener('DOMContentLoaded', () => {
         panel.classList.toggle('is-active', isActive);
         panel.setAttribute('aria-hidden', String(!isActive));
       });
+
+      if (tab === 'data') {
+        updateRichJsonOutput();
+      }
 
       try {
         sessionStorage.setItem(storageKey, tab);
@@ -1593,6 +1601,10 @@ document.addEventListener('DOMContentLoaded', () => {
         panel.classList.toggle('is-active', isActive);
         panel.setAttribute('aria-hidden', String(!isActive));
       });
+
+      if (tab === 'rich') {
+        updateRichJsonOutput();
+      }
     };
 
     dataTabs.forEach((button) => {
@@ -1602,6 +1614,354 @@ document.addEventListener('DOMContentLoaded', () => {
     const initial = dataTabs.find((button) => button.classList.contains('is-active')) || dataTabs[0];
     if (initial) {
       setActive(initial.dataset.dataTab);
+    }
+  };
+
+  const eventStorageKey = 'motionkit.richUi';
+  const eventList = document.getElementById('event-list');
+  const eventAddButton = document.getElementById('event-add');
+  const eventDuplicateButton = document.getElementById('event-duplicate');
+  const eventDeleteButton = document.getElementById('event-delete');
+  const eventIdInput = document.getElementById('event-id-input');
+  const eventIdError = document.getElementById('event-id-error');
+  const eventNumberInput = document.getElementById('event-number-input');
+  const eventOrderInput = document.getElementById('event-order-input');
+  const eventDescriptionInput = document.getElementById('event-description-input');
+  const dataRichOutput = document.getElementById('data-rich-output');
+  const eventFilterInput = document.getElementById('event-filter-input');
+
+  const defaultState = {
+    meta: {
+      schema: 'motionkit',
+      version: '0.1.0'
+    },
+    events: [
+      { id: 'event_sound_a', number: 100, displayOrder: 10, description: 'Play sound A' },
+      { id: 'event_led_flash', number: 210, displayOrder: 20, description: 'Flash LED' }
+    ]
+  };
+
+  let eventState = { ...defaultState };
+  let selectedEventId = null;
+
+  const loadEventState = () => {
+    try {
+      const raw = localStorage.getItem(eventStorageKey);
+      if (!raw) {
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.meta && Array.isArray(parsed.events)) {
+        eventState = parsed;
+      }
+    } catch (error) {
+      // Ignore malformed storage.
+    }
+  };
+
+  const persistEventState = () => {
+    try {
+      localStorage.setItem(eventStorageKey, JSON.stringify(eventState));
+    } catch (error) {
+      // Ignore storage errors.
+    }
+  };
+
+  const buildRichJson = () => {
+    const events = eventState.events.map((event) => {
+      const item = {
+        id: event.id,
+        number: event.number
+      };
+      if (event.displayOrder !== null && event.displayOrder !== undefined && event.displayOrder !== '') {
+        item.displayOrder = event.displayOrder;
+      }
+      if (event.description) {
+        item.description = event.description;
+      }
+      return item;
+    });
+    return {
+      meta: eventState.meta,
+      events
+    };
+  };
+
+  const sortEvents = () => {
+    eventState.events.sort((a, b) => {
+      const orderA = a.displayOrder === null || a.displayOrder === undefined ? Number.POSITIVE_INFINITY : a.displayOrder;
+      const orderB = b.displayOrder === null || b.displayOrder === undefined ? Number.POSITIVE_INFINITY : b.displayOrder;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      return String(a.id).localeCompare(String(b.id));
+    });
+  };
+
+  const updateRichJsonOutput = () => {
+    if (!dataRichOutput) {
+      return;
+    }
+    const richJson = buildRichJson();
+    dataRichOutput.value = JSON.stringify(richJson, null, 2);
+  };
+
+  const renderEventList = () => {
+    if (!eventList) {
+      return;
+    }
+    eventList.innerHTML = '';
+    const filter = eventFilterInput?.value?.trim().toLowerCase() || '';
+    eventState.events.forEach((event) => {
+      if (filter && !event.id.toLowerCase().includes(filter)) {
+        return;
+      }
+      const item = document.createElement('li');
+      item.className = 'list-item';
+      item.dataset.eventId = event.id;
+      if (event.id === selectedEventId) {
+        item.classList.add('is-active');
+      }
+      const name = document.createElement('span');
+      name.textContent = event.id;
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = String(event.number ?? '');
+      item.appendChild(name);
+      item.appendChild(chip);
+      eventList.appendChild(item);
+    });
+  };
+
+  const populateEventEditor = (event) => {
+    if (!event || !eventIdInput || !eventNumberInput || !eventOrderInput || !eventDescriptionInput) {
+      return;
+    }
+    eventIdInput.value = event.id ?? '';
+    eventNumberInput.value = event.number ?? '';
+    eventOrderInput.value = event.displayOrder ?? '';
+    eventDescriptionInput.value = event.description ?? '';
+    clearEventIdError();
+  };
+
+  const clearEventEditor = () => {
+    if (!eventIdInput || !eventNumberInput || !eventOrderInput || !eventDescriptionInput) {
+      return;
+    }
+    eventIdInput.value = '';
+    eventNumberInput.value = '';
+    eventOrderInput.value = '';
+    eventDescriptionInput.value = '';
+    clearEventIdError();
+  };
+
+  const clearEventIdError = () => {
+    if (eventIdError) {
+      eventIdError.hidden = true;
+    }
+    if (eventIdInput) {
+      eventIdInput.classList.remove('is-error');
+    }
+  };
+
+  const showEventIdError = () => {
+    if (eventIdError) {
+      eventIdError.hidden = false;
+    }
+    if (eventIdInput) {
+      eventIdInput.classList.add('is-error');
+    }
+  };
+
+  const hasDuplicateId = (id, currentId) => {
+    return eventState.events.some((item) => item.id === id && item.id !== currentId);
+  };
+
+  const selectEventById = (eventId) => {
+    const event = eventState.events.find((item) => item.id === eventId) || eventState.events[0];
+    if (!event) {
+      return;
+    }
+    selectedEventId = event.id;
+    renderEventList();
+    populateEventEditor(event);
+  };
+
+  const ensureSelection = () => {
+    if (!selectedEventId && eventState.events.length > 0) {
+      selectedEventId = eventState.events[0].id;
+    }
+  };
+
+  const addEvent = () => {
+    const base = 'event_new';
+    let index = eventState.events.length + 1;
+    let id = `${base}_${index}`;
+    while (eventState.events.some((event) => event.id === id)) {
+      index += 1;
+      id = `${base}_${index}`;
+    }
+    const event = {
+      id,
+      number: 0,
+      displayOrder: eventState.events.length * 10,
+      description: ''
+    };
+    eventState.events.push(event);
+    selectedEventId = event.id;
+    persistEventState();
+    renderEventList();
+    populateEventEditor(event);
+    updateRichJsonOutput();
+  };
+
+  const clampUint16 = (value) => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+      return null;
+    }
+    return Math.max(0, Math.min(65535, Math.round(numeric)));
+  };
+
+  const parseNumber = (value, fallback) => {
+    if (value === '' || value === null || value === undefined) {
+      return fallback;
+    }
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : fallback;
+  };
+
+  const saveEvent = () => {
+    if (!selectedEventId) {
+      return;
+    }
+    const event = eventState.events.find((item) => item.id === selectedEventId);
+    if (!event) {
+      return;
+    }
+    const nextId = (eventIdInput?.value || '').trim() || event.id;
+    if (hasDuplicateId(nextId, event.id)) {
+      showEventIdError();
+      return;
+    }
+    event.id = nextId;
+    const nextNumber = clampUint16(eventNumberInput?.value);
+    event.number = nextNumber ?? event.number ?? 0;
+    const orderRaw = eventOrderInput?.value ?? '';
+    event.displayOrder = orderRaw === '' ? null : parseNumber(orderRaw, event.displayOrder ?? null);
+    event.description = (eventDescriptionInput?.value || '').trim();
+    selectedEventId = event.id;
+    clearEventIdError();
+    sortEvents();
+    persistEventState();
+    renderEventList();
+    updateRichJsonOutput();
+  };
+
+  const duplicateEvent = () => {
+    if (!selectedEventId) {
+      return;
+    }
+    const source = eventState.events.find((item) => item.id === selectedEventId);
+    if (!source) {
+      return;
+    }
+    let index = 1;
+    let id = `${source.id}_copy`;
+    while (eventState.events.some((item) => item.id === id)) {
+      index += 1;
+      id = `${source.id}_copy${index}`;
+    }
+    const copy = {
+      ...source,
+      id
+    };
+    eventState.events.push(copy);
+    selectedEventId = id;
+    persistEventState();
+    renderEventList();
+    populateEventEditor(copy);
+    updateRichJsonOutput();
+  };
+
+  const deleteEvent = () => {
+    if (!selectedEventId) {
+      return;
+    }
+    const target = eventState.events.find((item) => item.id === selectedEventId);
+    const label = target?.id || selectedEventId;
+    const confirmText = getTranslation('event.delete.confirm').replace('{id}', label);
+    if (!window.confirm(confirmText)) {
+      return;
+    }
+    const index = eventState.events.findIndex((item) => item.id === selectedEventId);
+    if (index === -1) {
+      return;
+    }
+    eventState.events.splice(index, 1);
+    selectedEventId = eventState.events[index]?.id || eventState.events[index - 1]?.id || null;
+    persistEventState();
+    renderEventList();
+    if (selectedEventId) {
+      selectEventById(selectedEventId);
+    } else {
+      clearEventEditor();
+      updateRichJsonOutput();
+    }
+  };
+
+  const initEventEditor = () => {
+    if (!eventList || !eventAddButton) {
+      return;
+    }
+    loadEventState();
+    ensureSelection();
+    sortEvents();
+    renderEventList();
+    selectEventById(selectedEventId);
+    updateRichJsonOutput();
+
+    eventList.addEventListener('click', (event) => {
+      const item = event.target.closest('.list-item');
+      if (!item || !eventList.contains(item)) {
+        return;
+      }
+      selectEventById(item.dataset.eventId);
+    });
+
+    eventAddButton.addEventListener('click', () => {
+      addEvent();
+    });
+
+    const saveButton = document.querySelector('#panel-event .card-actions .btn.btn-secondary');
+    if (saveButton) {
+      saveButton.addEventListener('click', () => {
+        saveEvent();
+      });
+    }
+
+    if (eventIdInput) {
+      eventIdInput.addEventListener('input', () => {
+        clearEventIdError();
+      });
+    }
+
+    if (eventFilterInput) {
+      eventFilterInput.addEventListener('input', () => {
+        renderEventList();
+      });
+    }
+
+    if (eventDuplicateButton) {
+      eventDuplicateButton.addEventListener('click', () => {
+        duplicateEvent();
+      });
+    }
+
+    if (eventDeleteButton) {
+      eventDeleteButton.addEventListener('click', () => {
+        deleteEvent();
+      });
     }
   };
 
@@ -1675,6 +2035,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initJointGroupSelection();
   initPoseAxisSelection();
   initEasingTypeToggle();
+  initEventEditor();
   renderEasingGraphs();
   initServoTypeToggle();
   initServoPreviewAngle();

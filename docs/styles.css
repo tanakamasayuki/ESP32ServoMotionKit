@@ -503,6 +503,11 @@ a {
   overflow: auto;
 }
 
+#panel-event .panel-pane--list .list {
+  max-height: none;
+  overflow: visible;
+}
+
 .list-header {
   display: flex;
   align-items: center;
@@ -1302,6 +1307,14 @@ body.modal-open {
 .field-hint {
   font-size: 0.82rem;
   color: var(--ink-muted);
+}
+
+.field-error {
+  color: #b0453c;
+}
+
+.form-field input.is-error {
+  border-color: #b0453c;
 }
 
 .checkbox-field {

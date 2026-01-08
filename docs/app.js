@@ -242,6 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'sequence.form.id.duplicate': 'Sequence ID must be unique.',
       'sequence.list.count': '{count} steps',
       'sequence.delete.confirm': 'Delete "{id}"?',
+      'sequence.delete.inUse': 'This sequence is used by other sequences.',
       'easing.title': 'Easing Settings',
       'easing.desc': 'Manage easing presets and custom curves.',
       'easing.card.list': 'Easing List',
@@ -544,6 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'sequence.form.id.duplicate': 'シーケンス ID が重複しています。',
       'sequence.list.count': '{count} ステップ',
       'sequence.delete.confirm': '「{id}」を削除しますか？',
+      'sequence.delete.inUse': 'このシーケンスは他のシーケンスで使用中です。',
       'easing.title': 'イージング設定',
       'easing.desc': 'イージングのプリセットやカスタムカーブを管理します。',
       'easing.card.list': 'イージング一覧',
@@ -819,6 +821,19 @@ document.addEventListener('DOMContentLoaded', () => {
       row.appendChild(key);
       sequenceUsageList.appendChild(row);
     });
+  };
+
+  const getSequenceUsageCount = (sequenceId) => {
+    let count = 0;
+    eventState.sequences.forEach((sequence) => {
+      if (sequence.id === sequenceId) {
+        return;
+      }
+      if ((sequence.steps || []).some((step) => step.type === 'sequence' && step.targetId === sequenceId)) {
+        count += 1;
+      }
+    });
+    return count;
   };
 
   const getEventUsageCount = (eventId) => {
@@ -4928,6 +4943,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const deleteSequence = () => {
     if (!selectedSequenceId) {
+      return;
+    }
+    if (getSequenceUsageCount(selectedSequenceId) > 0) {
+      window.alert(getTranslation('sequence.delete.inUse'));
       return;
     }
     const label = selectedSequenceId;

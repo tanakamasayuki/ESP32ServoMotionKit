@@ -247,6 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'easing.list.custom': 'Custom',
       'easing.list.add': 'Add easing',
       'easing.delete.confirm': 'Delete "{id}"?',
+      'easing.delete.inUse': 'This easing is used by poses or sequences.',
       'easing.card.editor': 'Curve Editor',
       'easing.form.id': 'Easing ID',
       'easing.form.preset': 'Preset',
@@ -545,6 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'easing.list.custom': 'カスタム',
       'easing.list.add': 'イージング追加',
       'easing.delete.confirm': '「{id}」を削除しますか？',
+      'easing.delete.inUse': 'このイージングはポーズまたはシーケンスで使用中です。',
       'easing.card.editor': 'カーブ編集',
       'easing.form.id': 'イージング ID',
       'easing.form.preset': 'プリセット',
@@ -758,6 +760,28 @@ document.addEventListener('DOMContentLoaded', () => {
       if (triggers.end === eventId) {
         count += 1;
       }
+    });
+    return count;
+  };
+
+  const getEasingUsageCount = (easingId) => {
+    let count = 0;
+    eventState.sequences.forEach((sequence) => {
+      (sequence.steps || []).forEach((step) => {
+        if (step.type !== 'pose') {
+          return;
+        }
+        if (step.easingId === easingId) {
+          count += 1;
+        }
+        if (step.axisEasing) {
+          Object.values(step.axisEasing).forEach((value) => {
+            if (value === easingId) {
+              count += 1;
+            }
+          });
+        }
+      });
     });
     return count;
   };
@@ -5653,6 +5677,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const deleteEasing = () => {
     if (!selectedEasingId) {
+      return;
+    }
+    if (getEasingUsageCount(selectedEasingId) > 0) {
+      window.alert(getTranslation('easing.delete.inUse'));
       return;
     }
     const label = selectedEasingId;

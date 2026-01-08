@@ -4366,7 +4366,14 @@ document.addEventListener('DOMContentLoaded', () => {
         sequenceTargetId.appendChild(option);
       });
     } else {
+      const currentId = selectedSequenceId;
       eventState.sequences.forEach((sequence) => {
+        if (sequence.id === currentId) {
+          return;
+        }
+        if (sequence.steps?.some((step) => step.type === 'sequence')) {
+          return;
+        }
         const option = document.createElement('option');
         option.value = sequence.id;
         option.textContent = sequence.id;

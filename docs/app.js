@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.form.displayOrder.placeholder': '10',
       'common.form.description': 'Description',
       'common.form.description.placeholder': 'Notes for this item',
+      'project.import.invalid': 'Invalid JSON file.',
       'servo.title': 'Servo Settings',
       'servo.desc': 'Define range, neutral, and safety limits per servo.',
       'servo.card.list': 'Servo List',
@@ -382,6 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.form.displayOrder.placeholder': '10',
       'common.form.description': '説明',
       'common.form.description.placeholder': 'この項目の説明',
+      'project.import.invalid': 'JSONファイルを読み込めませんでした。',
       'servo.title': 'サーボ設定',
       'servo.desc': 'サーボごとの範囲、ニュートラル、安全リミットを設定します。',
       'servo.card.list': 'サーボ一覧',
@@ -1656,6 +1658,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const easingDescriptionInput = document.getElementById('easing-description-input');
   const easingTypeSelect = document.getElementById('easing-type-select');
   const easingFilterInput = document.getElementById('easing-filter-input');
+  const projectImportButton = document.getElementById('project-import-button');
+  const projectSaveButton = document.getElementById('project-save-button');
+  const projectImportInput = document.getElementById('project-import-input');
 
   const defaultState = {
     meta: {
@@ -1759,6 +1764,39 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   };
 
+  const normalizeEasingParams = (type, params) => {
+    if (Array.isArray(params)) {
+      return params;
+    }
+    if (!params || typeof params !== 'object') {
+      return [];
+    }
+    const keys = easingParamOrder[type] || [];
+    return keys.map((_, index) => {
+      const value = params[`param${index}`];
+      return Math.max(0, Math.min(255, Number(value) || 0));
+    });
+  };
+
+  const normalizeEasings = (easings) => {
+    if (!Array.isArray(easings)) {
+      return [];
+    }
+    return easings.map((item) => {
+      const rawKind = item?.kind || item?.type || 'custom';
+      const kind = rawKind === 'preset' || rawKind === 'custom' ? rawKind : 'custom';
+      const type = item?.preset || item?.type || 'warpcurve';
+      return {
+        id: item?.id || 'easing_new',
+        type,
+        kind,
+        displayOrder: item?.displayOrder ?? null,
+        description: item?.description || '',
+        params: normalizeEasingParams(type, item?.params)
+      };
+    });
+  };
+
   const sortEvents = () => {
     eventState.events.sort((a, b) => {
       const orderA = a.displayOrder === null || a.displayOrder === undefined ? Number.POSITIVE_INFINITY : a.displayOrder;
@@ -1815,6 +1853,89 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const richJson = buildRichJson();
     dataRichOutput.value = JSON.stringify(richJson, null, 2);
+  };
+
+  const clearEasingEditor = () => {
+    if (!easingIdInput || !easingOrderInput || !easingDescriptionInput || !easingTypeSelect) {
+      return;
+    }
+    easingIdInput.value = '';
+    easingOrderInput.value = '';
+    easingDescriptionInput.value = '';
+    easingTypeSelect.value = 'warpcurve';
+    easingTypeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    applyEasingParams(easingTypeSelect.value, []);
+    renderEasingGraphs();
+    setEasingEditorLocked(false);
+  };
+
+  const applyImportedState = (payload) => {
+    const next = payload && typeof payload === 'object' ? payload : null;
+    if (!next) {
+      throw new Error('Invalid payload');
+    }
+    eventState = {
+      meta: next.meta || defaultState.meta,
+      events: Array.isArray(next.events) ? next.events : [],
+      easings: normalizeEasings(next.easings)
+    };
+    sortEvents();
+    sortEasings();
+    persistEventState();
+    selectedEventId = eventState.events[0]?.id || null;
+    selectedEasingId = eventState.easings[0]?.id || null;
+    renderEventList();
+    renderEasingList();
+    if (selectedEventId) {
+      selectEventById(selectedEventId);
+    } else {
+      clearEventEditor();
+    }
+    if (selectedEasingId) {
+      selectEasingById(selectedEasingId);
+    } else {
+      clearEasingEditor();
+    }
+    updateRichJsonOutput();
+  };
+
+  const initProjectImportExport = () => {
+    if (projectSaveButton) {
+      projectSaveButton.addEventListener('click', () => {
+        const richJson = buildRichJson();
+        const blob = new Blob([JSON.stringify(richJson, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'motionkit-richui.json';
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    if (projectImportButton && projectImportInput) {
+      projectImportButton.addEventListener('click', () => {
+        projectImportInput.click();
+      });
+
+      projectImportInput.addEventListener('change', async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) {
+          return;
+        }
+        try {
+          const text = await file.text();
+          const parsed = JSON.parse(text);
+          applyImportedState(parsed);
+        } catch (error) {
+          window.alert(getTranslation('project.import.invalid'));
+        } finally {
+          projectImportInput.value = '';
+        }
+      });
+    }
   };
 
   const renderEventList = () => {
@@ -2396,6 +2517,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initEasingTypeToggle();
   initEventEditor();
   initEasingEditor();
+  initProjectImportExport();
   renderEasingGraphs();
   initServoTypeToggle();
   initServoPreviewAngle();

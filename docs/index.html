@@ -705,9 +705,20 @@
                     <option value="210" data-i18n="pose.triggers.event.led">210 - event_led_flash</option>
                   </select>
                 </label>
+                <label class="trigger-row">
+                  <span data-i18n="pose.triggers.overrun">Time overrun</span>
+                  <select>
+                    <option value="none" data-i18n="pose.triggers.event.none">No event</option>
+                    <option value="100" data-i18n="pose.triggers.event.sound">100 - event_sound_a</option>
+                    <option value="210" data-i18n="pose.triggers.event.led">210 - event_led_flash</option>
+                  </select>
+                </label>
               </div>
               <p class="muted" data-i18n="pose.triggers.note">
                 Pose reached triggers when the sequence movement completes. Pose end triggers after the sequence hold time.
+              </p>
+              <p class="muted" data-i18n="pose.triggers.overrun.note">
+                Time overrun triggers when speed limits extend the move beyond the specified duration.
               </p>
               <div class="card-actions">
                 <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>

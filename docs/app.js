@@ -1981,6 +1981,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!source) {
       return;
     }
+    const maxOrder = eventState.events.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
     let index = 1;
     let id = `${source.id}_copy`;
     while (eventState.events.some((item) => item.id === id)) {
@@ -1989,10 +1993,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const copy = {
       ...source,
-      id
+      id,
+      displayOrder: maxOrder + 10
     };
     eventState.events.push(copy);
     selectedEventId = id;
+    sortEvents();
     persistEventState();
     renderEventList();
     populateEventEditor(copy);
@@ -2198,6 +2204,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!source) {
       return;
     }
+    const maxOrder = eventState.easings.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
     let index = 1;
     let id = `${source.id}_copy`;
     while (eventState.easings.some((item) => item.id === id)) {
@@ -2206,7 +2216,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const copy = {
       ...source,
-      id
+      id,
+      displayOrder: maxOrder + 10
     };
     eventState.easings.push(copy);
     selectedEasingId = id;

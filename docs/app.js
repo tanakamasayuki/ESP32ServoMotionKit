@@ -100,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.form.id.duplicate': 'Servo ID must be unique.',
       'joint.form.id.duplicate': 'Joint ID must be unique.',
       'joint.list.count': '{count} servos',
+      'jointGroup.form.id.duplicate': 'Group ID must be unique.',
+      'jointGroup.list.count': '{count} joints',
       'servo.title': 'Servo Settings',
       'servo.desc': 'Define range, neutral, and safety limits per servo.',
       'servo.card.list': 'Servo List',
@@ -390,6 +392,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.form.id.duplicate': 'サーボ ID が重複しています。',
       'joint.form.id.duplicate': 'ジョイント ID が重複しています。',
       'joint.list.count': '{count} サーボ',
+      'jointGroup.form.id.duplicate': 'グループ ID が重複しています。',
+      'jointGroup.list.count': '{count} ジョイント',
       'servo.title': 'サーボ設定',
       'servo.desc': 'サーボごとの範囲、ニュートラル、安全リミットを設定します。',
       'servo.card.list': 'サーボ一覧',
@@ -1698,6 +1702,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const jointServoMinInput = document.getElementById('joint-servo-min-input');
   const jointServoMaxInput = document.getElementById('joint-servo-max-input');
   const jointServoSaveButton = document.getElementById('joint-servo-save');
+  const jointGroupList = document.getElementById('joint-group-list');
+  const jointGroupAddButton = document.getElementById('joint-group-add');
+  const jointGroupSaveButton = document.getElementById('joint-group-save');
+  const jointGroupDuplicateButton = document.getElementById('joint-group-duplicate');
+  const jointGroupDeleteButton = document.getElementById('joint-group-delete');
+  const jointGroupIdInput = document.getElementById('joint-group-id-input');
+  const jointGroupIdError = document.getElementById('joint-group-id-error');
+  const jointGroupOrderInput = document.getElementById('joint-group-order-input');
+  const jointGroupDescriptionInput = document.getElementById('joint-group-description-input');
+  const jointGroupFilterInput = document.getElementById('joint-group-filter-input');
+  const jointGroupJointList = document.getElementById('joint-group-joint-list');
+  const jointGroupSelectedId = document.getElementById('joint-group-selected');
+  const jointGroupSelectedType = document.getElementById('joint-group-type');
+  const jointGroupSelectedServos = document.getElementById('joint-group-servos');
   const easingList = document.getElementById('easing-list');
   const easingAddButton = document.getElementById('easing-add');
   const easingIdInput = document.getElementById('easing-id-input');
@@ -1818,6 +1836,20 @@ document.addEventListener('DOMContentLoaded', () => {
         servos: [{ servoId: 'servo_tail', reverse: false, offset: 0, min: -20, max: 20 }]
       }
     ],
+    jointGroups: [
+      {
+        id: 'jg_arms',
+        displayOrder: 10,
+        description: 'Arm joints',
+        jointIds: ['yaw', 'pitch', 'roll']
+      },
+      {
+        id: 'jg_head',
+        displayOrder: 20,
+        description: 'Head joints',
+        jointIds: ['yaw', 'pitch']
+      }
+    ],
     easings: [
       { id: 'e_linear', type: 'linear', kind: 'preset', displayOrder: 10, description: '', params: [] },
       {
@@ -1844,6 +1876,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedServoId = null;
   let selectedJointId = null;
   let selectedJointServoId = null;
+  let selectedJointGroupId = null;
+  let selectedJointGroupJointId = null;
   let hasLoadedState = false;
 
   const loadEventState = () => {
@@ -1863,7 +1897,8 @@ document.addEventListener('DOMContentLoaded', () => {
           events: Array.isArray(parsed.events) ? parsed.events : defaultState.events,
           easings: Array.isArray(parsed.easings) ? parsed.easings : defaultState.easings,
           servos: Array.isArray(parsed.servos) ? parsed.servos : defaultState.servos,
-          joints: Array.isArray(parsed.joints) ? parsed.joints : defaultState.joints
+          joints: Array.isArray(parsed.joints) ? parsed.joints : defaultState.joints,
+          jointGroups: Array.isArray(parsed.jointGroups) ? parsed.jointGroups : defaultState.jointGroups
         };
       }
       hasLoadedState = true;
@@ -1943,6 +1978,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return item;
     });
+    const jointGroups = eventState.jointGroups.map((group) => {
+      const item = {
+        id: group.id,
+        jointIds: group.jointIds || []
+      };
+      if (group.displayOrder !== null && group.displayOrder !== undefined && group.displayOrder !== '') {
+        item.displayOrder = group.displayOrder;
+      }
+      if (group.description) {
+        item.description = group.description;
+      }
+      return item;
+    });
     const events = eventState.events.map((event) => {
       const item = {
         id: event.id,
@@ -1981,6 +2029,7 @@ document.addEventListener('DOMContentLoaded', () => {
       meta: eventState.meta,
       servos,
       joints,
+      jointGroups,
       events,
       easings
     };
@@ -2069,6 +2118,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const normalizeJointGroups = (groups) => {
+    if (!Array.isArray(groups)) {
+      return [];
+    }
+    return groups.map((item) => ({
+      id: item?.id || 'group_new',
+      displayOrder: item?.displayOrder ?? null,
+      description: item?.description || '',
+      jointIds: Array.isArray(item?.jointIds) ? item.jointIds : []
+    }));
+  };
+
   const normalizeEasings = (easings) => {
     if (!Array.isArray(easings)) {
       return [];
@@ -2112,6 +2173,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const sortJoints = () => {
     eventState.joints.sort((a, b) => {
+      const orderA = a.displayOrder === null || a.displayOrder === undefined ? Number.POSITIVE_INFINITY : a.displayOrder;
+      const orderB = b.displayOrder === null || b.displayOrder === undefined ? Number.POSITIVE_INFINITY : b.displayOrder;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      return String(a.id).localeCompare(String(b.id));
+    });
+  };
+
+  const sortJointGroups = () => {
+    eventState.jointGroups.sort((a, b) => {
       const orderA = a.displayOrder === null || a.displayOrder === undefined ? Number.POSITIVE_INFINITY : a.displayOrder;
       const orderB = b.displayOrder === null || b.displayOrder === undefined ? Number.POSITIVE_INFINITY : b.displayOrder;
       if (orderA !== orderB) {
@@ -2956,6 +3028,349 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const clearJointGroupIdError = () => {
+    if (jointGroupIdError) {
+      jointGroupIdError.hidden = true;
+    }
+    if (jointGroupIdInput) {
+      jointGroupIdInput.classList.remove('is-error');
+    }
+  };
+
+  const showJointGroupIdError = () => {
+    if (jointGroupIdError) {
+      jointGroupIdError.hidden = false;
+    }
+    if (jointGroupIdInput) {
+      jointGroupIdInput.classList.add('is-error');
+    }
+  };
+
+  const hasDuplicateJointGroupId = (id, currentId) => {
+    return eventState.jointGroups.some((item) => item.id === id && item.id !== currentId);
+  };
+
+  const renderJointGroupList = () => {
+    if (!jointGroupList) {
+      return;
+    }
+    jointGroupList.innerHTML = '';
+    const filter = jointGroupFilterInput?.value?.trim().toLowerCase() || '';
+    eventState.jointGroups.forEach((group) => {
+      if (filter && !group.id.toLowerCase().includes(filter)) {
+        return;
+      }
+      const item = document.createElement('li');
+      item.className = 'list-item';
+      item.dataset.groupId = group.id;
+      if (group.id === selectedJointGroupId) {
+        item.classList.add('is-active');
+      }
+      const name = document.createElement('span');
+      name.textContent = group.id;
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = getTranslation('jointGroup.list.count').replace('{count}', String(group.jointIds?.length ?? 0));
+      item.appendChild(name);
+      item.appendChild(chip);
+      jointGroupList.appendChild(item);
+    });
+  };
+
+  const renderJointGroupJointList = (group) => {
+    if (!jointGroupJointList) {
+      return;
+    }
+    jointGroupJointList.innerHTML = '';
+    const selectedIds = new Set(group?.jointIds || []);
+    eventState.joints.forEach((joint) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      row.dataset.jointRow = '';
+      row.dataset.jointId = joint.id;
+      if (joint.id === selectedJointGroupJointId) {
+        row.classList.add('is-active');
+      }
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.jointId = joint.id;
+      checkbox.checked = selectedIds.has(joint.id);
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'mini-select';
+      button.dataset.jointSelect = joint.id;
+      button.textContent = joint.id;
+
+      const meta = document.createElement('span');
+      meta.className = 'mini-v';
+      meta.textContent = getTranslation('joint.list.count').replace('{count}', String(joint.servos?.length ?? 0));
+
+      row.appendChild(checkbox);
+      row.appendChild(button);
+      row.appendChild(meta);
+      jointGroupJointList.appendChild(row);
+    });
+  };
+
+  const setActiveJointGroupJoint = (jointId) => {
+    selectedJointGroupJointId = jointId;
+    if (jointGroupJointList) {
+      jointGroupJointList.querySelectorAll('.mini-row').forEach((row) => {
+        row.classList.toggle('is-active', row.dataset.jointId === jointId);
+      });
+    }
+    const joint = eventState.joints.find((item) => item.id === jointId);
+    if (jointGroupSelectedId) {
+      jointGroupSelectedId.textContent = joint?.id || '—';
+    }
+    if (jointGroupSelectedType) {
+      jointGroupSelectedType.textContent = '—';
+    }
+    if (jointGroupSelectedServos) {
+      jointGroupSelectedServos.textContent = joint?.servos?.length ?? '—';
+    }
+  };
+
+  const populateJointGroupEditor = (group) => {
+    if (!group || !jointGroupIdInput || !jointGroupOrderInput || !jointGroupDescriptionInput) {
+      return;
+    }
+    jointGroupIdInput.value = group.id ?? '';
+    jointGroupOrderInput.value = group.displayOrder ?? '';
+    jointGroupDescriptionInput.value = group.description ?? '';
+    renderJointGroupJointList(group);
+    const initialJointId = group.jointIds?.[0] || eventState.joints[0]?.id || null;
+    setActiveJointGroupJoint(initialJointId);
+    clearJointGroupIdError();
+  };
+
+  const selectJointGroupById = (groupId) => {
+    const group = eventState.jointGroups.find((item) => item.id === groupId) || eventState.jointGroups[0];
+    if (!group) {
+      return;
+    }
+    selectedJointGroupId = group.id;
+    renderJointGroupList();
+    populateJointGroupEditor(group);
+  };
+
+  const ensureJointGroupSelection = () => {
+    if (!selectedJointGroupId && eventState.jointGroups.length > 0) {
+      selectedJointGroupId = eventState.jointGroups[0].id;
+    }
+  };
+
+  const addJointGroup = () => {
+    const base = 'group_new';
+    let index = eventState.jointGroups.length + 1;
+    let id = `${base}_${index}`;
+    while (eventState.jointGroups.some((group) => group.id === id)) {
+      index += 1;
+      id = `${base}_${index}`;
+    }
+    const maxOrder = eventState.jointGroups.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
+    const jointId = eventState.joints[0]?.id;
+    const group = {
+      id,
+      displayOrder: maxOrder + 10,
+      description: '',
+      jointIds: jointId ? [jointId] : []
+    };
+    eventState.jointGroups.push(group);
+    selectedJointGroupId = group.id;
+    sortJointGroups();
+    persistEventState();
+    renderJointGroupList();
+    populateJointGroupEditor(group);
+    updateRichJsonOutput();
+  };
+
+  const clearJointGroupEditor = () => {
+    if (!jointGroupIdInput || !jointGroupOrderInput || !jointGroupDescriptionInput) {
+      return;
+    }
+    jointGroupIdInput.value = '';
+    jointGroupOrderInput.value = '';
+    jointGroupDescriptionInput.value = '';
+    if (jointGroupJointList) {
+      jointGroupJointList.innerHTML = '';
+    }
+    setActiveJointGroupJoint(null);
+    clearJointGroupIdError();
+  };
+
+  const saveJointGroup = () => {
+    if (!selectedJointGroupId) {
+      return;
+    }
+    const group = eventState.jointGroups.find((item) => item.id === selectedJointGroupId);
+    if (!group) {
+      return;
+    }
+    const nextId = (jointGroupIdInput?.value || '').trim() || group.id;
+    if (hasDuplicateJointGroupId(nextId, group.id)) {
+      showJointGroupIdError();
+      return;
+    }
+    group.id = nextId;
+    const orderRaw = jointGroupOrderInput?.value ?? '';
+    group.displayOrder = orderRaw === '' ? null : parseNumber(orderRaw, group.displayOrder ?? null);
+    group.description = (jointGroupDescriptionInput?.value || '').trim();
+    const selectedJointIds = [];
+    if (jointGroupJointList) {
+      jointGroupJointList.querySelectorAll('input[type="checkbox"][data-joint-id]').forEach((input) => {
+        if (input.checked) {
+          selectedJointIds.push(input.dataset.jointId);
+        }
+      });
+    }
+    group.jointIds = selectedJointIds;
+    selectedJointGroupId = group.id;
+    clearJointGroupIdError();
+    sortJointGroups();
+    persistEventState();
+    renderJointGroupList();
+    populateJointGroupEditor(group);
+    updateRichJsonOutput();
+  };
+
+  const duplicateJointGroup = () => {
+    if (!selectedJointGroupId) {
+      return;
+    }
+    const source = eventState.jointGroups.find((item) => item.id === selectedJointGroupId);
+    if (!source) {
+      return;
+    }
+    const maxOrder = eventState.jointGroups.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
+    let index = 1;
+    let id = `${source.id}_copy`;
+    while (eventState.jointGroups.some((item) => item.id === id)) {
+      index += 1;
+      id = `${source.id}_copy${index}`;
+    }
+    const copy = {
+      ...source,
+      id,
+      displayOrder: maxOrder + 10,
+      jointIds: [...(source.jointIds || [])]
+    };
+    eventState.jointGroups.push(copy);
+    selectedJointGroupId = id;
+    sortJointGroups();
+    persistEventState();
+    renderJointGroupList();
+    populateJointGroupEditor(copy);
+    updateRichJsonOutput();
+  };
+
+  const deleteJointGroup = () => {
+    if (!selectedJointGroupId) {
+      return;
+    }
+    const index = eventState.jointGroups.findIndex((item) => item.id === selectedJointGroupId);
+    if (index === -1) {
+      return;
+    }
+    eventState.jointGroups.splice(index, 1);
+    selectedJointGroupId = eventState.jointGroups[index]?.id || eventState.jointGroups[index - 1]?.id || null;
+    persistEventState();
+    renderJointGroupList();
+    if (selectedJointGroupId) {
+      selectJointGroupById(selectedJointGroupId);
+    } else {
+      clearJointGroupEditor();
+      updateRichJsonOutput();
+    }
+  };
+
+  const initJointGroupEditor = () => {
+    if (!jointGroupList || !jointGroupAddButton) {
+      return;
+    }
+    loadEventState();
+    eventState.jointGroups = normalizeJointGroups(eventState.jointGroups);
+    ensureJointGroupSelection();
+    sortJointGroups();
+    renderJointGroupList();
+    if (selectedJointGroupId) {
+      selectJointGroupById(selectedJointGroupId);
+    } else {
+      clearJointGroupEditor();
+    }
+    updateRichJsonOutput();
+
+    jointGroupList.addEventListener('click', (event) => {
+      const item = event.target.closest('.list-item');
+      if (!item || !jointGroupList.contains(item)) {
+        return;
+      }
+      selectJointGroupById(item.dataset.groupId);
+    });
+
+    jointGroupAddButton.addEventListener('click', () => {
+      addJointGroup();
+    });
+
+    if (jointGroupSaveButton) {
+      jointGroupSaveButton.addEventListener('click', () => {
+        saveJointGroup();
+      });
+    }
+
+    if (jointGroupDuplicateButton) {
+      jointGroupDuplicateButton.addEventListener('click', () => {
+        duplicateJointGroup();
+      });
+    }
+
+    if (jointGroupDeleteButton) {
+      jointGroupDeleteButton.addEventListener('click', () => {
+        deleteJointGroup();
+      });
+    }
+
+    if (jointGroupIdInput) {
+      jointGroupIdInput.addEventListener('input', () => {
+        clearJointGroupIdError();
+      });
+    }
+
+    if (jointGroupFilterInput) {
+      jointGroupFilterInput.addEventListener('input', () => {
+        renderJointGroupList();
+      });
+    }
+
+    if (jointGroupJointList) {
+      jointGroupJointList.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-joint-select]');
+        if (!button || !jointGroupJointList.contains(button)) {
+          return;
+        }
+        setActiveJointGroupJoint(button.dataset.jointSelect);
+      });
+      jointGroupJointList.addEventListener('change', (event) => {
+        const checkbox = event.target.closest('input[type="checkbox"][data-joint-id]');
+        if (!checkbox || !jointGroupJointList.contains(checkbox)) {
+          return;
+        }
+        if (!checkbox.checked && checkbox.dataset.jointId === selectedJointGroupJointId) {
+          const fallback = jointGroupJointList.querySelector('input[type="checkbox"][data-joint-id]:checked');
+          setActiveJointGroupJoint(fallback?.dataset.jointId || eventState.joints[0]?.id || null);
+        }
+      });
+    }
+  };
+
   const clearEasingEditor = () => {
     if (!easingIdInput || !easingOrderInput || !easingDescriptionInput || !easingTypeSelect) {
       return;
@@ -2980,21 +3395,25 @@ document.addEventListener('DOMContentLoaded', () => {
       events: Array.isArray(next.events) ? next.events : [],
       easings: normalizeEasings(next.easings),
       servos: normalizeServos(next.servos),
-      joints: normalizeJoints(next.joints)
+      joints: normalizeJoints(next.joints),
+      jointGroups: normalizeJointGroups(next.jointGroups)
     };
     sortEvents();
     sortEasings();
     sortServos();
     sortJoints();
+    sortJointGroups();
     persistEventState();
     selectedEventId = eventState.events[0]?.id || null;
     selectedEasingId = eventState.easings[0]?.id || null;
     selectedServoId = eventState.servos[0]?.id || null;
     selectedJointId = eventState.joints[0]?.id || null;
+    selectedJointGroupId = eventState.jointGroups[0]?.id || null;
     renderEventList();
     renderEasingList();
     renderServoList();
     renderJointList();
+    renderJointGroupList();
     if (selectedEventId) {
       selectEventById(selectedEventId);
     } else {
@@ -3009,6 +3428,11 @@ document.addEventListener('DOMContentLoaded', () => {
       selectJointById(selectedJointId);
     } else {
       clearJointEditor();
+    }
+    if (selectedJointGroupId) {
+      selectJointGroupById(selectedJointGroupId);
+    } else {
+      clearJointGroupEditor();
     }
     if (selectedServoId) {
       selectServoById(selectedServoId);
@@ -3630,11 +4054,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initSelectableLists();
   initSelectableSteps();
   initFilterClearButtons();
-  initJointGroupSelection();
   initPoseAxisSelection();
   initEasingTypeToggle();
   initServoEditor();
   initJointEditor();
+  initJointGroupEditor();
   initEventEditor();
   initEasingEditor();
   initProjectImportExport();

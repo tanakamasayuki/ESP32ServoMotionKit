@@ -524,7 +524,7 @@
               <div class="list-header">
                 <h3 data-i18n="jointGroup.card.list">Group List</h3>
                 <div class="list-actions">
-                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-outline" type="button" data-i18n="common.add" id="joint-group-add">Add</button>
                 </div>
               </div>
               <label class="form-field list-filter">
@@ -537,60 +537,41 @@
                   </button>
                 </div>
               </label>
-              <ul class="list">
-                <li class="list-item is-active">
-                  <span>jg_arms</span>
-                  <span class="chip" data-i18n="jointGroup.list.count3">3 joints</span>
-                </li>
-                <li class="list-item">
-                  <span>jg_head</span>
-                  <span class="chip" data-i18n="jointGroup.list.count2">2 joints</span>
-                </li>
-              </ul>
+              <ul class="list" id="joint-group-list"></ul>
             </article>
             <article class="card panel-pane panel-pane--editor" style="--delay: 120ms;">
               <h3 data-i18n="jointGroup.card.editor">Group Editor</h3>
               <div class="form-grid">
                 <label class="form-field">
                   <span data-i18n="jointGroup.form.id">Group ID</span>
-                  <input type="text" data-i18n-placeholder="jointGroup.form.id.placeholder" placeholder="jg_upper" />
+                  <input type="text" data-i18n-placeholder="jointGroup.form.id.placeholder" placeholder="jg_upper"
+                    id="joint-group-id-input" />
+                  <span class="field-hint field-error" data-i18n="jointGroup.form.id.duplicate" id="joint-group-id-error"
+                    hidden>
+                    Group ID must be unique.
+                  </span>
                 </label>
                 <label class="form-field">
                   <span data-i18n="common.form.displayOrder">Display order</span>
                   <input type="number" value="10" min="0" data-i18n-placeholder="common.form.displayOrder.placeholder"
-                    placeholder="10" />
+                    placeholder="10" id="joint-group-order-input" />
                 </label>
                 <label class="form-field form-field--full">
                   <span data-i18n="common.form.description">Description</span>
                   <textarea rows="2" data-i18n-placeholder="common.form.description.placeholder"
-                    placeholder="Upper body group"></textarea>
+                    placeholder="Upper body group" id="joint-group-description-input"></textarea>
                 </label>
               </div>
               <p class="muted" data-i18n="jointGroup.targets.note">Select joints in this group.</p>
-              <div class="mini-list">
-                <div class="mini-row is-active" data-joint-row>
-                  <input type="checkbox" checked />
-                  <button class="mini-select" type="button" data-joint-select="yaw" data-joint-type="Rotational"
-                    data-joint-servos="2">yaw</button>
-                  <span class="mini-v">2 servos</span>
-                </div>
-                <div class="mini-row" data-joint-row>
-                  <input type="checkbox" checked />
-                  <button class="mini-select" type="button" data-joint-select="pitch" data-joint-type="Rotational"
-                    data-joint-servos="1">pitch</button>
-                  <span class="mini-v">1 servo</span>
-                </div>
-                <div class="mini-row" data-joint-row>
-                  <input type="checkbox" />
-                  <button class="mini-select" type="button" data-joint-select="roll" data-joint-type="Rotational"
-                    data-joint-servos="1">roll</button>
-                  <span class="mini-v">1 servo</span>
-                </div>
-              </div>
+              <div class="mini-list" id="joint-group-joint-list"></div>
               <div class="card-actions">
-                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-                <button class="btn btn-outline" type="button" data-i18n="common.duplicate">Duplicate</button>
-                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+                <button class="btn btn-secondary" type="button" data-i18n="common.save" id="joint-group-save">Save</button>
+                <button class="btn btn-outline" type="button" data-i18n="common.duplicate" id="joint-group-duplicate">
+                  Duplicate
+                </button>
+                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected" id="joint-group-delete">
+                  Delete selected
+                </button>
               </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">

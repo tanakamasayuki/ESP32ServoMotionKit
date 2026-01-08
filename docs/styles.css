@@ -705,6 +705,10 @@ a {
   font-weight: 600;
 }
 
+.panel-pill .mini-row .badge {
+  justify-self: end;
+}
+
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;

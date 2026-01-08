@@ -1860,21 +1860,21 @@ document.addEventListener('DOMContentLoaded', () => {
         displayOrder: 10,
         description: 'Head yaw',
         servos: [
-          { servoId: 'servo_front_left', reverse: false, offset: 0, min: -45, max: 45 },
-          { servoId: 'servo_front_right', reverse: false, offset: 0, min: -45, max: 45 }
+          { servoId: 'servo_front_left', reverse: false, offset: 0, min: 0, max: 180 },
+          { servoId: 'servo_front_right', reverse: false, offset: 0, min: 0, max: 180 }
         ]
       },
       {
         id: 'pitch',
         displayOrder: 20,
         description: 'Head pitch',
-        servos: [{ servoId: 'servo_front_left', reverse: false, offset: 0, min: -30, max: 30 }]
+        servos: [{ servoId: 'servo_front_left', reverse: false, offset: 0, min: 0, max: 180 }]
       },
       {
         id: 'roll',
         displayOrder: 30,
         description: 'Head roll',
-        servos: [{ servoId: 'servo_tail', reverse: false, offset: 0, min: -20, max: 20 }]
+        servos: [{ servoId: 'servo_tail', reverse: false, offset: 0, min: 0, max: 180 }]
       }
     ],
     jointGroups: [
@@ -2203,8 +2203,8 @@ document.addEventListener('DOMContentLoaded', () => {
     servoId: item?.servoId || '',
     reverse: !!item?.reverse,
     offset: normalizeServoNumber(item?.offset, 0),
-    min: normalizeServoNumber(item?.min, -45),
-    max: normalizeServoNumber(item?.max, 45)
+    min: normalizeServoNumber(item?.min, 0),
+    max: normalizeServoNumber(item?.max, 180)
   });
 
   const normalizeJoints = (joints) => {
@@ -2818,8 +2818,8 @@ document.addEventListener('DOMContentLoaded', () => {
     servoId,
     reverse: false,
     offset: 0,
-    min: -45,
-    max: 45
+    min: 0,
+    max: 180
   });
 
   const renderJointList = () => {
@@ -2906,10 +2906,10 @@ document.addEventListener('DOMContentLoaded', () => {
       jointServoOffsetInput.value = data.offset ?? 0;
     }
     if (jointServoMinInput) {
-      jointServoMinInput.value = data.min ?? -45;
+      jointServoMinInput.value = data.min ?? 0;
     }
     if (jointServoMaxInput) {
-      jointServoMaxInput.value = data.max ?? 45;
+      jointServoMaxInput.value = data.max ?? 180;
     }
   };
 
@@ -3089,8 +3089,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     entry.reverse = !!jointServoDirectionInput?.checked;
     entry.offset = parseNumber(jointServoOffsetInput?.value, entry.offset ?? 0);
-    entry.min = parseNumber(jointServoMinInput?.value, entry.min ?? -45);
-    entry.max = parseNumber(jointServoMaxInput?.value, entry.max ?? 45);
+    entry.min = parseNumber(jointServoMinInput?.value, entry.min ?? 0);
+    entry.max = parseNumber(jointServoMaxInput?.value, entry.max ?? 180);
     sortJoints();
     persistEventState();
     renderJointList();

@@ -633,6 +633,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return translations[currentLanguage]?.[key] || translations.en[key] || '';
   };
 
+  const updateLocalizedLists = () => {
+    renderServoList?.();
+    renderJointList?.();
+    renderJointGroupList?.();
+    renderEasingList?.();
+  };
+
   const applyTranslations = (lang) => {
     currentLanguage = lang;
     document.documentElement.lang = lang;
@@ -665,6 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateConnectionUI();
     updateFirmwareLocale();
     updateHeroPanels();
+    updateLocalizedLists();
   };
 
   const detectLanguage = () => {
@@ -1714,7 +1722,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const jointGroupFilterInput = document.getElementById('joint-group-filter-input');
   const jointGroupJointList = document.getElementById('joint-group-joint-list');
   const jointGroupSelectedId = document.getElementById('joint-group-selected');
-  const jointGroupSelectedType = document.getElementById('joint-group-type');
   const jointGroupSelectedServos = document.getElementById('joint-group-servos');
   const easingList = document.getElementById('easing-list');
   const easingAddButton = document.getElementById('easing-add');
@@ -2104,11 +2111,13 @@ document.addEventListener('DOMContentLoaded', () => {
       return [];
     }
     return joints.map((item) => {
-      const servoRefs = Array.isArray(item?.servoRefs)
-        ? item.servoRefs.map(normalizeJointServo)
-        : Array.isArray(item?.servoIds)
-          ? item.servoIds.map((servoId) => normalizeJointServo({ servoId }))
-          : [];
+      const servoRefs = Array.isArray(item?.servos)
+        ? item.servos.map(normalizeJointServo)
+        : Array.isArray(item?.servoRefs)
+          ? item.servoRefs.map(normalizeJointServo)
+          : Array.isArray(item?.servoIds)
+            ? item.servoIds.map((servoId) => normalizeJointServo({ servoId }))
+            : [];
       return {
         id: item?.id || 'joint_new',
         displayOrder: item?.displayOrder ?? null,
@@ -3125,11 +3134,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (jointGroupSelectedId) {
       jointGroupSelectedId.textContent = joint?.id || '—';
     }
-    if (jointGroupSelectedType) {
-      jointGroupSelectedType.textContent = '—';
-    }
     if (jointGroupSelectedServos) {
-      jointGroupSelectedServos.textContent = joint?.servos?.length ?? '—';
+      jointGroupSelectedServos.textContent = String(joint?.servos?.length ?? 0);
     }
   };
 

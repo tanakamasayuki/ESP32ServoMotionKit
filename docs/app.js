@@ -240,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'sequence.control.note': 'Move to the base pose first, then play the configured sequence from the beginning.',
       'sequence.form.id.duplicate': 'Sequence ID must be unique.',
       'sequence.list.count': '{count} steps',
+      'sequence.delete.confirm': 'Delete "{id}"?',
       'easing.title': 'Easing Settings',
       'easing.desc': 'Manage easing presets and custom curves.',
       'easing.card.list': 'Easing List',
@@ -540,6 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'sequence.control.note': '基本ポーズに最短で移動してから、設定済みのシーケンスを最初から再生して動作確認ができます。',
       'sequence.form.id.duplicate': 'シーケンス ID が重複しています。',
       'sequence.list.count': '{count} ステップ',
+      'sequence.delete.confirm': '「{id}」を削除しますか？',
       'easing.title': 'イージング設定',
       'easing.desc': 'イージングのプリセットやカスタムカーブを管理します。',
       'easing.card.list': 'イージング一覧',
@@ -4885,6 +4887,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const deleteSequence = () => {
     if (!selectedSequenceId) {
+      return;
+    }
+    const label = selectedSequenceId;
+    const confirmText = getTranslation('sequence.delete.confirm').replace('{id}', label);
+    if (!window.confirm(confirmText)) {
       return;
     }
     const index = eventState.sequences.findIndex((item) => item.id === selectedSequenceId);

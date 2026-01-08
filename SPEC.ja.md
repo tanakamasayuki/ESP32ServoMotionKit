@@ -153,6 +153,7 @@ UI/デバイス共通のスキーマ識別子とバージョン管理に使う�
 * 全ての項目から `displayOrder` と `description` を削除する。
 * Servoでは `previewOffset` と `previewDirection` を削除する。
 * Jointでは `previewOffset` と `previewDirection` を削除する。
+* Jointの `servoRefs` に含まれる `min` / `max` を削除する。
 * `jointGroups` はシンプルJSONに含めない。
 * Poseでは `groupId` を削除する。
 

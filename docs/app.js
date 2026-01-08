@@ -2800,6 +2800,10 @@ document.addEventListener('DOMContentLoaded', () => {
     (simpleJson.joints || []).forEach((joint) => {
       delete joint.previewOffset;
       delete joint.previewDirection;
+      (joint.servoRefs || []).forEach((servoRef) => {
+        delete servoRef.min;
+        delete servoRef.max;
+      });
     });
     return simpleJson;
   };

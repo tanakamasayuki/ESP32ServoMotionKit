@@ -2606,6 +2606,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (joint.description) {
         item.description = joint.description;
       }
+      if (joint.rangeMin !== null && joint.rangeMin !== undefined) {
+        item.rangeMin = joint.rangeMin;
+      }
+      if (joint.rangeMax !== null && joint.rangeMax !== undefined) {
+        item.rangeMax = joint.rangeMax;
+      }
       return item;
     });
     const jointGroups = eventState.jointGroups.map((group) => {
@@ -2766,6 +2772,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return Number.isFinite(numeric) ? numeric : fallback;
   };
 
+  const normalizeOptionalNumber = (value) => {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : null;
+  };
+
   const normalizeEasingParams = (type, params) => {
     if (Array.isArray(params)) {
       return params;
@@ -2845,7 +2856,9 @@ document.addEventListener('DOMContentLoaded', () => {
         id: item?.id || 'joint_new',
         displayOrder: item?.displayOrder ?? null,
         description: item?.description || '',
-        servos: servoRefs
+        servos: servoRefs,
+        rangeMin: normalizeOptionalNumber(item?.rangeMin),
+        rangeMax: normalizeOptionalNumber(item?.rangeMax)
       };
     });
   };
@@ -3568,6 +3581,24 @@ document.addEventListener('DOMContentLoaded', () => {
     max: 180
   });
 
+  const computeJointRangeFromServos = (servos = []) => {
+    if (!Array.isArray(servos) || servos.length === 0) {
+      return { min: null, max: null };
+    }
+    let minValue = null;
+    let maxValue = null;
+    servos.forEach((servo) => {
+      const min = Number(servo?.min ?? 0);
+      const max = Number(servo?.max ?? 0);
+      minValue = minValue === null ? min : Math.max(minValue, min);
+      maxValue = maxValue === null ? max : Math.min(maxValue, max);
+    });
+    return {
+      min: Number.isFinite(minValue) ? minValue : null,
+      max: Number.isFinite(maxValue) ? maxValue : null
+    };
+  };
+
   const getServoAngleRange = (servoId) => {
     const servo = eventState.servos.find((item) => item.id === servoId);
     const rangeSource = servo?.type === 'ttl' ? servo?.ttl : servo?.pwm;
@@ -3644,17 +3675,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const currentMap = new Map((joint.servos || []).map((servo) => [servo.servoId, servo]));
-    let minValue = null;
-    let maxValue = null;
-    selectedIds.forEach((servoId) => {
-      const entry = currentMap.get(servoId) || getJointServoDefaults(servoId);
-      const min = Number(entry.min);
-      const max = Number(entry.max);
-      minValue = minValue === null ? min : Math.max(minValue, min);
-      maxValue = maxValue === null ? max : Math.min(maxValue, max);
-    });
-    jointRangeMinInput.value = Number.isFinite(minValue) ? minValue : '';
-    jointRangeMaxInput.value = Number.isFinite(maxValue) ? maxValue : '';
+    const entries = selectedIds.map((servoId) => currentMap.get(servoId) || getJointServoDefaults(servoId));
+    const range = computeJointRangeFromServos(entries);
+    jointRangeMinInput.value = Number.isFinite(range.min) ? range.min : '';
+    jointRangeMaxInput.value = Number.isFinite(range.max) ? range.max : '';
   };
 
   const renderJointList = () => {
@@ -3868,6 +3892,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const existing = currentMap.get(servoId);
       return existing ? { ...existing } : getJointServoDefaults(servoId);
     });
+    const jointRange = computeJointRangeFromServos(joint.servos);
+    joint.rangeMin = jointRange.min;
+    joint.rangeMax = jointRange.max;
     selectedJointId = joint.id;
     clearJointIdError();
     sortJoints();
@@ -3969,6 +3996,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (jointServoMaxInput) {
       jointServoMaxInput.value = entry.max;
     }
+    const jointRange = computeJointRangeFromServos(joint.servos);
+    joint.rangeMin = jointRange.min;
+    joint.rangeMax = jointRange.max;
     sortJoints();
     persistEventState();
     renderJointList();

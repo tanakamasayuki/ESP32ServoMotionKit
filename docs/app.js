@@ -3520,8 +3520,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const getServoAngleRange = (servoId) => {
     const servo = eventState.servos.find((item) => item.id === servoId);
-    const min = Number(servo?.pwm?.angleMin ?? 0);
-    const max = Number(servo?.pwm?.angleMax ?? 180);
+    const rangeSource = servo?.type === 'ttl' ? servo?.ttl : servo?.pwm;
+    const min = Number(rangeSource?.angleMin ?? 0);
+    const max = Number(rangeSource?.angleMax ?? 180);
     return {
       min: Number.isFinite(min) ? min : 0,
       max: Number.isFinite(max) ? max : 180

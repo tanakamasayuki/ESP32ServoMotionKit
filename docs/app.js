@@ -238,6 +238,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'sequence.control.startPose': 'Start pose',
       'sequence.control.go': 'Play sequence',
       'sequence.control.note': 'Move to the base pose first, then play the configured sequence from the beginning.',
+      'sequence.form.id.duplicate': 'Sequence ID must be unique.',
+      'sequence.list.count': '{count} steps',
       'easing.title': 'Easing Settings',
       'easing.desc': 'Manage easing presets and custom curves.',
       'easing.card.list': 'Easing List',
@@ -531,6 +533,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'sequence.control.startPose': '開始ポーズ',
       'sequence.control.go': 'シーケンスを再生',
       'sequence.control.note': '基本ポーズに最短で移動してから、設定済みのシーケンスを最初から再生して動作確認ができます。',
+      'sequence.form.id.duplicate': 'シーケンス ID が重複しています。',
+      'sequence.list.count': '{count} ステップ',
       'easing.title': 'イージング設定',
       'easing.desc': 'イージングのプリセットやカスタムカーブを管理します。',
       'easing.card.list': 'イージング一覧',
@@ -640,6 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderJointList?.();
     renderJointGroupList?.();
     renderPoseList?.();
+    renderSequenceList?.();
     renderEasingList?.();
     updatePoseTriggerOptions?.();
     updatePoseControlOptions?.();
@@ -649,6 +654,15 @@ document.addEventListener('DOMContentLoaded', () => {
       updatePoseGroupOptions?.(pose.groupId);
       renderPoseAxisList?.(pose);
     }
+    const sequence = getSelectedSequence?.();
+    if (sequence) {
+      renderSequenceSteps?.(sequence);
+    }
+    updateSequenceTriggerOptions?.();
+    updateSequenceTargetOptions?.();
+    updateSequenceEasingOptions?.();
+    renderSequenceAxisEasing?.();
+    updateSequenceControlOptions?.();
   };
 
   const applyTranslations = (lang) => {
@@ -1757,6 +1771,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const poseControlDuration = document.getElementById('pose-control-duration');
   const poseControlEasing = document.getElementById('pose-control-easing');
   const poseControlAxisEasing = document.getElementById('pose-control-axis-easing');
+  const sequenceList = document.getElementById('sequence-list');
+  const sequenceAddButton = document.getElementById('sequence-add');
+  const sequenceSaveButton = document.getElementById('sequence-save');
+  const sequenceDuplicateButton = document.getElementById('sequence-duplicate');
+  const sequenceDeleteButton = document.getElementById('sequence-delete');
+  const sequenceIdInput = document.getElementById('sequence-id-input');
+  const sequenceIdError = document.getElementById('sequence-id-error');
+  const sequenceOrderInput = document.getElementById('sequence-order-input');
+  const sequenceDescriptionInput = document.getElementById('sequence-description-input');
+  const sequenceFilterInput = document.getElementById('sequence-filter-input');
+  const sequenceStepList = document.getElementById('sequence-step-list');
+  const sequenceStepAddButton = document.getElementById('sequence-step-add');
+  const sequenceStepUpButton = document.getElementById('sequence-step-up');
+  const sequenceStepDownButton = document.getElementById('sequence-step-down');
+  const sequenceTriggerStart = document.getElementById('sequence-trigger-start');
+  const sequenceTriggerEnd = document.getElementById('sequence-trigger-end');
+  const sequenceTargetType = document.getElementById('sequence-target-type');
+  const sequenceTargetId = document.getElementById('sequence-target-id');
+  const sequencePoseDuration = document.getElementById('sequence-pose-duration');
+  const sequencePoseEasing = document.getElementById('sequence-pose-easing');
+  const sequenceAxisEasing = document.getElementById('sequence-axis-easing');
+  const sequenceControlStart = document.getElementById('sequence-control-start');
   const easingList = document.getElementById('easing-list');
   const easingAddButton = document.getElementById('easing-add');
   const easingIdInput = document.getElementById('easing-id-input');
@@ -1927,6 +1963,29 @@ document.addEventListener('DOMContentLoaded', () => {
         triggers: { start: null, reached: null, end: null, overrun: null }
       }
     ],
+    sequences: [
+      {
+        id: 'seq_demo',
+        displayOrder: 10,
+        description: 'Demo sequence',
+        steps: [
+          { type: 'pose', targetId: 'p_home', moveMs: 500, easingId: 'e_smooth', axisEasing: {} },
+          { type: 'pose', targetId: 'p_wave', moveMs: 800, easingId: 'e_linear', axisEasing: {} },
+          { type: 'sequence', targetId: 'seq_intro' }
+        ],
+        triggers: { start: null, end: null }
+      },
+      {
+        id: 'seq_intro',
+        displayOrder: 20,
+        description: 'Intro sequence',
+        steps: [
+          { type: 'pose', targetId: 'p_home', moveMs: 400, easingId: 'e_linear', axisEasing: {} },
+          { type: 'pose', targetId: 'p_ready', moveMs: 600, easingId: 'e_smooth', axisEasing: {} }
+        ],
+        triggers: { start: null, end: null }
+      }
+    ],
     easings: [
       { id: 'e_linear', type: 'linear', kind: 'preset', displayOrder: 10, description: '', params: [] },
       {
@@ -1957,6 +2016,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedJointGroupJointId = null;
   let selectedPoseId = null;
   let selectedPoseAxisId = null;
+  let selectedSequenceId = null;
+  let selectedSequenceStepIndex = null;
   let hasLoadedState = false;
 
   const loadEventState = () => {
@@ -1978,7 +2039,8 @@ document.addEventListener('DOMContentLoaded', () => {
           servos: Array.isArray(parsed.servos) ? parsed.servos : defaultState.servos,
           joints: Array.isArray(parsed.joints) ? parsed.joints : defaultState.joints,
           jointGroups: Array.isArray(parsed.jointGroups) ? parsed.jointGroups : defaultState.jointGroups,
-          poses: Array.isArray(parsed.poses) ? parsed.poses : defaultState.poses
+          poses: Array.isArray(parsed.poses) ? parsed.poses : defaultState.poses,
+          sequences: Array.isArray(parsed.sequences) ? parsed.sequences : defaultState.sequences
         };
       }
       hasLoadedState = true;
@@ -2098,6 +2160,44 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return item;
     });
+    const sequences = eventState.sequences.map((sequence) => {
+      const item = {
+        id: sequence.id,
+        steps: (sequence.steps || []).map((step) => {
+          if (step.type === 'sequence') {
+            return { sequenceId: step.targetId };
+          }
+          const stepItem = {
+            poseId: step.targetId,
+            moveMs: step.moveMs,
+            easingId: step.easingId
+          };
+          if (step.axisEasing && Object.keys(step.axisEasing).length > 0) {
+            stepItem.axisEasing = step.axisEasing;
+          }
+          return stepItem;
+        })
+      };
+      if (sequence.displayOrder !== null && sequence.displayOrder !== undefined && sequence.displayOrder !== '') {
+        item.displayOrder = sequence.displayOrder;
+      }
+      if (sequence.description) {
+        item.description = sequence.description;
+      }
+      if (sequence.triggers) {
+        const triggerItems = [];
+        if (sequence.triggers.start) {
+          triggerItems.push({ at: 'sequence_start', eventId: sequence.triggers.start });
+        }
+        if (sequence.triggers.end) {
+          triggerItems.push({ at: 'sequence_end', eventId: sequence.triggers.end });
+        }
+        if (triggerItems.length > 0) {
+          item.triggers = triggerItems;
+        }
+      }
+      return item;
+    });
     const events = eventState.events.map((event) => {
       const item = {
         id: event.id,
@@ -2138,6 +2238,7 @@ document.addEventListener('DOMContentLoaded', () => {
       joints,
       jointGroups,
       poses,
+      sequences,
       events,
       easings
     };
@@ -2275,6 +2376,64 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const normalizeSequences = (sequences) => {
+    if (!Array.isArray(sequences)) {
+      return [];
+    }
+    return sequences.map((item) => {
+      const steps = Array.isArray(item?.steps)
+        ? item.steps.map((step) => {
+          if (step?.poseId) {
+            return {
+              type: 'pose',
+              targetId: step.poseId,
+              moveMs: normalizeServoNumber(step.moveMs, 500),
+              easingId: step.easingId || 'e_linear',
+              axisEasing: step.axisEasing || {}
+            };
+          }
+          if (step?.sequenceId) {
+            return {
+              type: 'sequence',
+              targetId: step.sequenceId
+            };
+          }
+          if (step?.type === 'sequence') {
+            return { type: 'sequence', targetId: step.targetId || '' };
+          }
+          return {
+            type: 'pose',
+            targetId: step?.targetId || '',
+            moveMs: normalizeServoNumber(step?.moveMs, 500),
+            easingId: step?.easingId || 'e_linear',
+            axisEasing: step?.axisEasing || {}
+          };
+        })
+        : [];
+      const triggerMap = Array.isArray(item?.triggers)
+        ? item.triggers.reduce((acc, trigger) => {
+          if (trigger?.at === 'sequence_start') {
+            acc.start = trigger.eventId;
+          }
+          if (trigger?.at === 'sequence_end') {
+            acc.end = trigger.eventId;
+          }
+          return acc;
+        }, { start: null, end: null })
+        : {
+          start: item?.triggers?.start ?? null,
+          end: item?.triggers?.end ?? null
+        };
+      return {
+        id: item?.id || 'sequence_new',
+        displayOrder: item?.displayOrder ?? null,
+        description: item?.description || '',
+        steps,
+        triggers: triggerMap
+      };
+    });
+  };
+
   const normalizeEasings = (easings) => {
     if (!Array.isArray(easings)) {
       return [];
@@ -2340,6 +2499,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const sortPoses = () => {
     eventState.poses.sort((a, b) => {
+      const orderA = a.displayOrder === null || a.displayOrder === undefined ? Number.POSITIVE_INFINITY : a.displayOrder;
+      const orderB = b.displayOrder === null || b.displayOrder === undefined ? Number.POSITIVE_INFINITY : b.displayOrder;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      return String(a.id).localeCompare(String(b.id));
+    });
+  };
+
+  const sortSequences = () => {
+    eventState.sequences.sort((a, b) => {
       const orderA = a.displayOrder === null || a.displayOrder === undefined ? Number.POSITIVE_INFINITY : a.displayOrder;
       const orderB = b.displayOrder === null || b.displayOrder === undefined ? Number.POSITIVE_INFINITY : b.displayOrder;
       if (orderA !== orderB) {
@@ -3830,6 +4000,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPoseList();
     populatePoseEditor(pose);
     updatePoseControlOptions();
+    updateSequenceTargetOptions();
+    updateSequenceControlOptions();
+    renderSequenceAxisEasing();
     updateRichJsonOutput();
   };
 
@@ -3893,6 +4066,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPoseList();
     populatePoseEditor(pose);
     updatePoseControlOptions();
+    updateSequenceTargetOptions();
+    updateSequenceControlOptions();
+    renderSequenceAxisEasing();
     updateRichJsonOutput();
   };
 
@@ -3928,6 +4104,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPoseList();
     populatePoseEditor(copy);
     updatePoseControlOptions();
+    updateSequenceTargetOptions();
+    updateSequenceControlOptions();
+    renderSequenceAxisEasing();
     updateRichJsonOutput();
   };
 
@@ -3950,6 +4129,9 @@ document.addEventListener('DOMContentLoaded', () => {
       updateRichJsonOutput();
     }
     updatePoseControlOptions();
+    updateSequenceTargetOptions();
+    updateSequenceControlOptions();
+    renderSequenceAxisEasing();
   };
 
   const initPoseEditor = () => {
@@ -4078,6 +4260,622 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const clearSequenceIdError = () => {
+    if (sequenceIdError) {
+      sequenceIdError.hidden = true;
+    }
+    if (sequenceIdInput) {
+      sequenceIdInput.classList.remove('is-error');
+    }
+  };
+
+  const showSequenceIdError = () => {
+    if (sequenceIdError) {
+      sequenceIdError.hidden = false;
+    }
+    if (sequenceIdInput) {
+      sequenceIdInput.classList.add('is-error');
+    }
+  };
+
+  const hasDuplicateSequenceId = (id, currentId) => {
+    return eventState.sequences.some((item) => item.id === id && item.id !== currentId);
+  };
+
+  const getSelectedSequence = () => {
+    if (!selectedSequenceId) {
+      return null;
+    }
+    return eventState.sequences.find((item) => item.id === selectedSequenceId) || null;
+  };
+
+  const ensureSequenceSelection = () => {
+    if (!selectedSequenceId && eventState.sequences.length > 0) {
+      selectedSequenceId = eventState.sequences[0].id;
+    }
+  };
+
+  const renderSequenceList = () => {
+    if (!sequenceList) {
+      return;
+    }
+    sequenceList.innerHTML = '';
+    const filter = sequenceFilterInput?.value?.trim().toLowerCase() || '';
+    eventState.sequences.forEach((sequence) => {
+      if (filter && !sequence.id.toLowerCase().includes(filter)) {
+        return;
+      }
+      const item = document.createElement('li');
+      item.className = 'list-item';
+      item.dataset.sequenceId = sequence.id;
+      if (sequence.id === selectedSequenceId) {
+        item.classList.add('is-active');
+      }
+      const name = document.createElement('span');
+      name.textContent = sequence.id;
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = getTranslation('sequence.list.count').replace('{count}', String(sequence.steps?.length ?? 0));
+      item.appendChild(name);
+      item.appendChild(chip);
+      sequenceList.appendChild(item);
+    });
+  };
+
+  const updateSequenceTriggerOptions = () => {
+    const selects = [sequenceTriggerStart, sequenceTriggerEnd].filter(Boolean);
+    selects.forEach((select) => {
+      const selected = select.value || 'none';
+      select.innerHTML = '';
+      const none = document.createElement('option');
+      none.value = 'none';
+      none.textContent = getTranslation('sequence.triggers.event.none');
+      select.appendChild(none);
+      eventState.events.forEach((event) => {
+        const option = document.createElement('option');
+        option.value = event.id;
+        option.textContent = `${event.number} - ${event.id}`;
+        select.appendChild(option);
+      });
+      select.value = selected;
+    });
+  };
+
+  const toggleSequenceTargetGroups = (type) => {
+    document.querySelectorAll('[data-sequence-target-group="pose"]').forEach((group) => {
+      const isPose = type === 'pose';
+      group.hidden = !isPose;
+      group.setAttribute('aria-hidden', String(!isPose));
+    });
+  };
+
+  const updateSequenceTargetOptions = () => {
+    if (!sequenceTargetType || !sequenceTargetId) {
+      return;
+    }
+    const type = sequenceTargetType.value || 'pose';
+    toggleSequenceTargetGroups(type);
+    const selected = sequenceTargetId.value;
+    sequenceTargetId.innerHTML = '';
+    if (type === 'pose') {
+      eventState.poses.forEach((pose) => {
+        const option = document.createElement('option');
+        option.value = pose.id;
+        option.textContent = pose.id;
+        sequenceTargetId.appendChild(option);
+      });
+    } else {
+      eventState.sequences.forEach((sequence) => {
+        const option = document.createElement('option');
+        option.value = sequence.id;
+        option.textContent = sequence.id;
+        sequenceTargetId.appendChild(option);
+      });
+    }
+    sequenceTargetId.value = selected || sequenceTargetId.options[0]?.value || '';
+  };
+
+  const updateSequenceEasingOptions = () => {
+    if (!sequencePoseEasing) {
+      return;
+    }
+    const selected = sequencePoseEasing.value;
+    sequencePoseEasing.innerHTML = '';
+    eventState.easings.forEach((easing) => {
+      const option = document.createElement('option');
+      option.value = easing.id;
+      option.textContent = easing.id;
+      sequencePoseEasing.appendChild(option);
+    });
+    sequencePoseEasing.value = selected || eventState.easings[0]?.id || '';
+  };
+
+  const getSequenceStepAxes = (step) => {
+    if (!step || step.type !== 'pose') {
+      return [];
+    }
+    const pose = eventState.poses.find((item) => item.id === step.targetId);
+    return pose?.jointTargets?.map((target) => target.jointId) || [];
+  };
+
+  const renderSequenceAxisEasing = () => {
+    if (!sequenceAxisEasing) {
+      return;
+    }
+    const sequence = getSelectedSequence();
+    const step = sequence?.steps?.[selectedSequenceStepIndex ?? 0];
+    sequenceAxisEasing.innerHTML = '';
+    if (!sequence || !step || step.type !== 'pose') {
+      return;
+    }
+    const axes = getSequenceStepAxes(step);
+    axes.forEach((axisId) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = axisId;
+      const select = document.createElement('select');
+      select.className = 'mini-select';
+      select.dataset.sequenceAxis = axisId;
+      const base = document.createElement('option');
+      base.value = 'base';
+      base.textContent = getTranslation('sequence.pose.axisDefault');
+      select.appendChild(base);
+      eventState.easings.forEach((easing) => {
+        const option = document.createElement('option');
+        option.value = easing.id;
+        option.textContent = easing.id;
+        select.appendChild(option);
+      });
+      const current = step.axisEasing?.[axisId] || 'base';
+      select.value = current;
+      row.appendChild(label);
+      row.appendChild(select);
+      sequenceAxisEasing.appendChild(row);
+    });
+  };
+
+  const updateSequenceControlOptions = () => {
+    if (!sequenceControlStart) {
+      return;
+    }
+    const selected = sequenceControlStart.value;
+    sequenceControlStart.innerHTML = '';
+    eventState.poses.forEach((pose) => {
+      const option = document.createElement('option');
+      option.value = pose.id;
+      option.textContent = pose.id;
+      sequenceControlStart.appendChild(option);
+    });
+    sequenceControlStart.value = selected || eventState.poses[0]?.id || '';
+  };
+
+  const renderSequenceSteps = (sequence) => {
+    if (!sequenceStepList) {
+      return;
+    }
+    sequenceStepList.innerHTML = '';
+    (sequence?.steps || []).forEach((step, index) => {
+      const item = document.createElement('li');
+      if (index === selectedSequenceStepIndex) {
+        item.classList.add('is-active');
+      }
+      item.dataset.stepIndex = String(index);
+      const title = document.createElement('span');
+      title.className = 'step-title';
+      if (step.type === 'sequence') {
+        title.textContent = `${index + 1}: ${step.targetId || 'sequence'}`;
+      } else {
+        title.textContent = `${index + 1}: ${step.targetId || 'pose'}`;
+      }
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      if (step.type === 'sequence') {
+        chip.textContent = getTranslation('sequence.steps.inline');
+      } else {
+        const easing = step.easingId || 'e_linear';
+        const move = step.moveMs ?? 0;
+        chip.textContent = `${move}ms · ${easing}`;
+      }
+      item.appendChild(title);
+      item.appendChild(chip);
+      sequenceStepList.appendChild(item);
+    });
+  };
+
+  const setActiveSequenceStep = (index) => {
+    const sequence = getSelectedSequence();
+    if (!sequence || !sequence.steps?.length) {
+      selectedSequenceStepIndex = null;
+      renderSequenceSteps(sequence);
+      return;
+    }
+    const safeIndex = Math.max(0, Math.min(index, sequence.steps.length - 1));
+    selectedSequenceStepIndex = safeIndex;
+    renderSequenceSteps(sequence);
+    populateSequenceTargetEditor();
+  };
+
+  const populateSequenceTargetEditor = () => {
+    const sequence = getSelectedSequence();
+    const step = sequence?.steps?.[selectedSequenceStepIndex ?? 0];
+    if (!sequence || !step || !sequenceTargetType || !sequenceTargetId) {
+      return;
+    }
+    sequenceTargetType.value = step.type || 'pose';
+    updateSequenceTargetOptions();
+    sequenceTargetId.value = step.targetId || sequenceTargetId.options[0]?.value || '';
+    if (step.type === 'pose') {
+      if (sequencePoseDuration) {
+        sequencePoseDuration.value = step.moveMs ?? 500;
+      }
+      updateSequenceEasingOptions();
+      if (sequencePoseEasing) {
+        sequencePoseEasing.value = step.easingId || eventState.easings[0]?.id || 'e_linear';
+      }
+      renderSequenceAxisEasing();
+    }
+  };
+
+  const populateSequenceEditor = (sequence) => {
+    if (!sequence || !sequenceIdInput || !sequenceOrderInput || !sequenceDescriptionInput) {
+      return;
+    }
+    sequenceIdInput.value = sequence.id ?? '';
+    sequenceOrderInput.value = sequence.displayOrder ?? '';
+    sequenceDescriptionInput.value = sequence.description ?? '';
+    updateSequenceTriggerOptions();
+    if (sequenceTriggerStart) {
+      sequenceTriggerStart.value = sequence.triggers?.start || 'none';
+    }
+    if (sequenceTriggerEnd) {
+      sequenceTriggerEnd.value = sequence.triggers?.end || 'none';
+    }
+    updateSequenceTargetOptions();
+    updateSequenceEasingOptions();
+    updateSequenceControlOptions();
+    const stepIndex = sequence.steps?.length ? 0 : null;
+    selectedSequenceStepIndex = stepIndex;
+    renderSequenceSteps(sequence);
+    if (stepIndex !== null) {
+      populateSequenceTargetEditor();
+    }
+    clearSequenceIdError();
+  };
+
+  const selectSequenceById = (sequenceId) => {
+    const sequence = eventState.sequences.find((item) => item.id === sequenceId) || eventState.sequences[0];
+    if (!sequence) {
+      return;
+    }
+    selectedSequenceId = sequence.id;
+    renderSequenceList();
+    populateSequenceEditor(sequence);
+  };
+
+  const addSequence = () => {
+    const base = 'seq_new';
+    let index = eventState.sequences.length + 1;
+    let id = `${base}_${index}`;
+    while (eventState.sequences.some((sequence) => sequence.id === id)) {
+      index += 1;
+      id = `${base}_${index}`;
+    }
+    const maxOrder = eventState.sequences.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
+    const poseId = eventState.poses[0]?.id || '';
+    const easingId = eventState.easings[0]?.id || 'e_linear';
+    const sequence = {
+      id,
+      displayOrder: maxOrder + 10,
+      description: '',
+      steps: poseId ? [{ type: 'pose', targetId: poseId, moveMs: 500, easingId, axisEasing: {} }] : [],
+      triggers: { start: null, end: null }
+    };
+    eventState.sequences.push(sequence);
+    selectedSequenceId = sequence.id;
+    sortSequences();
+    persistEventState();
+    renderSequenceList();
+    populateSequenceEditor(sequence);
+    updateSequenceTargetOptions();
+    updateRichJsonOutput();
+  };
+
+  const clearSequenceEditor = () => {
+    if (!sequenceIdInput || !sequenceOrderInput || !sequenceDescriptionInput) {
+      return;
+    }
+    sequenceIdInput.value = '';
+    sequenceOrderInput.value = '';
+    sequenceDescriptionInput.value = '';
+    if (sequenceStepList) {
+      sequenceStepList.innerHTML = '';
+    }
+    clearSequenceIdError();
+  };
+
+  const saveSequence = () => {
+    if (!selectedSequenceId) {
+      return;
+    }
+    const sequence = eventState.sequences.find((item) => item.id === selectedSequenceId);
+    if (!sequence) {
+      return;
+    }
+    const nextId = (sequenceIdInput?.value || '').trim() || sequence.id;
+    if (hasDuplicateSequenceId(nextId, sequence.id)) {
+      showSequenceIdError();
+      return;
+    }
+    sequence.id = nextId;
+    const orderRaw = sequenceOrderInput?.value ?? '';
+    sequence.displayOrder = orderRaw === '' ? null : parseNumber(orderRaw, sequence.displayOrder ?? null);
+    sequence.description = (sequenceDescriptionInput?.value || '').trim();
+    sequence.triggers = {
+      start: sequenceTriggerStart?.value === 'none' ? null : sequenceTriggerStart?.value || null,
+      end: sequenceTriggerEnd?.value === 'none' ? null : sequenceTriggerEnd?.value || null
+    };
+    selectedSequenceId = sequence.id;
+    clearSequenceIdError();
+    sortSequences();
+    persistEventState();
+    renderSequenceList();
+    populateSequenceEditor(sequence);
+    updateSequenceTargetOptions();
+    updateRichJsonOutput();
+  };
+
+  const duplicateSequence = () => {
+    if (!selectedSequenceId) {
+      return;
+    }
+    const source = eventState.sequences.find((item) => item.id === selectedSequenceId);
+    if (!source) {
+      return;
+    }
+    const maxOrder = eventState.sequences.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
+    let index = 1;
+    let id = `${source.id}_copy`;
+    while (eventState.sequences.some((item) => item.id === id)) {
+      index += 1;
+      id = `${source.id}_copy${index}`;
+    }
+    const copy = {
+      ...source,
+      id,
+      displayOrder: maxOrder + 10,
+      steps: (source.steps || []).map((step) => ({ ...step, axisEasing: { ...step.axisEasing } })),
+      triggers: { ...source.triggers }
+    };
+    eventState.sequences.push(copy);
+    selectedSequenceId = id;
+    sortSequences();
+    persistEventState();
+    renderSequenceList();
+    populateSequenceEditor(copy);
+    updateSequenceTargetOptions();
+    updateRichJsonOutput();
+  };
+
+  const deleteSequence = () => {
+    if (!selectedSequenceId) {
+      return;
+    }
+    const index = eventState.sequences.findIndex((item) => item.id === selectedSequenceId);
+    if (index === -1) {
+      return;
+    }
+    eventState.sequences.splice(index, 1);
+    selectedSequenceId = eventState.sequences[index]?.id || eventState.sequences[index - 1]?.id || null;
+    persistEventState();
+    renderSequenceList();
+    if (selectedSequenceId) {
+      selectSequenceById(selectedSequenceId);
+    } else {
+      clearSequenceEditor();
+      updateRichJsonOutput();
+    }
+    updateSequenceTargetOptions();
+  };
+
+  const addSequenceStep = () => {
+    const sequence = getSelectedSequence();
+    if (!sequence) {
+      return;
+    }
+    const poseId = eventState.poses[0]?.id || '';
+    const easingId = eventState.easings[0]?.id || 'e_linear';
+    const step = poseId
+      ? { type: 'pose', targetId: poseId, moveMs: 500, easingId, axisEasing: {} }
+      : { type: 'sequence', targetId: eventState.sequences[0]?.id || '' };
+    sequence.steps = sequence.steps || [];
+    sequence.steps.push(step);
+    setActiveSequenceStep(sequence.steps.length - 1);
+  };
+
+  const moveSequenceStep = (direction) => {
+    const sequence = getSelectedSequence();
+    if (!sequence || selectedSequenceStepIndex === null || selectedSequenceStepIndex === undefined) {
+      return;
+    }
+    const nextIndex = selectedSequenceStepIndex + direction;
+    if (nextIndex < 0 || nextIndex >= sequence.steps.length) {
+      return;
+    }
+    const steps = sequence.steps;
+    [steps[selectedSequenceStepIndex], steps[nextIndex]] = [steps[nextIndex], steps[selectedSequenceStepIndex]];
+    setActiveSequenceStep(nextIndex);
+  };
+
+  const updateSequenceStepFromEditor = () => {
+    const sequence = getSelectedSequence();
+    if (!sequence || selectedSequenceStepIndex === null || selectedSequenceStepIndex === undefined) {
+      return;
+    }
+    const step = sequence.steps[selectedSequenceStepIndex];
+    if (!step) {
+      return;
+    }
+    const type = sequenceTargetType?.value || 'pose';
+    step.type = type;
+    step.targetId = sequenceTargetId?.value || '';
+    if (type === 'pose') {
+      step.moveMs = parseNumber(sequencePoseDuration?.value, step.moveMs ?? 500);
+      step.easingId = sequencePoseEasing?.value || step.easingId || 'e_linear';
+      step.axisEasing = step.axisEasing || {};
+    } else {
+      step.axisEasing = {};
+    }
+    renderSequenceSteps(sequence);
+    populateSequenceTargetEditor();
+  };
+
+  const updateSequenceAxisEasing = (axisId, value) => {
+    const sequence = getSelectedSequence();
+    const step = sequence?.steps?.[selectedSequenceStepIndex ?? 0];
+    if (!sequence || !step || step.type !== 'pose') {
+      return;
+    }
+    step.axisEasing = step.axisEasing || {};
+    if (value === 'base') {
+      delete step.axisEasing[axisId];
+    } else {
+      step.axisEasing[axisId] = value;
+    }
+  };
+
+  const initSequenceEditor = () => {
+    if (!sequenceList || !sequenceAddButton) {
+      return;
+    }
+    loadEventState();
+    eventState.sequences = normalizeSequences(eventState.sequences);
+    ensureSequenceSelection();
+    sortSequences();
+    renderSequenceList();
+    if (selectedSequenceId) {
+      selectSequenceById(selectedSequenceId);
+    } else {
+      clearSequenceEditor();
+    }
+    updateRichJsonOutput();
+
+    sequenceList.addEventListener('click', (event) => {
+      const item = event.target.closest('.list-item');
+      if (!item || !sequenceList.contains(item)) {
+        return;
+      }
+      selectSequenceById(item.dataset.sequenceId);
+    });
+
+    sequenceAddButton.addEventListener('click', () => {
+      addSequence();
+    });
+
+    if (sequenceSaveButton) {
+      sequenceSaveButton.addEventListener('click', () => {
+        saveSequence();
+      });
+    }
+
+    if (sequenceDuplicateButton) {
+      sequenceDuplicateButton.addEventListener('click', () => {
+        duplicateSequence();
+      });
+    }
+
+    if (sequenceDeleteButton) {
+      sequenceDeleteButton.addEventListener('click', () => {
+        deleteSequence();
+      });
+    }
+
+    if (sequenceIdInput) {
+      sequenceIdInput.addEventListener('input', () => {
+        clearSequenceIdError();
+      });
+    }
+
+    if (sequenceFilterInput) {
+      sequenceFilterInput.addEventListener('input', () => {
+        renderSequenceList();
+      });
+    }
+
+    if (sequenceStepList) {
+      sequenceStepList.addEventListener('click', (event) => {
+        const item = event.target.closest('li');
+        if (!item || !sequenceStepList.contains(item)) {
+          return;
+        }
+        const index = Number(item.dataset.stepIndex);
+        if (Number.isFinite(index)) {
+          setActiveSequenceStep(index);
+        }
+      });
+    }
+
+    if (sequenceStepAddButton) {
+      sequenceStepAddButton.addEventListener('click', () => {
+        addSequenceStep();
+      });
+    }
+
+    if (sequenceStepUpButton) {
+      sequenceStepUpButton.addEventListener('click', () => {
+        moveSequenceStep(-1);
+      });
+    }
+
+    if (sequenceStepDownButton) {
+      sequenceStepDownButton.addEventListener('click', () => {
+        moveSequenceStep(1);
+      });
+    }
+
+    if (sequenceTargetType) {
+      sequenceTargetType.addEventListener('change', () => {
+        updateSequenceTargetOptions();
+        updateSequenceStepFromEditor();
+      });
+    }
+
+    if (sequenceTargetId) {
+      sequenceTargetId.addEventListener('change', () => {
+        updateSequenceStepFromEditor();
+      });
+    }
+
+    if (sequencePoseDuration) {
+      sequencePoseDuration.addEventListener('input', () => {
+        updateSequenceStepFromEditor();
+      });
+    }
+
+    if (sequencePoseEasing) {
+      sequencePoseEasing.addEventListener('change', () => {
+        updateSequenceStepFromEditor();
+      });
+    }
+
+    if (sequenceAxisEasing) {
+      sequenceAxisEasing.addEventListener('change', (event) => {
+        const select = event.target.closest('select[data-sequence-axis]');
+        if (!select) {
+          return;
+        }
+        updateSequenceAxisEasing(select.dataset.sequenceAxis, select.value);
+      });
+    }
+  };
+
   const clearEasingEditor = () => {
     if (!easingIdInput || !easingOrderInput || !easingDescriptionInput || !easingTypeSelect) {
       return;
@@ -4104,7 +4902,8 @@ document.addEventListener('DOMContentLoaded', () => {
       servos: normalizeServos(next.servos),
       joints: normalizeJoints(next.joints),
       jointGroups: normalizeJointGroups(next.jointGroups),
-      poses: normalizePoses(next.poses)
+      poses: normalizePoses(next.poses),
+      sequences: normalizeSequences(next.sequences)
     };
     sortEvents();
     sortEasings();
@@ -4112,6 +4911,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sortJoints();
     sortJointGroups();
     sortPoses();
+    sortSequences();
     persistEventState();
     selectedEventId = eventState.events[0]?.id || null;
     selectedEasingId = eventState.easings[0]?.id || null;
@@ -4119,12 +4919,14 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedJointId = eventState.joints[0]?.id || null;
     selectedJointGroupId = eventState.jointGroups[0]?.id || null;
     selectedPoseId = eventState.poses[0]?.id || null;
+    selectedSequenceId = eventState.sequences[0]?.id || null;
     renderEventList();
     renderEasingList();
     renderServoList();
     renderJointList();
     renderJointGroupList();
     renderPoseList();
+    renderSequenceList();
     if (selectedEventId) {
       selectEventById(selectedEventId);
     } else {
@@ -4149,6 +4951,11 @@ document.addEventListener('DOMContentLoaded', () => {
       selectPoseById(selectedPoseId);
     } else {
       clearPoseEditor();
+    }
+    if (selectedSequenceId) {
+      selectSequenceById(selectedSequenceId);
+    } else {
+      clearSequenceEditor();
     }
     if (selectedServoId) {
       selectServoById(selectedServoId);
@@ -4308,6 +5115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEventList();
     populateEventEditor(event);
     updatePoseTriggerOptions();
+    updateSequenceTriggerOptions();
     updateRichJsonOutput();
   };
 
@@ -4352,6 +5160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderEventList();
     updatePoseTriggerOptions();
+    updateSequenceTriggerOptions();
     updateRichJsonOutput();
   };
 
@@ -4385,6 +5194,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEventList();
     populateEventEditor(copy);
     updatePoseTriggerOptions();
+    updateSequenceTriggerOptions();
     updateRichJsonOutput();
   };
 
@@ -4413,6 +5223,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateRichJsonOutput();
     }
     updatePoseTriggerOptions();
+    updateSequenceTriggerOptions();
   };
 
   const initEventEditor = () => {
@@ -4574,6 +5385,8 @@ document.addEventListener('DOMContentLoaded', () => {
     populateEasingEditor(easing);
     updatePoseControlOptions();
     renderPoseControlAxisEasing();
+    updateSequenceEasingOptions();
+    renderSequenceAxisEasing();
     updateRichJsonOutput();
   };
 
@@ -4598,6 +5411,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEasingList();
     updatePoseControlOptions();
     renderPoseControlAxisEasing();
+    updateSequenceEasingOptions();
+    renderSequenceAxisEasing();
     setEasingEditorLocked(easing.kind === 'preset');
     updateRichJsonOutput();
   };
@@ -4634,6 +5449,8 @@ document.addEventListener('DOMContentLoaded', () => {
     populateEasingEditor(copy);
     updatePoseControlOptions();
     renderPoseControlAxisEasing();
+    updateSequenceEasingOptions();
+    renderSequenceAxisEasing();
     updateRichJsonOutput();
   };
 
@@ -4663,6 +5480,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updatePoseControlOptions();
     renderPoseControlAxisEasing();
+    updateSequenceEasingOptions();
+    renderSequenceAxisEasing();
     updateRichJsonOutput();
   };
 
@@ -4780,13 +5599,13 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeroTabs();
   initDataTabs();
   initSelectableLists();
-  initSelectableSteps();
   initFilterClearButtons();
   initEasingTypeToggle();
   initServoEditor();
   initJointEditor();
   initJointGroupEditor();
   initPoseEditor();
+  initSequenceEditor();
   initEventEditor();
   initEasingEditor();
   initProjectImportExport();

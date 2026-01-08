@@ -220,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'pose.triggers.note': 'Pose reached triggers when the sequence movement completes. Pose end triggers after the sequence hold time.',
       'pose.triggers.overrun.note': 'Time overrun triggers during the move into this pose when speed limits extend the move beyond the specified duration.',
       'pose.form.id.duplicate': 'Pose ID must be unique.',
+      'pose.form.axes.required': 'Select at least one joint.',
       'pose.delete.confirm': 'Delete "{id}"?',
       'pose.delete.inUse': 'This pose is used by sequences.',
       'sequence.title': 'Sequence Settings',
@@ -539,6 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'pose.triggers.note': 'ポーズ到達はシーケンスの移動が完了したとき、ポーズ終了はシーケンスのホールド時間が経過したときに発火します。',
       'pose.triggers.overrun.note': '時間延長時はこのポーズへの移動中に、速度制限に抵触して移動時間が指定を超過した場合に発火します。',
       'pose.form.id.duplicate': 'ポーズ ID が重複しています。',
+      'pose.form.axes.required': 'ジョイントを1つ以上選択してください。',
       'pose.delete.confirm': '「{id}」を削除しますか？',
       'pose.delete.inUse': 'このポーズはシーケンスで使用中です。',
       'sequence.title': 'シーケンス設定',
@@ -4777,6 +4779,10 @@ document.addEventListener('DOMContentLoaded', () => {
           selectedAxisIds.push(input.dataset.poseAxis);
         }
       });
+    }
+    if (selectedAxisIds.length === 0) {
+      window.alert(getTranslation('pose.form.axes.required'));
+      return;
     }
     const currentMap = new Map((pose.jointTargets || []).map((target) => [target.jointId, target]));
     pose.jointTargets = selectedAxisIds.map((axisId) => {

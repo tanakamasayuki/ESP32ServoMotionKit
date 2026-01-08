@@ -1108,6 +1108,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const initFilterClearButtons = () => {
+    const clearButtons = Array.from(document.querySelectorAll('[data-clear-for]'));
+    clearButtons.forEach((button) => {
+      const targetId = button.dataset.clearFor;
+      if (!targetId) {
+        return;
+      }
+      const input = document.getElementById(targetId);
+      if (!input) {
+        return;
+      }
+      button.addEventListener('click', () => {
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    });
+  };
+
   const initJointServoSelection = () => {
     const targetLabel = document.querySelector('#joint-servo-target');
     const servoButtons = Array.from(document.querySelectorAll('[data-servo-select]'));
@@ -2031,6 +2049,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initDataTabs();
   initSelectableLists();
   initSelectableSteps();
+  initFilterClearButtons();
   initJointServoSelection();
   initJointGroupSelection();
   initPoseAxisSelection();

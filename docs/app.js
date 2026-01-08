@@ -286,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'event.usage.poseStart': 'Pose start',
       'event.usage.poseReached': 'Pose reached',
       'event.usage.poseEnd': 'Pose end',
+      'event.usage.poseOverrun': 'Time overrun',
       'event.usage.sequenceList': 'Sequence usage',
       'event.usage.sequenceStart': 'Sequence start',
       'event.usage.sequenceEnd': 'Sequence end',
@@ -581,6 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'event.usage.poseStart': 'ポーズ開始',
       'event.usage.poseReached': 'ポーズ到達',
       'event.usage.poseEnd': 'ポーズ終了',
+      'event.usage.poseOverrun': '時間延長時',
       'event.usage.sequenceList': 'シーケンス一覧',
       'event.usage.sequenceStart': 'シーケンス開始',
       'event.usage.sequenceEnd': 'シーケンス完了',
@@ -639,6 +641,94 @@ document.addEventListener('DOMContentLoaded', () => {
     return translations[currentLanguage]?.[key] || translations.en[key] || '';
   };
 
+  const renderEventUsage = () => {
+    if (!eventUsageList) {
+      return;
+    }
+    eventUsageList.innerHTML = '';
+    if (!selectedEventId) {
+      return;
+    }
+
+    const addHeader = (labelKey) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = getTranslation(labelKey);
+      row.appendChild(label);
+      eventUsageList.appendChild(row);
+    };
+
+    const addItem = (name, labelKey) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      const key = document.createElement('span');
+      key.className = 'mini-k';
+      key.textContent = name;
+      const badge = document.createElement('span');
+      badge.className = 'mini-v badge';
+      badge.textContent = getTranslation(labelKey);
+      row.appendChild(key);
+      row.appendChild(badge);
+      eventUsageList.appendChild(row);
+    };
+
+    const poseUsage = [];
+    eventState.poses.forEach((pose) => {
+      const triggers = pose.triggers || {};
+      if (triggers.start === selectedEventId) {
+        poseUsage.push({ name: pose.id, label: 'event.usage.poseStart' });
+      }
+      if (triggers.reached === selectedEventId) {
+        poseUsage.push({ name: pose.id, label: 'event.usage.poseReached' });
+      }
+      if (triggers.end === selectedEventId) {
+        poseUsage.push({ name: pose.id, label: 'event.usage.poseEnd' });
+      }
+      if (triggers.overrun === selectedEventId) {
+        poseUsage.push({ name: pose.id, label: 'event.usage.poseOverrun' });
+      }
+    });
+
+    const sequenceUsage = [];
+    eventState.sequences.forEach((sequence) => {
+      const triggers = sequence.triggers || {};
+      if (triggers.start === selectedEventId) {
+        sequenceUsage.push({ name: sequence.id, label: 'event.usage.sequenceStart' });
+      }
+      if (triggers.end === selectedEventId) {
+        sequenceUsage.push({ name: sequence.id, label: 'event.usage.sequenceEnd' });
+      }
+    });
+
+    addHeader('event.usage.poseList');
+    if (poseUsage.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = '—';
+      empty.appendChild(label);
+      eventUsageList.appendChild(empty);
+    } else {
+      poseUsage.forEach((item) => addItem(item.name, item.label));
+    }
+
+    addHeader('event.usage.sequenceList');
+    if (sequenceUsage.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = '—';
+      empty.appendChild(label);
+      eventUsageList.appendChild(empty);
+    } else {
+      sequenceUsage.forEach((item) => addItem(item.name, item.label));
+    }
+  };
+
   const updateLocalizedLists = () => {
     renderServoList?.();
     renderJointList?.();
@@ -646,6 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPoseList?.();
     renderSequenceList?.();
     renderEasingList?.();
+    renderEventUsage?.();
     updatePoseTriggerOptions?.();
     updatePoseControlOptions?.();
     renderPoseControlAxisEasing?.();
@@ -1793,6 +1884,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sequencePoseEasing = document.getElementById('sequence-pose-easing');
   const sequenceAxisEasing = document.getElementById('sequence-axis-easing');
   const sequenceControlStart = document.getElementById('sequence-control-start');
+  const eventUsageList = document.getElementById('event-usage-list');
   const easingList = document.getElementById('easing-list');
   const easingAddButton = document.getElementById('easing-add');
   const easingIdInput = document.getElementById('easing-id-input');
@@ -4003,6 +4095,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceTargetOptions();
     updateSequenceControlOptions();
     renderSequenceAxisEasing();
+    renderEventUsage();
     updateRichJsonOutput();
   };
 
@@ -4069,6 +4162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceTargetOptions();
     updateSequenceControlOptions();
     renderSequenceAxisEasing();
+    renderEventUsage();
     updateRichJsonOutput();
   };
 
@@ -4107,6 +4201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceTargetOptions();
     updateSequenceControlOptions();
     renderSequenceAxisEasing();
+    renderEventUsage();
     updateRichJsonOutput();
   };
 
@@ -4132,6 +4227,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceTargetOptions();
     updateSequenceControlOptions();
     renderSequenceAxisEasing();
+    renderEventUsage();
   };
 
   const initPoseEditor = () => {
@@ -4590,6 +4686,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSequenceList();
     populateSequenceEditor(sequence);
     updateSequenceTargetOptions();
+    renderEventUsage();
     updateRichJsonOutput();
   };
 
@@ -4634,6 +4731,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSequenceList();
     populateSequenceEditor(sequence);
     updateSequenceTargetOptions();
+    renderEventUsage();
     updateRichJsonOutput();
   };
 
@@ -4669,6 +4767,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSequenceList();
     populateSequenceEditor(copy);
     updateSequenceTargetOptions();
+    renderEventUsage();
     updateRichJsonOutput();
   };
 
@@ -4691,6 +4790,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateRichJsonOutput();
     }
     updateSequenceTargetOptions();
+    renderEventUsage();
   };
 
   const addSequenceStep = () => {
@@ -4935,6 +5035,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderJointGroupList();
     renderPoseList();
     renderSequenceList();
+    renderEventUsage();
     if (selectedEventId) {
       selectEventById(selectedEventId);
     } else {
@@ -5091,6 +5192,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedEventId = event.id;
     renderEventList();
     populateEventEditor(event);
+    renderEventUsage();
   };
 
   const ensureSelection = () => {
@@ -5228,6 +5330,7 @@ document.addEventListener('DOMContentLoaded', () => {
       selectEventById(selectedEventId);
     } else {
       clearEventEditor();
+      renderEventUsage();
       updateRichJsonOutput();
     }
     updatePoseTriggerOptions();

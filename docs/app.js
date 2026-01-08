@@ -102,6 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.delete.confirm': 'Delete "{id}"?',
       'servo.delete.inUse': 'This servo is used by joints.',
       'joint.form.id.duplicate': 'Joint ID must be unique.',
+      'joint.form.rangeMin': 'Servo min (deg)',
+      'joint.form.rangeMax': 'Servo max (deg)',
       'joint.list.count': '{count} servos',
       'joint.usage.title': 'Usage',
       'joint.delete.confirm': 'Delete "{id}"?',
@@ -417,6 +419,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'servo.delete.confirm': '「{id}」を削除しますか？',
       'servo.delete.inUse': 'このサーボはジョイントで使用中です。',
       'joint.form.id.duplicate': 'ジョイント ID が重複しています。',
+      'joint.form.rangeMin': 'サーボ最小 (deg)',
+      'joint.form.rangeMax': 'サーボ最大 (deg)',
       'joint.list.count': '{count} サーボ',
       'joint.usage.title': '利用元',
       'joint.delete.confirm': '「{id}」を削除しますか？',
@@ -2176,6 +2180,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const jointIdError = document.getElementById('joint-id-error');
   const jointOrderInput = document.getElementById('joint-order-input');
   const jointDescriptionInput = document.getElementById('joint-description-input');
+  const jointRangeMinInput = document.getElementById('joint-range-min-input');
+  const jointRangeMaxInput = document.getElementById('joint-range-max-input');
   const jointFilterInput = document.getElementById('joint-filter-input');
   const jointServoList = document.getElementById('joint-servo-list');
   const jointServoTarget = document.getElementById('joint-servo-target');
@@ -3461,6 +3467,51 @@ document.addEventListener('DOMContentLoaded', () => {
     max: 180
   });
 
+  const getJointServoSelection = (joint) => {
+    if (!joint) {
+      return [];
+    }
+    if (jointServoList) {
+      const selectedIds = [];
+      jointServoList.querySelectorAll('input[type="checkbox"][data-servo-id]').forEach((input) => {
+        if (input.checked) {
+          selectedIds.push(input.dataset.servoId);
+        }
+      });
+      return selectedIds;
+    }
+    return (joint.servos || []).map((servo) => servo.servoId);
+  };
+
+  const updateJointRangeSummary = (joint = getSelectedJoint()) => {
+    if (!jointRangeMinInput || !jointRangeMaxInput) {
+      return;
+    }
+    if (!joint) {
+      jointRangeMinInput.value = '';
+      jointRangeMaxInput.value = '';
+      return;
+    }
+    const selectedIds = getJointServoSelection(joint);
+    if (selectedIds.length === 0) {
+      jointRangeMinInput.value = '';
+      jointRangeMaxInput.value = '';
+      return;
+    }
+    const currentMap = new Map((joint.servos || []).map((servo) => [servo.servoId, servo]));
+    let minValue = null;
+    let maxValue = null;
+    selectedIds.forEach((servoId) => {
+      const entry = currentMap.get(servoId) || getJointServoDefaults(servoId);
+      const min = Number(entry.min);
+      const max = Number(entry.max);
+      minValue = minValue === null ? min : Math.max(minValue, min);
+      maxValue = maxValue === null ? max : Math.min(maxValue, max);
+    });
+    jointRangeMinInput.value = Number.isFinite(minValue) ? minValue : '';
+    jointRangeMaxInput.value = Number.isFinite(maxValue) ? maxValue : '';
+  };
+
   const renderJointList = () => {
     if (!jointList) {
       return;
@@ -3523,6 +3574,7 @@ document.addEventListener('DOMContentLoaded', () => {
       row.appendChild(meta);
       jointServoList.appendChild(row);
     });
+    updateJointRangeSummary(joint);
   };
 
   const setActiveJointServo = (servoId) => {
@@ -3562,6 +3614,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderJointServoList(joint);
     const initialServoId = joint.servos?.[0]?.servoId || eventState.servos[0]?.id || null;
     setActiveJointServo(initialServoId);
+    updateJointRangeSummary(joint);
     clearJointIdError();
   };
 
@@ -3619,6 +3672,12 @@ document.addEventListener('DOMContentLoaded', () => {
     jointIdInput.value = '';
     jointOrderInput.value = '';
     jointDescriptionInput.value = '';
+    if (jointRangeMinInput) {
+      jointRangeMinInput.value = '';
+    }
+    if (jointRangeMaxInput) {
+      jointRangeMaxInput.value = '';
+    }
     if (jointServoList) {
       jointServoList.innerHTML = '';
     }
@@ -3753,6 +3812,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderJointList();
     renderJointServoList(joint);
     setActiveJointServo(selectedJointServoId);
+    updateJointRangeSummary(joint);
     renderServoUsage();
     updateRichJsonOutput();
   };
@@ -3832,6 +3892,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const fallback = jointServoList.querySelector('input[type="checkbox"][data-servo-id]:checked');
           setActiveJointServo(fallback?.dataset.servoId || eventState.servos[0]?.id || null);
         }
+        updateJointRangeSummary();
       });
     }
 

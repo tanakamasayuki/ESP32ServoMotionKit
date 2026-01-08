@@ -456,6 +456,14 @@
                   <textarea rows="2" data-i18n-placeholder="common.form.description.placeholder"
                     placeholder="Joint for head yaw" id="joint-description-input"></textarea>
                 </label>
+                <label class="form-field">
+                  <span data-i18n="joint.form.rangeMin">Servo min (deg)</span>
+                  <input type="number" id="joint-range-min-input" readonly aria-readonly="true" />
+                </label>
+                <label class="form-field">
+                  <span data-i18n="joint.form.rangeMax">Servo max (deg)</span>
+                  <input type="number" id="joint-range-max-input" readonly aria-readonly="true" />
+                </label>
               </div>
               <p class="muted" data-i18n="joint.targets.note">Select target servos.</p>
               <div class="mini-list" id="joint-servo-list"></div>

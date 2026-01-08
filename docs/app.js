@@ -282,6 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'event.form.number': 'Event number',
       'event.form.number.duplicate': 'Event number must be unique.',
       'event.delete.confirm': 'Delete "{id}"?',
+      'event.delete.inUse': 'This event is used by poses or sequences.',
       'event.card.usage': 'Event Usage',
       'event.usage.poseList': 'Pose usage',
       'event.usage.poseStart': 'Pose start',
@@ -579,6 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'event.form.number': 'イベント番号',
       'event.form.number.duplicate': 'イベント番号が重複しています。',
       'event.delete.confirm': '「{id}」を削除しますか？',
+      'event.delete.inUse': 'このイベントはポーズまたはシーケンスで使用中です。',
       'event.card.usage': '呼び出し元',
       'event.usage.poseList': 'ポーズ一覧',
       'event.usage.poseStart': 'ポーズ開始',
@@ -729,6 +731,35 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       sequenceUsage.forEach((item) => addItem(item.name, item.label));
     }
+  };
+
+  const getEventUsageCount = (eventId) => {
+    let count = 0;
+    eventState.poses.forEach((pose) => {
+      const triggers = pose.triggers || {};
+      if (triggers.start === eventId) {
+        count += 1;
+      }
+      if (triggers.reached === eventId) {
+        count += 1;
+      }
+      if (triggers.end === eventId) {
+        count += 1;
+      }
+      if (triggers.overrun === eventId) {
+        count += 1;
+      }
+    });
+    eventState.sequences.forEach((sequence) => {
+      const triggers = sequence.triggers || {};
+      if (triggers.start === eventId) {
+        count += 1;
+      }
+      if (triggers.end === eventId) {
+        count += 1;
+      }
+    });
+    return count;
   };
 
   const updateLocalizedLists = () => {
@@ -5355,6 +5386,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const deleteEvent = () => {
     if (!selectedEventId) {
+      return;
+    }
+    if (getEventUsageCount(selectedEventId) > 0) {
+      window.alert(getTranslation('event.delete.inUse'));
       return;
     }
     const target = eventState.events.find((item) => item.id === selectedEventId);

@@ -257,7 +257,7 @@
               <div class="list-header">
                 <h3 data-i18n="servo.card.list">Servo List</h3>
                 <div class="list-actions">
-                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-outline" type="button" data-i18n="common.add" id="servo-add">Add</button>
                 </div>
               </div>
               <label class="form-field list-filter">
@@ -270,7 +270,7 @@
                   </button>
                 </div>
               </label>
-              <ul class="list">
+              <ul class="list" id="servo-list">
                 <li class="list-item is-active">
                   <span>servo_front_left</span>
                   <span class="chip">PWM</span>
@@ -290,38 +290,43 @@
               <div class="form-grid">
                 <label class="form-field">
                   <span data-i18n="servo.form.id">Servo ID</span>
-                  <input type="text" data-i18n-placeholder="servo.form.id.placeholder" placeholder="servo_front_left" />
+                  <input type="text" data-i18n-placeholder="servo.form.id.placeholder" placeholder="servo_front_left"
+                    id="servo-id-input" />
+                  <span class="field-hint field-error" data-i18n="servo.form.id.duplicate" id="servo-id-error" hidden>
+                    Servo ID must be unique.
+                  </span>
                 </label>
                 <label class="form-field">
                   <span data-i18n="servo.form.displayOrder">Display order</span>
-                  <input type="number" value="10" min="0" data-i18n-placeholder="servo.form.displayOrder.placeholder" placeholder="10" />
+                  <input type="number" value="10" min="0" data-i18n-placeholder="servo.form.displayOrder.placeholder"
+                    placeholder="10" id="servo-order-input" />
                 </label>
                 <label class="form-field form-field--full">
                   <span data-i18n="servo.form.description">Description</span>
                   <textarea rows="2" data-i18n-placeholder="servo.form.description.placeholder"
-                    placeholder="Left shoulder servo for v1 prototype"></textarea>
+                    placeholder="Left shoulder servo for v1 prototype" id="servo-description-input"></textarea>
                 </label>
                 <label class="form-field">
                   <span data-i18n="servo.form.type">Type</span>
-                  <select data-servo-type-select>
+                  <select data-servo-type-select id="servo-type-select">
                     <option value="pwm" data-i18n="servo.form.type.pwm">PWM</option>
                     <option value="ttl" data-i18n="servo.form.type.ttl">TTL/Bus</option>
                   </select>
                 </label>
                 <label class="form-field">
                   <span data-i18n="servo.form.mode">Mode</span>
-                  <select>
+                  <select id="servo-mode-select">
                     <option value="position" data-i18n="servo.form.mode.position">Position (180°)</option>
                     <option value="wheel" data-i18n="servo.form.mode.wheel">Wheel (360°)</option>
                   </select>
                 </label>
                 <label class="form-field">
                   <span data-i18n="servo.form.previewOffset">Preview offset (deg)</span>
-                  <input type="number" value="0" data-preview-offset-input />
+                  <input type="number" value="0" data-preview-offset-input id="servo-preview-offset-input" />
                 </label>
                 <label class="form-field">
                   <span data-i18n="servo.form.previewDirection">Preview direction</span>
-                  <select data-preview-direction-select>
+                  <select data-preview-direction-select id="servo-preview-direction-select">
                     <option value="cw" data-i18n="servo.form.previewDirection.cw">Clockwise</option>
                     <option value="ccw" data-i18n="servo.form.previewDirection.ccw">Counterclockwise</option>
                   </select>
@@ -331,43 +336,43 @@
                 <div class="form-grid">
                   <label class="form-field">
                     <span data-i18n="servo.form.pin">PWM Pin</span>
-                    <input type="number" value="18" min="0" />
+                    <input type="number" value="18" min="0" id="servo-pwm-pin-input" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.pwm.freq">PWM Frequency (Hz)</span>
-                    <input type="number" value="50" min="1" />
+                    <input type="number" value="50" min="1" id="servo-pwm-freq-input" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.pwm.pulseMin">Pulse min (us)</span>
-                    <input type="number" value="500" min="0" />
+                    <input type="number" value="500" min="0" id="servo-pwm-pulse-min-input" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.pwm.pulseMax">Pulse max (us)</span>
-                    <input type="number" value="2400" min="0" />
+                    <input type="number" value="2400" min="0" id="servo-pwm-pulse-max-input" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.pwm.center">Pulse center (us)</span>
-                    <input type="number" value="1500" min="0" />
+                    <input type="number" value="1500" min="0" id="servo-pwm-center-input" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.pwm.deadband">Deadband (us)</span>
-                    <input type="number" value="5" min="0" />
+                    <input type="number" value="5" min="0" id="servo-pwm-deadband-input" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.pwm.speed">Speed limit (deg/s)</span>
-                    <input type="number" value="300" min="0" />
+                    <input type="number" value="300" min="0" id="servo-pwm-speed-input" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.pwm.angleMin">Angle min (deg)</span>
-                    <input type="number" value="0" min="-180" max="180" />
+                    <input type="number" value="0" min="-180" max="180" id="servo-pwm-angle-min-input" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.pwm.angleMax">Angle max (deg)</span>
-                    <input type="number" value="180" min="-180" max="180" />
+                    <input type="number" value="180" min="-180" max="180" id="servo-pwm-angle-max-input" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.pwm.offset">Offset (deg)</span>
-                    <input type="number" value="0" />
+                    <input type="number" value="0" id="servo-pwm-offset-input" />
                   </label>
                 </div>
               </div>
@@ -378,18 +383,22 @@
                 <div class="form-grid">
                   <label class="form-field">
                     <span data-i18n="servo.form.ttl.address">Bus address</span>
-                    <input type="number" value="1" min="0" disabled />
+                    <input type="number" value="1" min="0" id="servo-ttl-address-input" />
                   </label>
                   <label class="form-field">
                     <span data-i18n="servo.form.ttl.bus">UART bus</span>
-                    <input type="text" value="UART0" disabled />
+                    <input type="text" value="UART0" id="servo-ttl-bus-input" />
                   </label>
                 </div>
               </div>
               <div class="card-actions">
-                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-                <button class="btn btn-outline" type="button" data-i18n="common.duplicate">Duplicate</button>
-                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+                <button class="btn btn-secondary" type="button" data-i18n="common.save" id="servo-save">Save</button>
+                <button class="btn btn-outline" type="button" data-i18n="common.duplicate" id="servo-duplicate">
+                  Duplicate
+                </button>
+                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected" id="servo-delete">
+                  Delete selected
+                </button>
               </div>
             </article>
             <article class="card card--accent panel-pane panel-pane--aux" style="--delay: 180ms;">

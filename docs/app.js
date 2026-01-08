@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.form.description': 'Description',
       'common.form.description.placeholder': 'Notes for this item',
       'project.import.invalid': 'Invalid JSON file.',
+      'servo.form.id.duplicate': 'Servo ID must be unique.',
       'servo.title': 'Servo Settings',
       'servo.desc': 'Define range, neutral, and safety limits per servo.',
       'servo.card.list': 'Servo List',
@@ -384,6 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.form.description': '説明',
       'common.form.description.placeholder': 'この項目の説明',
       'project.import.invalid': 'JSONファイルを読み込めませんでした。',
+      'servo.form.id.duplicate': 'サーボ ID が重複しています。',
       'servo.title': 'サーボ設定',
       'servo.desc': 'サーボごとの範囲、ニュートラル、安全リミットを設定します。',
       'servo.card.list': 'サーボ一覧',
@@ -1651,6 +1653,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const eventDescriptionInput = document.getElementById('event-description-input');
   const dataRichOutput = document.getElementById('data-rich-output');
   const eventFilterInput = document.getElementById('event-filter-input');
+  const servoList = document.getElementById('servo-list');
+  const servoAddButton = document.getElementById('servo-add');
+  const servoSaveButton = document.getElementById('servo-save');
+  const servoDuplicateButton = document.getElementById('servo-duplicate');
+  const servoDeleteButton = document.getElementById('servo-delete');
+  const servoIdInput = document.getElementById('servo-id-input');
+  const servoIdError = document.getElementById('servo-id-error');
+  const servoOrderInput = document.getElementById('servo-order-input');
+  const servoDescriptionInput = document.getElementById('servo-description-input');
+  const servoTypeSelect = document.getElementById('servo-type-select');
+  const servoModeSelect = document.getElementById('servo-mode-select');
+  const servoFilterInput = document.getElementById('servo-filter-input');
+  const servoPwmPinInput = document.getElementById('servo-pwm-pin-input');
+  const servoPwmFreqInput = document.getElementById('servo-pwm-freq-input');
+  const servoPwmPulseMinInput = document.getElementById('servo-pwm-pulse-min-input');
+  const servoPwmPulseMaxInput = document.getElementById('servo-pwm-pulse-max-input');
+  const servoPwmCenterInput = document.getElementById('servo-pwm-center-input');
+  const servoPwmDeadbandInput = document.getElementById('servo-pwm-deadband-input');
+  const servoPwmSpeedInput = document.getElementById('servo-pwm-speed-input');
+  const servoPwmAngleMinInput = document.getElementById('servo-pwm-angle-min-input');
+  const servoPwmAngleMaxInput = document.getElementById('servo-pwm-angle-max-input');
+  const servoPwmOffsetInput = document.getElementById('servo-pwm-offset-input');
+  const servoTtlAddressInput = document.getElementById('servo-ttl-address-input');
+  const servoTtlBusInput = document.getElementById('servo-ttl-bus-input');
   const easingList = document.getElementById('easing-list');
   const easingAddButton = document.getElementById('easing-add');
   const easingIdInput = document.getElementById('easing-id-input');
@@ -1670,6 +1696,83 @@ document.addEventListener('DOMContentLoaded', () => {
     events: [
       { id: 'event_sound_a', number: 100, displayOrder: 10, description: 'Play sound A' },
       { id: 'event_led_flash', number: 210, displayOrder: 20, description: 'Flash LED' }
+    ],
+    servos: [
+      {
+        id: 'servo_front_left',
+        type: 'pwm',
+        mode: 'position',
+        displayOrder: 10,
+        description: 'Front left servo',
+        previewOffset: 0,
+        previewDirection: 'cw',
+        pwm: {
+          pin: 18,
+          freq: 50,
+          pulseMin: 500,
+          pulseMax: 2400,
+          center: 1500,
+          deadband: 5,
+          speed: 300,
+          angleMin: 0,
+          angleMax: 180,
+          offset: 0
+        },
+        ttl: {
+          address: 1,
+          bus: 'UART0'
+        }
+      },
+      {
+        id: 'servo_front_right',
+        type: 'pwm',
+        mode: 'position',
+        displayOrder: 20,
+        description: 'Front right servo',
+        previewOffset: 0,
+        previewDirection: 'cw',
+        pwm: {
+          pin: 19,
+          freq: 50,
+          pulseMin: 500,
+          pulseMax: 2400,
+          center: 1500,
+          deadband: 5,
+          speed: 300,
+          angleMin: 0,
+          angleMax: 180,
+          offset: 0
+        },
+        ttl: {
+          address: 1,
+          bus: 'UART0'
+        }
+      },
+      {
+        id: 'servo_tail',
+        type: 'ttl',
+        mode: 'position',
+        displayOrder: 30,
+        description: 'Tail servo',
+        previewOffset: 0,
+        previewDirection: 'cw',
+        pwm: {
+          pin: 18,
+          freq: 50,
+          pulseMin: 500,
+          pulseMax: 2400,
+          center: 1500,
+          deadband: 5,
+          speed: 300,
+          angleMin: 0,
+          angleMax: 180,
+          offset: 0
+        },
+        ttl: {
+          address: 1,
+          bus: 'UART0'
+        }
+      }
     ],
     easings: [
       { id: 'e_linear', type: 'linear', kind: 'preset', displayOrder: 10, description: '', params: [] },
@@ -1694,11 +1797,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let eventState = { ...defaultState };
   let selectedEventId = null;
+  let selectedServoId = null;
+  let hasLoadedState = false;
 
   const loadEventState = () => {
+    if (hasLoadedState) {
+      return;
+    }
     try {
       const raw = localStorage.getItem(eventStorageKey);
       if (!raw) {
+        hasLoadedState = true;
         return;
       }
       const parsed = JSON.parse(raw);
@@ -1706,11 +1815,14 @@ document.addEventListener('DOMContentLoaded', () => {
         eventState = {
           meta: parsed.meta || defaultState.meta,
           events: Array.isArray(parsed.events) ? parsed.events : defaultState.events,
-          easings: Array.isArray(parsed.easings) ? parsed.easings : defaultState.easings
+          easings: Array.isArray(parsed.easings) ? parsed.easings : defaultState.easings,
+          servos: Array.isArray(parsed.servos) ? parsed.servos : defaultState.servos
         };
       }
+      hasLoadedState = true;
     } catch (error) {
       // Ignore malformed storage.
+      hasLoadedState = true;
     }
   };
 
@@ -1723,6 +1835,48 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const buildRichJson = () => {
+    const servos = eventState.servos.map((servo) => {
+      const item = {
+        id: servo.id,
+        type: servo.type,
+        mode: servo.mode
+      };
+      if (servo.displayOrder !== null && servo.displayOrder !== undefined && servo.displayOrder !== '') {
+        item.displayOrder = servo.displayOrder;
+      }
+      if (servo.description) {
+        item.description = servo.description;
+      }
+      if (servo.previewOffset !== null && servo.previewOffset !== undefined) {
+        item.previewOffset = servo.previewOffset;
+      }
+      if (servo.previewDirection) {
+        item.previewDirection = servo.previewDirection;
+      }
+      if (servo.type === 'pwm') {
+        if (servo.pwm?.pin !== undefined && servo.pwm?.pin !== null) {
+          item.pin = servo.pwm.pin;
+        }
+        item.pwm = {
+          freq: servo.pwm?.freq,
+          pulseMin: servo.pwm?.pulseMin,
+          pulseMax: servo.pwm?.pulseMax,
+          center: servo.pwm?.center,
+          deadband: servo.pwm?.deadband,
+          speed: servo.pwm?.speed,
+          angleMin: servo.pwm?.angleMin,
+          angleMax: servo.pwm?.angleMax,
+          offset: servo.pwm?.offset
+        };
+      }
+      if (servo.type === 'ttl') {
+        item.ttl = {
+          address: servo.ttl?.address,
+          bus: servo.ttl?.bus
+        };
+      }
+      return item;
+    });
     const events = eventState.events.map((event) => {
       const item = {
         id: event.id,
@@ -1759,9 +1913,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     return {
       meta: eventState.meta,
+      servos,
       events,
       easings
     };
+  };
+
+  const normalizeServoNumber = (value, fallback) => {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : fallback;
   };
 
   const normalizeEasingParams = (type, params) => {
@@ -1775,6 +1935,43 @@ document.addEventListener('DOMContentLoaded', () => {
     return keys.map((_, index) => {
       const value = params[`param${index}`];
       return Math.max(0, Math.min(255, Number(value) || 0));
+    });
+  };
+
+  const normalizeServos = (servos) => {
+    if (!Array.isArray(servos)) {
+      return [];
+    }
+    return servos.map((item) => {
+      const type = item?.type === 'ttl' ? 'ttl' : 'pwm';
+      const mode = item?.mode === 'wheel' ? 'wheel' : 'position';
+      const pwmSource = item?.pwm || {};
+      const ttlSource = item?.ttl || {};
+      return {
+        id: item?.id || 'servo_new',
+        type,
+        mode,
+        displayOrder: item?.displayOrder ?? null,
+        description: item?.description || '',
+        previewOffset: normalizeServoNumber(item?.previewOffset, 0),
+        previewDirection: item?.previewDirection === 'ccw' ? 'ccw' : 'cw',
+        pwm: {
+          pin: normalizeServoNumber(item?.pin ?? pwmSource.pin, 18),
+          freq: normalizeServoNumber(pwmSource.freq, 50),
+          pulseMin: normalizeServoNumber(pwmSource.pulseMin, 500),
+          pulseMax: normalizeServoNumber(pwmSource.pulseMax, 2400),
+          center: normalizeServoNumber(pwmSource.center, 1500),
+          deadband: normalizeServoNumber(pwmSource.deadband, 5),
+          speed: normalizeServoNumber(pwmSource.speed, 300),
+          angleMin: normalizeServoNumber(pwmSource.angleMin, 0),
+          angleMax: normalizeServoNumber(pwmSource.angleMax, 180),
+          offset: normalizeServoNumber(pwmSource.offset, 0)
+        },
+        ttl: {
+          address: normalizeServoNumber(ttlSource.address ?? item?.address, 1),
+          bus: ttlSource.bus ?? item?.bus ?? 'UART0'
+        }
+      };
     });
   };
 
@@ -1855,6 +2052,406 @@ document.addEventListener('DOMContentLoaded', () => {
     dataRichOutput.value = JSON.stringify(richJson, null, 2);
   };
 
+  const clearServoIdError = () => {
+    if (servoIdError) {
+      servoIdError.hidden = true;
+    }
+    if (servoIdInput) {
+      servoIdInput.classList.remove('is-error');
+    }
+  };
+
+  const showServoIdError = () => {
+    if (servoIdError) {
+      servoIdError.hidden = false;
+    }
+    if (servoIdInput) {
+      servoIdInput.classList.add('is-error');
+    }
+  };
+
+  const hasDuplicateServoId = (id, currentId) => {
+    return eventState.servos.some((item) => item.id === id && item.id !== currentId);
+  };
+
+  const renderServoList = () => {
+    if (!servoList) {
+      return;
+    }
+    servoList.innerHTML = '';
+    const filter = servoFilterInput?.value?.trim().toLowerCase() || '';
+    eventState.servos.forEach((servo) => {
+      if (filter && !servo.id.toLowerCase().includes(filter)) {
+        return;
+      }
+      const item = document.createElement('li');
+      item.className = 'list-item';
+      item.dataset.servoId = servo.id;
+      if (servo.id === selectedServoId) {
+        item.classList.add('is-active');
+      }
+      const name = document.createElement('span');
+      name.textContent = servo.id;
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = servo.type === 'ttl' ? 'TTL' : 'PWM';
+      item.appendChild(name);
+      item.appendChild(chip);
+      servoList.appendChild(item);
+    });
+  };
+
+  const populateServoEditor = (servo) => {
+    if (!servo || !servoIdInput || !servoOrderInput || !servoDescriptionInput || !servoTypeSelect || !servoModeSelect) {
+      return;
+    }
+    servoIdInput.value = servo.id ?? '';
+    servoOrderInput.value = servo.displayOrder ?? '';
+    servoDescriptionInput.value = servo.description ?? '';
+    servoTypeSelect.value = servo.type || 'pwm';
+    servoTypeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    servoModeSelect.value = servo.mode || 'position';
+    if (servoPreviewOffsetInput) {
+      servoPreviewOffsetInput.value = servo.previewOffset ?? 0;
+    }
+    if (servoPreviewDirectionSelect) {
+      servoPreviewDirectionSelect.value = servo.previewDirection || 'cw';
+    }
+    if (servoPwmPinInput) {
+      servoPwmPinInput.value = servo.pwm?.pin ?? 18;
+    }
+    if (servoPwmFreqInput) {
+      servoPwmFreqInput.value = servo.pwm?.freq ?? 50;
+    }
+    if (servoPwmPulseMinInput) {
+      servoPwmPulseMinInput.value = servo.pwm?.pulseMin ?? 500;
+    }
+    if (servoPwmPulseMaxInput) {
+      servoPwmPulseMaxInput.value = servo.pwm?.pulseMax ?? 2400;
+    }
+    if (servoPwmCenterInput) {
+      servoPwmCenterInput.value = servo.pwm?.center ?? 1500;
+    }
+    if (servoPwmDeadbandInput) {
+      servoPwmDeadbandInput.value = servo.pwm?.deadband ?? 5;
+    }
+    if (servoPwmSpeedInput) {
+      servoPwmSpeedInput.value = servo.pwm?.speed ?? 300;
+    }
+    if (servoPwmAngleMinInput) {
+      servoPwmAngleMinInput.value = servo.pwm?.angleMin ?? 0;
+    }
+    if (servoPwmAngleMaxInput) {
+      servoPwmAngleMaxInput.value = servo.pwm?.angleMax ?? 180;
+    }
+    if (servoPwmOffsetInput) {
+      servoPwmOffsetInput.value = servo.pwm?.offset ?? 0;
+    }
+    if (servoTtlAddressInput) {
+      servoTtlAddressInput.value = servo.ttl?.address ?? 1;
+    }
+    if (servoTtlBusInput) {
+      servoTtlBusInput.value = servo.ttl?.bus ?? 'UART0';
+    }
+    clearServoIdError();
+    if (servoPreviewOffsetInput) {
+      servoPreviewOffsetInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (servoPreviewDirectionSelect) {
+      servoPreviewDirectionSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  };
+
+  const selectServoById = (servoId) => {
+    const servo = eventState.servos.find((item) => item.id === servoId) || eventState.servos[0];
+    if (!servo) {
+      return;
+    }
+    selectedServoId = servo.id;
+    renderServoList();
+    populateServoEditor(servo);
+  };
+
+  const ensureServoSelection = () => {
+    if (!selectedServoId && eventState.servos.length > 0) {
+      selectedServoId = eventState.servos[0].id;
+    }
+  };
+
+  const sortServos = () => {
+    eventState.servos.sort((a, b) => {
+      const orderA = a.displayOrder === null || a.displayOrder === undefined ? Number.POSITIVE_INFINITY : a.displayOrder;
+      const orderB = b.displayOrder === null || b.displayOrder === undefined ? Number.POSITIVE_INFINITY : b.displayOrder;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      return String(a.id).localeCompare(String(b.id));
+    });
+  };
+
+  const createDefaultServo = (overrides = {}) => ({
+    id: 'servo_new',
+    type: 'pwm',
+    mode: 'position',
+    displayOrder: 10,
+    description: '',
+    previewOffset: 0,
+    previewDirection: 'cw',
+    pwm: {
+      pin: 18,
+      freq: 50,
+      pulseMin: 500,
+      pulseMax: 2400,
+      center: 1500,
+      deadband: 5,
+      speed: 300,
+      angleMin: 0,
+      angleMax: 180,
+      offset: 0
+    },
+    ttl: {
+      address: 1,
+      bus: 'UART0'
+    },
+    ...overrides
+  });
+
+  const addServo = () => {
+    const base = 'servo_new';
+    let index = eventState.servos.length + 1;
+    let id = `${base}_${index}`;
+    while (eventState.servos.some((servo) => servo.id === id)) {
+      index += 1;
+      id = `${base}_${index}`;
+    }
+    const maxOrder = eventState.servos.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
+    const servo = createDefaultServo({ id, displayOrder: maxOrder + 10 });
+    eventState.servos.push(servo);
+    selectedServoId = servo.id;
+    sortServos();
+    persistEventState();
+    renderServoList();
+    populateServoEditor(servo);
+    updateRichJsonOutput();
+  };
+
+  const clearServoEditor = () => {
+    if (!servoIdInput || !servoOrderInput || !servoDescriptionInput || !servoTypeSelect || !servoModeSelect) {
+      return;
+    }
+    servoIdInput.value = '';
+    servoOrderInput.value = '';
+    servoDescriptionInput.value = '';
+    servoTypeSelect.value = 'pwm';
+    servoTypeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    servoModeSelect.value = 'position';
+    if (servoPreviewOffsetInput) {
+      servoPreviewOffsetInput.value = 0;
+    }
+    if (servoPreviewDirectionSelect) {
+      servoPreviewDirectionSelect.value = 'cw';
+    }
+    if (servoPwmPinInput) {
+      servoPwmPinInput.value = 18;
+    }
+    if (servoPwmFreqInput) {
+      servoPwmFreqInput.value = 50;
+    }
+    if (servoPwmPulseMinInput) {
+      servoPwmPulseMinInput.value = 500;
+    }
+    if (servoPwmPulseMaxInput) {
+      servoPwmPulseMaxInput.value = 2400;
+    }
+    if (servoPwmCenterInput) {
+      servoPwmCenterInput.value = 1500;
+    }
+    if (servoPwmDeadbandInput) {
+      servoPwmDeadbandInput.value = 5;
+    }
+    if (servoPwmSpeedInput) {
+      servoPwmSpeedInput.value = 300;
+    }
+    if (servoPwmAngleMinInput) {
+      servoPwmAngleMinInput.value = 0;
+    }
+    if (servoPwmAngleMaxInput) {
+      servoPwmAngleMaxInput.value = 180;
+    }
+    if (servoPwmOffsetInput) {
+      servoPwmOffsetInput.value = 0;
+    }
+    if (servoTtlAddressInput) {
+      servoTtlAddressInput.value = 1;
+    }
+    if (servoTtlBusInput) {
+      servoTtlBusInput.value = 'UART0';
+    }
+    clearServoIdError();
+  };
+
+  const saveServo = () => {
+    if (!selectedServoId) {
+      return;
+    }
+    const servo = eventState.servos.find((item) => item.id === selectedServoId);
+    if (!servo) {
+      return;
+    }
+    const nextId = (servoIdInput?.value || '').trim() || servo.id;
+    if (hasDuplicateServoId(nextId, servo.id)) {
+      showServoIdError();
+      return;
+    }
+    servo.id = nextId;
+    const orderRaw = servoOrderInput?.value ?? '';
+    servo.displayOrder = orderRaw === '' ? null : parseNumber(orderRaw, servo.displayOrder ?? null);
+    servo.description = (servoDescriptionInput?.value || '').trim();
+    servo.type = servoTypeSelect?.value === 'ttl' ? 'ttl' : 'pwm';
+    servo.mode = servoModeSelect?.value === 'wheel' ? 'wheel' : 'position';
+    servo.previewOffset = parseNumber(servoPreviewOffsetInput?.value, servo.previewOffset ?? 0);
+    servo.previewDirection = servoPreviewDirectionSelect?.value === 'ccw' ? 'ccw' : 'cw';
+    servo.pwm = {
+      pin: parseNumber(servoPwmPinInput?.value, servo.pwm?.pin ?? 18),
+      freq: parseNumber(servoPwmFreqInput?.value, servo.pwm?.freq ?? 50),
+      pulseMin: parseNumber(servoPwmPulseMinInput?.value, servo.pwm?.pulseMin ?? 500),
+      pulseMax: parseNumber(servoPwmPulseMaxInput?.value, servo.pwm?.pulseMax ?? 2400),
+      center: parseNumber(servoPwmCenterInput?.value, servo.pwm?.center ?? 1500),
+      deadband: parseNumber(servoPwmDeadbandInput?.value, servo.pwm?.deadband ?? 5),
+      speed: parseNumber(servoPwmSpeedInput?.value, servo.pwm?.speed ?? 300),
+      angleMin: parseNumber(servoPwmAngleMinInput?.value, servo.pwm?.angleMin ?? 0),
+      angleMax: parseNumber(servoPwmAngleMaxInput?.value, servo.pwm?.angleMax ?? 180),
+      offset: parseNumber(servoPwmOffsetInput?.value, servo.pwm?.offset ?? 0)
+    };
+    servo.ttl = {
+      address: parseNumber(servoTtlAddressInput?.value, servo.ttl?.address ?? 1),
+      bus: servoTtlBusInput?.value || servo.ttl?.bus || 'UART0'
+    };
+    selectedServoId = servo.id;
+    clearServoIdError();
+    sortServos();
+    persistEventState();
+    renderServoList();
+    populateServoEditor(servo);
+    updateRichJsonOutput();
+  };
+
+  const duplicateServo = () => {
+    if (!selectedServoId) {
+      return;
+    }
+    const source = eventState.servos.find((item) => item.id === selectedServoId);
+    if (!source) {
+      return;
+    }
+    const maxOrder = eventState.servos.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
+    let index = 1;
+    let id = `${source.id}_copy`;
+    while (eventState.servos.some((item) => item.id === id)) {
+      index += 1;
+      id = `${source.id}_copy${index}`;
+    }
+    const copy = {
+      ...source,
+      id,
+      displayOrder: maxOrder + 10,
+      pwm: { ...source.pwm },
+      ttl: { ...source.ttl }
+    };
+    eventState.servos.push(copy);
+    selectedServoId = id;
+    sortServos();
+    persistEventState();
+    renderServoList();
+    populateServoEditor(copy);
+    updateRichJsonOutput();
+  };
+
+  const deleteServo = () => {
+    if (!selectedServoId) {
+      return;
+    }
+    const index = eventState.servos.findIndex((item) => item.id === selectedServoId);
+    if (index === -1) {
+      return;
+    }
+    eventState.servos.splice(index, 1);
+    selectedServoId = eventState.servos[index]?.id || eventState.servos[index - 1]?.id || null;
+    persistEventState();
+    renderServoList();
+    if (selectedServoId) {
+      selectServoById(selectedServoId);
+    } else {
+      clearServoEditor();
+      updateRichJsonOutput();
+    }
+  };
+
+  const initServoEditor = () => {
+    if (!servoList || !servoAddButton) {
+      return;
+    }
+    loadEventState();
+    eventState.servos = normalizeServos(eventState.servos);
+    ensureServoSelection();
+    sortServos();
+    renderServoList();
+    if (selectedServoId) {
+      selectServoById(selectedServoId);
+    } else {
+      clearServoEditor();
+    }
+    updateRichJsonOutput();
+
+    servoList.addEventListener('click', (event) => {
+      const item = event.target.closest('.list-item');
+      if (!item || !servoList.contains(item)) {
+        return;
+      }
+      selectServoById(item.dataset.servoId);
+    });
+
+    servoAddButton.addEventListener('click', () => {
+      addServo();
+    });
+
+    if (servoSaveButton) {
+      servoSaveButton.addEventListener('click', () => {
+        saveServo();
+      });
+    }
+
+    if (servoDuplicateButton) {
+      servoDuplicateButton.addEventListener('click', () => {
+        duplicateServo();
+      });
+    }
+
+    if (servoDeleteButton) {
+      servoDeleteButton.addEventListener('click', () => {
+        deleteServo();
+      });
+    }
+
+    if (servoIdInput) {
+      servoIdInput.addEventListener('input', () => {
+        clearServoIdError();
+      });
+    }
+
+    if (servoFilterInput) {
+      servoFilterInput.addEventListener('input', () => {
+        renderServoList();
+      });
+    }
+  };
+
   const clearEasingEditor = () => {
     if (!easingIdInput || !easingOrderInput || !easingDescriptionInput || !easingTypeSelect) {
       return;
@@ -1877,15 +2474,19 @@ document.addEventListener('DOMContentLoaded', () => {
     eventState = {
       meta: next.meta || defaultState.meta,
       events: Array.isArray(next.events) ? next.events : [],
-      easings: normalizeEasings(next.easings)
+      easings: normalizeEasings(next.easings),
+      servos: normalizeServos(next.servos)
     };
     sortEvents();
     sortEasings();
+    sortServos();
     persistEventState();
     selectedEventId = eventState.events[0]?.id || null;
     selectedEasingId = eventState.easings[0]?.id || null;
+    selectedServoId = eventState.servos[0]?.id || null;
     renderEventList();
     renderEasingList();
+    renderServoList();
     if (selectedEventId) {
       selectEventById(selectedEventId);
     } else {
@@ -1895,6 +2496,11 @@ document.addEventListener('DOMContentLoaded', () => {
       selectEasingById(selectedEasingId);
     } else {
       clearEasingEditor();
+    }
+    if (selectedServoId) {
+      selectServoById(selectedServoId);
+    } else {
+      clearServoEditor();
     }
     updateRichJsonOutput();
   };
@@ -2515,6 +3121,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initJointGroupSelection();
   initPoseAxisSelection();
   initEasingTypeToggle();
+  initServoEditor();
   initEventEditor();
   initEasingEditor();
   initProjectImportExport();

@@ -195,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'pose.control.axisDefault': 'Use base easing',
       'pose.control.go': 'Move to target',
       'pose.control.note': 'Move to the base pose first, then preview using the move duration and easing settings.',
+      'pose.usage.title': 'Usage',
       'pose.triggers.title': 'Trigger Settings',
       'pose.triggers.start': 'Pose start',
       'pose.triggers.reached': 'Pose reached',
@@ -206,6 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'pose.triggers.note': 'Pose reached triggers when the sequence movement completes. Pose end triggers after the sequence hold time.',
       'pose.triggers.overrun.note': 'Time overrun triggers during the move into this pose when speed limits extend the move beyond the specified duration.',
       'pose.form.id.duplicate': 'Pose ID must be unique.',
+      'pose.delete.confirm': 'Delete "{id}"?',
+      'pose.delete.inUse': 'This pose is used by sequences.',
       'sequence.title': 'Sequence Settings',
       'sequence.desc': 'Compose steps, triggers, and reusable sequences for header export.',
       'sequence.card.list': 'Sequence List',
@@ -498,6 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'pose.control.axisDefault': '基本を使う',
       'pose.control.go': 'ターゲットへ移動',
       'pose.control.note': '基本ポーズに最短で移動してから、移動時間とイージング設定を利用して移動の動作確認ができます。',
+      'pose.usage.title': '利用元',
       'pose.triggers.title': 'トリガー設定',
       'pose.triggers.start': 'ポーズ開始',
       'pose.triggers.reached': 'ポーズ到達',
@@ -509,6 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'pose.triggers.note': 'ポーズ到達はシーケンスの移動が完了したとき、ポーズ終了はシーケンスのホールド時間が経過したときに発火します。',
       'pose.triggers.overrun.note': '時間延長時はこのポーズへの移動中に、速度制限に抵触して移動時間が指定を超過した場合に発火します。',
       'pose.form.id.duplicate': 'ポーズ ID が重複しています。',
+      'pose.delete.confirm': '「{id}」を削除しますか？',
+      'pose.delete.inUse': 'このポーズはシーケンスで使用中です。',
       'sequence.title': 'シーケンス設定',
       'sequence.desc': 'ステップ/トリガー/再利用シーケンスを構成し、ヘッダ出力に反映します。',
       'sequence.card.list': 'シーケンス一覧',
@@ -823,6 +829,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const renderPoseUsage = () => {
+    if (!poseUsageList) {
+      return;
+    }
+    poseUsageList.innerHTML = '';
+    if (!selectedPoseId) {
+      return;
+    }
+    const usage = eventState.sequences
+      .filter((sequence) => (sequence.steps || []).some((step) => step.type === 'pose' && step.targetId === selectedPoseId))
+      .map((sequence) => sequence.id);
+    if (usage.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = '—';
+      empty.appendChild(label);
+      poseUsageList.appendChild(empty);
+      return;
+    }
+    usage.forEach((name) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      const key = document.createElement('span');
+      key.className = 'mini-k';
+      key.textContent = name;
+      row.appendChild(key);
+      poseUsageList.appendChild(row);
+    });
+  };
+
   const getSequenceUsageCount = (sequenceId) => {
     let count = 0;
     eventState.sequences.forEach((sequence) => {
@@ -830,6 +868,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       if ((sequence.steps || []).some((step) => step.type === 'sequence' && step.targetId === sequenceId)) {
+        count += 1;
+      }
+    });
+    return count;
+  };
+
+  const getPoseUsageCount = (poseId) => {
+    let count = 0;
+    eventState.sequences.forEach((sequence) => {
+      if ((sequence.steps || []).some((step) => step.type === 'pose' && step.targetId === poseId)) {
         count += 1;
       }
     });
@@ -897,6 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEventUsage?.();
     renderEasingUsage?.();
     renderSequenceUsage?.();
+    renderPoseUsage?.();
     updatePoseTriggerOptions?.();
     updatePoseControlOptions?.();
     renderPoseControlAxisEasing?.();
@@ -2023,6 +2072,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const poseControlDuration = document.getElementById('pose-control-duration');
   const poseControlEasing = document.getElementById('pose-control-easing');
   const poseControlAxisEasing = document.getElementById('pose-control-axis-easing');
+  const poseUsageList = document.getElementById('pose-usage-list');
   const sequenceList = document.getElementById('sequence-list');
   const sequenceAddButton = document.getElementById('sequence-add');
   const sequenceSaveButton = document.getElementById('sequence-save');
@@ -4225,6 +4275,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedPoseId = pose.id;
     renderPoseList();
     populatePoseEditor(pose);
+    renderPoseUsage();
   };
 
   const addPose = () => {
@@ -4372,6 +4423,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!selectedPoseId) {
       return;
     }
+    if (getPoseUsageCount(selectedPoseId) > 0) {
+      window.alert(getTranslation('pose.delete.inUse'));
+      return;
+    }
+    const label = selectedPoseId;
+    const confirmText = getTranslation('pose.delete.confirm').replace('{id}', label);
+    if (!window.confirm(confirmText)) {
+      return;
+    }
     const index = eventState.poses.findIndex((item) => item.id === selectedPoseId);
     if (index === -1) {
       return;
@@ -4391,6 +4451,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceControlOptions();
     renderSequenceAxisEasing();
     renderEventUsage();
+    renderPoseUsage();
   };
 
   const initPoseEditor = () => {
@@ -5025,6 +5086,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSequenceSteps(sequence);
     populateSequenceTargetEditor();
     renderEasingUsage();
+    renderPoseUsage();
   };
 
   const updateSequenceAxisEasing = (axisId, value) => {
@@ -5117,6 +5179,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sequenceStepAddButton.addEventListener('click', () => {
         addSequenceStep();
         renderSequenceUsage();
+        renderPoseUsage();
       });
     }
 
@@ -5124,6 +5187,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sequenceStepUpButton.addEventListener('click', () => {
         moveSequenceStep(-1);
         renderSequenceUsage();
+        renderPoseUsage();
       });
     }
 
@@ -5131,6 +5195,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sequenceStepDownButton.addEventListener('click', () => {
         moveSequenceStep(1);
         renderSequenceUsage();
+        renderPoseUsage();
       });
     }
 
@@ -5224,6 +5289,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEventUsage();
     renderEasingUsage();
     renderSequenceUsage();
+    renderPoseUsage();
+    renderPoseUsage();
     if (selectedEventId) {
       selectEventById(selectedEventId);
     } else {

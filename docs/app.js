@@ -200,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'pose.axis.title': 'Axis Settings',
       'pose.axis.id': 'Axis',
       'pose.axis.value': 'Angle (deg)',
+      'pose.axis.rangeNote': 'Range: {min}-{max} deg',
       'pose.control.title': 'Check motion',
       'pose.control.startPose': 'Start pose',
       'pose.control.duration': 'Move duration (ms)',
@@ -520,6 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'pose.axis.title': '軸別設定',
       'pose.axis.id': '軸',
       'pose.axis.value': '角度 (deg)',
+      'pose.axis.rangeNote': '設定可能範囲: {min}-{max} deg',
       'pose.control.title': '動作確認',
       'pose.control.startPose': '開始ポーズ',
       'pose.control.duration': '移動時間 (ms)',
@@ -1117,6 +1119,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pose) {
       updatePoseGroupOptions?.(pose.groupId);
       renderPoseAxisList?.(pose);
+      const axisId = selectedPoseAxisId || pose.jointTargets?.[0]?.jointId || getPoseJointIds?.(pose)?.[0] || null;
+      if (axisId) {
+        const target = pose.jointTargets?.find((item) => item.jointId === axisId);
+        setActivePoseAxis?.(axisId, target?.deg ?? 0, pose);
+      } else {
+        setActivePoseAxis?.(null, 0, pose);
+      }
     }
     const sequence = getSelectedSequence?.();
     if (sequence) {
@@ -2243,6 +2252,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const poseAxisTarget = document.getElementById('pose-axis-target');
   const poseAxisRange = document.getElementById('pose-axis-range');
   const poseAxisInput = document.getElementById('pose-axis-input');
+  const poseAxisRangeNote = document.getElementById('pose-axis-range-note');
   const poseTriggerStart = document.getElementById('pose-trigger-start');
   const poseTriggerReached = document.getElementById('pose-trigger-reached');
   const poseTriggerEnd = document.getElementById('pose-trigger-end');
@@ -4629,6 +4639,13 @@ document.addEventListener('DOMContentLoaded', () => {
           label.textContent = `${clamped}°`;
         }
       }
+    }
+    if (poseAxisRangeNote) {
+      const range = axisId ? getPoseAxisRange(axisId) : { min: 0, max: 360 };
+      poseAxisRangeNote.textContent = interpolate(getTranslation('pose.axis.rangeNote'), {
+        min: range.min,
+        max: range.max
+      });
     }
     if (poseAxisList) {
       poseAxisList.querySelectorAll('.mini-row').forEach((row) => {

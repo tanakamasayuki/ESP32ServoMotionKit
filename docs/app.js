@@ -238,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'sequence.control.startPose': 'Start pose',
       'sequence.control.go': 'Play sequence',
       'sequence.control.note': 'Move to the base pose first, then play the configured sequence from the beginning.',
+      'sequence.usage.title': 'Usage',
       'sequence.form.id.duplicate': 'Sequence ID must be unique.',
       'sequence.list.count': '{count} steps',
       'sequence.delete.confirm': 'Delete "{id}"?',
@@ -539,6 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'sequence.control.startPose': '開始ポーズ',
       'sequence.control.go': 'シーケンスを再生',
       'sequence.control.note': '基本ポーズに最短で移動してから、設定済みのシーケンスを最初から再生して動作確認ができます。',
+      'sequence.usage.title': '利用元',
       'sequence.form.id.duplicate': 'シーケンス ID が重複しています。',
       'sequence.list.count': '{count} ステップ',
       'sequence.delete.confirm': '「{id}」を削除しますか？',
@@ -786,6 +788,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const renderSequenceUsage = () => {
+    if (!sequenceUsageList) {
+      return;
+    }
+    sequenceUsageList.innerHTML = '';
+    if (!selectedSequenceId) {
+      return;
+    }
+    const usage = eventState.sequences
+      .filter((sequence) => sequence.id !== selectedSequenceId)
+      .filter((sequence) => (sequence.steps || []).some((step) => step.type === 'sequence' && step.targetId === selectedSequenceId))
+      .map((sequence) => sequence.id);
+    if (usage.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = '—';
+      empty.appendChild(label);
+      sequenceUsageList.appendChild(empty);
+      return;
+    }
+    usage.forEach((name) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      const key = document.createElement('span');
+      key.className = 'mini-k';
+      key.textContent = name;
+      row.appendChild(key);
+      sequenceUsageList.appendChild(row);
+    });
+  };
+
   const getEventUsageCount = (eventId) => {
     let count = 0;
     eventState.poses.forEach((pose) => {
@@ -846,6 +881,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEasingList?.();
     renderEventUsage?.();
     renderEasingUsage?.();
+    renderSequenceUsage?.();
     updatePoseTriggerOptions?.();
     updatePoseControlOptions?.();
     renderPoseControlAxisEasing?.();
@@ -1996,6 +2032,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sequenceControlStart = document.getElementById('sequence-control-start');
   const eventUsageList = document.getElementById('event-usage-list');
   const easingUsageList = document.getElementById('easing-usage-list');
+  const sequenceUsageList = document.getElementById('sequence-usage-list');
   const easingList = document.getElementById('easing-list');
   const easingAddButton = document.getElementById('easing-add');
   const easingIdInput = document.getElementById('easing-id-input');
@@ -4767,6 +4804,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedSequenceId = sequence.id;
     renderSequenceList();
     populateSequenceEditor(sequence);
+    renderSequenceUsage();
   };
 
   const addSequence = () => {
@@ -4799,6 +4837,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceTargetOptions();
     renderEventUsage();
     renderEasingUsage();
+    renderSequenceUsage();
     updateRichJsonOutput();
   };
 
@@ -4845,6 +4884,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceTargetOptions();
     renderEventUsage();
     renderEasingUsage();
+    renderSequenceUsage();
     updateRichJsonOutput();
   };
 
@@ -4882,6 +4922,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceTargetOptions();
     renderEventUsage();
     renderEasingUsage();
+    renderSequenceUsage();
     updateRichJsonOutput();
   };
 
@@ -4911,6 +4952,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceTargetOptions();
     renderEventUsage();
     renderEasingUsage();
+    renderSequenceUsage();
   };
 
   const addSequenceStep = () => {
@@ -5055,18 +5097,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sequenceStepAddButton) {
       sequenceStepAddButton.addEventListener('click', () => {
         addSequenceStep();
+        renderSequenceUsage();
       });
     }
 
     if (sequenceStepUpButton) {
       sequenceStepUpButton.addEventListener('click', () => {
         moveSequenceStep(-1);
+        renderSequenceUsage();
       });
     }
 
     if (sequenceStepDownButton) {
       sequenceStepDownButton.addEventListener('click', () => {
         moveSequenceStep(1);
+        renderSequenceUsage();
       });
     }
 
@@ -5159,6 +5204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSequenceList();
     renderEventUsage();
     renderEasingUsage();
+    renderSequenceUsage();
     if (selectedEventId) {
       selectEventById(selectedEventId);
     } else {

@@ -508,6 +508,11 @@ a {
   overflow: visible;
 }
 
+#panel-easing .panel-pane--list .list {
+  max-height: none;
+  overflow: visible;
+}
+
 .list-header {
   display: flex;
   align-items: center;

@@ -1102,6 +1102,12 @@ document.addEventListener('DOMContentLoaded', () => {
     renderJointGroupUsage?.();
     renderJointUsage?.();
     updateJointServoRangeLimits?.(selectedJointServoId);
+    const jointGroup = selectedJointGroupId
+      ? eventState.jointGroups.find((group) => group.id === selectedJointGroupId)
+      : null;
+    if (jointGroup) {
+      renderJointGroupJointList?.(jointGroup);
+    }
     updatePoseTriggerOptions?.();
     updatePoseControlOptions?.();
     renderPoseControlAxisEasing?.();

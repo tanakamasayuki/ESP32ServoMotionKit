@@ -2175,6 +2175,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const servoPwmOffsetInput = document.getElementById('servo-pwm-offset-input');
   const servoTtlAddressInput = document.getElementById('servo-ttl-address-input');
   const servoTtlBusInput = document.getElementById('servo-ttl-bus-input');
+  const servoTtlSpeedInput = document.getElementById('servo-ttl-speed-input');
+  const servoTtlAngleMinInput = document.getElementById('servo-ttl-angle-min-input');
+  const servoTtlAngleMaxInput = document.getElementById('servo-ttl-angle-max-input');
+  const servoTtlOffsetInput = document.getElementById('servo-ttl-offset-input');
   const servoUsageList = document.getElementById('servo-usage-list');
   const jointList = document.getElementById('joint-list');
   const jointAddButton = document.getElementById('joint-add');
@@ -2564,7 +2568,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (servo.type === 'ttl') {
         item.ttl = {
           address: servo.ttl?.address,
-          bus: servo.ttl?.bus
+          bus: servo.ttl?.bus,
+          speed: servo.ttl?.speed,
+          angleMin: servo.ttl?.angleMin,
+          angleMax: servo.ttl?.angleMax,
+          offset: servo.ttl?.offset
         };
       }
       return item;
@@ -2762,7 +2770,11 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         ttl: {
           address: normalizeServoNumber(ttlSource.address ?? item?.address, 1),
-          bus: ttlSource.bus ?? item?.bus ?? 'UART0'
+          bus: ttlSource.bus ?? item?.bus ?? 'UART0',
+          speed: normalizeServoNumber(ttlSource.speed, 300),
+          angleMin: normalizeServoNumber(ttlSource.angleMin, 0),
+          angleMax: normalizeServoNumber(ttlSource.angleMax, 180),
+          offset: normalizeServoNumber(ttlSource.offset, 0)
         }
       };
     });
@@ -3124,6 +3136,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (servoTtlBusInput) {
       servoTtlBusInput.value = servo.ttl?.bus ?? 'UART0';
     }
+    if (servoTtlSpeedInput) {
+      servoTtlSpeedInput.value = servo.ttl?.speed ?? 300;
+    }
+    if (servoTtlAngleMinInput) {
+      servoTtlAngleMinInput.value = servo.ttl?.angleMin ?? 0;
+    }
+    if (servoTtlAngleMaxInput) {
+      servoTtlAngleMaxInput.value = servo.ttl?.angleMax ?? 180;
+    }
+    if (servoTtlOffsetInput) {
+      servoTtlOffsetInput.value = servo.ttl?.offset ?? 0;
+    }
     clearServoIdError();
     if (servoPreviewOffsetInput) {
       servoPreviewOffsetInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -3183,7 +3207,11 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     ttl: {
       address: 1,
-      bus: 'UART0'
+      bus: 'UART0',
+      speed: 300,
+      angleMin: 0,
+      angleMax: 180,
+      offset: 0
     },
     ...overrides
   });
@@ -3263,6 +3291,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (servoTtlBusInput) {
       servoTtlBusInput.value = 'UART0';
     }
+    if (servoTtlSpeedInput) {
+      servoTtlSpeedInput.value = 300;
+    }
+    if (servoTtlAngleMinInput) {
+      servoTtlAngleMinInput.value = 0;
+    }
+    if (servoTtlAngleMaxInput) {
+      servoTtlAngleMaxInput.value = 180;
+    }
+    if (servoTtlOffsetInput) {
+      servoTtlOffsetInput.value = 0;
+    }
     clearServoIdError();
   };
 
@@ -3301,7 +3341,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     servo.ttl = {
       address: parseNumber(servoTtlAddressInput?.value, servo.ttl?.address ?? 1),
-      bus: servoTtlBusInput?.value || servo.ttl?.bus || 'UART0'
+      bus: servoTtlBusInput?.value || servo.ttl?.bus || 'UART0',
+      speed: parseNumber(servoTtlSpeedInput?.value, servo.ttl?.speed ?? 300),
+      angleMin: parseNumber(servoTtlAngleMinInput?.value, servo.ttl?.angleMin ?? 0),
+      angleMax: parseNumber(servoTtlAngleMaxInput?.value, servo.ttl?.angleMax ?? 180),
+      offset: parseNumber(servoTtlOffsetInput?.value, servo.ttl?.offset ?? 0)
     };
     selectedServoId = servo.id;
     clearServoIdError();

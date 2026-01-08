@@ -371,6 +371,22 @@
                     <span data-i18n="servo.form.ttl.bus">UART bus</span>
                     <input type="text" value="UART0" id="servo-ttl-bus-input" />
                   </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.speed">Speed limit (deg/s)</span>
+                    <input type="number" value="300" min="0" id="servo-ttl-speed-input" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.angleMin">Angle min (deg)</span>
+                    <input type="number" value="0" min="0" max="360" id="servo-ttl-angle-min-input" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.angleMax">Angle max (deg)</span>
+                    <input type="number" value="180" min="0" max="360" id="servo-ttl-angle-max-input" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="servo.form.pwm.offset">Offset (deg)</span>
+                    <input type="number" value="0" min="-90" max="90" id="servo-ttl-offset-input" />
+                  </label>
                 </div>
               </div>
               <p class="muted" data-i18n="servo.form.angle.note">

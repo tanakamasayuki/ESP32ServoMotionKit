@@ -102,6 +102,9 @@ document.addEventListener('DOMContentLoaded', () => {
       'joint.list.count': '{count} servos',
       'jointGroup.form.id.duplicate': 'Group ID must be unique.',
       'jointGroup.list.count': '{count} joints',
+      'jointGroup.usage.title': 'Usage',
+      'jointGroup.delete.confirm': 'Delete "{id}"?',
+      'jointGroup.delete.inUse': 'This joint group is used by poses.',
       'servo.title': 'Servo Settings',
       'servo.desc': 'Define range, neutral, and safety limits per servo.',
       'servo.card.list': 'Servo List',
@@ -408,6 +411,9 @@ document.addEventListener('DOMContentLoaded', () => {
       'joint.list.count': '{count} サーボ',
       'jointGroup.form.id.duplicate': 'グループ ID が重複しています。',
       'jointGroup.list.count': '{count} ジョイント',
+      'jointGroup.usage.title': '利用元',
+      'jointGroup.delete.confirm': '「{id}」を削除しますか？',
+      'jointGroup.delete.inUse': 'このジョイントグループはポーズで使用中です。',
       'servo.title': 'サーボ設定',
       'servo.desc': 'サーボごとの範囲、ニュートラル、安全リミットを設定します。',
       'servo.card.list': 'サーボ一覧',
@@ -861,6 +867,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const renderJointGroupUsage = () => {
+    if (!jointGroupUsageList) {
+      return;
+    }
+    jointGroupUsageList.innerHTML = '';
+    if (!selectedJointGroupId) {
+      return;
+    }
+    const usage = eventState.poses
+      .filter((pose) => pose.groupId === selectedJointGroupId)
+      .map((pose) => pose.id);
+    if (usage.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = '—';
+      empty.appendChild(label);
+      jointGroupUsageList.appendChild(empty);
+      return;
+    }
+    usage.forEach((name) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      const key = document.createElement('span');
+      key.className = 'mini-k';
+      key.textContent = name;
+      row.appendChild(key);
+      jointGroupUsageList.appendChild(row);
+    });
+  };
+
   const getSequenceUsageCount = (sequenceId) => {
     let count = 0;
     eventState.sequences.forEach((sequence) => {
@@ -878,6 +916,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let count = 0;
     eventState.sequences.forEach((sequence) => {
       if ((sequence.steps || []).some((step) => step.type === 'pose' && step.targetId === poseId)) {
+        count += 1;
+      }
+    });
+    return count;
+  };
+
+  const getJointGroupUsageCount = (groupId) => {
+    let count = 0;
+    eventState.poses.forEach((pose) => {
+      if (pose.groupId === groupId) {
         count += 1;
       }
     });
@@ -946,6 +994,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEasingUsage?.();
     renderSequenceUsage?.();
     renderPoseUsage?.();
+    renderJointGroupUsage?.();
     updatePoseTriggerOptions?.();
     updatePoseControlOptions?.();
     renderPoseControlAxisEasing?.();
@@ -2049,6 +2098,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const jointGroupJointList = document.getElementById('joint-group-joint-list');
   const jointGroupSelectedId = document.getElementById('joint-group-selected');
   const jointGroupSelectedServos = document.getElementById('joint-group-servos');
+  const jointGroupUsageList = document.getElementById('joint-group-usage-list');
   const poseList = document.getElementById('pose-list');
   const poseAddButton = document.getElementById('pose-add');
   const poseSaveButton = document.getElementById('pose-save');
@@ -3782,6 +3832,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedJointGroupId = group.id;
     renderJointGroupList();
     populateJointGroupEditor(group);
+    renderJointGroupUsage();
   };
 
   const ensureJointGroupSelection = () => {
@@ -3864,6 +3915,7 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderJointGroupList();
     populateJointGroupEditor(group);
+    renderJointGroupUsage();
     updateRichJsonOutput();
   };
 
@@ -3897,11 +3949,21 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderJointGroupList();
     populateJointGroupEditor(copy);
+    renderJointGroupUsage();
     updateRichJsonOutput();
   };
 
   const deleteJointGroup = () => {
     if (!selectedJointGroupId) {
+      return;
+    }
+    if (getJointGroupUsageCount(selectedJointGroupId) > 0) {
+      window.alert(getTranslation('jointGroup.delete.inUse'));
+      return;
+    }
+    const label = selectedJointGroupId;
+    const confirmText = getTranslation('jointGroup.delete.confirm').replace('{id}', label);
+    if (!window.confirm(confirmText)) {
       return;
     }
     const index = eventState.jointGroups.findIndex((item) => item.id === selectedJointGroupId);
@@ -3918,6 +3980,7 @@ document.addEventListener('DOMContentLoaded', () => {
       clearJointGroupEditor();
       updateRichJsonOutput();
     }
+    renderJointGroupUsage();
   };
 
   const initJointGroupEditor = () => {
@@ -4276,6 +4339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPoseList();
     populatePoseEditor(pose);
     renderPoseUsage();
+    renderJointGroupUsage();
   };
 
   const addPose = () => {
@@ -4310,6 +4374,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceControlOptions();
     renderSequenceAxisEasing();
     renderEventUsage();
+    renderJointGroupUsage();
     updateRichJsonOutput();
   };
 
@@ -4377,6 +4442,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceControlOptions();
     renderSequenceAxisEasing();
     renderEventUsage();
+    renderJointGroupUsage();
     updateRichJsonOutput();
   };
 
@@ -4416,6 +4482,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceControlOptions();
     renderSequenceAxisEasing();
     renderEventUsage();
+    renderJointGroupUsage();
     updateRichJsonOutput();
   };
 
@@ -4452,6 +4519,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSequenceAxisEasing();
     renderEventUsage();
     renderPoseUsage();
+    renderJointGroupUsage();
   };
 
   const initPoseEditor = () => {
@@ -5290,6 +5358,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEasingUsage();
     renderSequenceUsage();
     renderPoseUsage();
+    renderJointGroupUsage();
     renderPoseUsage();
     if (selectedEventId) {
       selectEventById(selectedEventId);

@@ -2832,6 +2832,9 @@ document.addEventListener('DOMContentLoaded', () => {
     (simpleJson.sequences || []).forEach((sequence) => {
       sequence.steps = expandSequenceSteps(sequence.steps, simpleJson.sequences || [], sequence.id);
     });
+    (simpleJson.easings || []).forEach((easing) => {
+      delete easing.type;
+    });
     return simpleJson;
   };
 

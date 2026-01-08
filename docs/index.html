@@ -434,7 +434,7 @@
               <div class="list-header">
                 <h3 data-i18n="joint.card.list">Joint List</h3>
                 <div class="list-actions">
-                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-outline" type="button" data-i18n="common.add" id="joint-add">Add</button>
                 </div>
               </div>
               <label class="form-field list-filter">
@@ -447,61 +447,40 @@
                   </button>
                 </div>
               </label>
-              <ul class="list">
-                <li class="list-item is-active">
-                  <span>yaw</span>
-                  <span class="chip">2 servos</span>
-                </li>
-                <li class="list-item">
-                  <span>pitch</span>
-                  <span class="chip">1 servo</span>
-                </li>
-                <li class="list-item">
-                  <span>roll</span>
-                  <span class="chip">1 servo</span>
-                </li>
-              </ul>
+              <ul class="list" id="joint-list"></ul>
             </article>
             <article class="card panel-pane panel-pane--editor" style="--delay: 120ms;">
               <h3 data-i18n="joint.card.settings">Joint Settings</h3>
               <div class="form-grid">
                 <label class="form-field">
                   <span data-i18n="joint.form.id">Joint ID</span>
-                  <input type="text" data-i18n-placeholder="joint.form.id.placeholder" placeholder="yaw" />
+                  <input type="text" data-i18n-placeholder="joint.form.id.placeholder" placeholder="yaw"
+                    id="joint-id-input" />
+                  <span class="field-hint field-error" data-i18n="joint.form.id.duplicate" id="joint-id-error" hidden>
+                    Joint ID must be unique.
+                  </span>
                 </label>
                 <label class="form-field">
                   <span data-i18n="common.form.displayOrder">Display order</span>
                   <input type="number" value="10" min="0" data-i18n-placeholder="common.form.displayOrder.placeholder"
-                    placeholder="10" />
+                    placeholder="10" id="joint-order-input" />
                 </label>
                 <label class="form-field form-field--full">
                   <span data-i18n="common.form.description">Description</span>
                   <textarea rows="2" data-i18n-placeholder="common.form.description.placeholder"
-                    placeholder="Joint for head yaw"></textarea>
+                    placeholder="Joint for head yaw" id="joint-description-input"></textarea>
                 </label>
               </div>
               <p class="muted" data-i18n="joint.targets.note">Select target servos.</p>
-              <div class="mini-list">
-                <div class="mini-row is-active" data-servo-row>
-                  <input type="checkbox" checked />
-                  <button class="mini-select" type="button" data-servo-select="servo_front_left">servo_front_left</button>
-                  <span class="mini-v">PWM</span>
-                </div>
-                <div class="mini-row" data-servo-row>
-                  <input type="checkbox" checked />
-                  <button class="mini-select" type="button" data-servo-select="servo_front_right">servo_front_right</button>
-                  <span class="mini-v">PWM</span>
-                </div>
-                <div class="mini-row" data-servo-row>
-                  <input type="checkbox" />
-                  <button class="mini-select" type="button" data-servo-select="servo_back_left">servo_back_left</button>
-                  <span class="mini-v">TTL</span>
-                </div>
-              </div>
+              <div class="mini-list" id="joint-servo-list"></div>
               <div class="card-actions">
-                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
-                <button class="btn btn-outline" type="button" data-i18n="common.duplicate">Duplicate</button>
-                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected">Delete selected</button>
+                <button class="btn btn-secondary" type="button" data-i18n="common.save" id="joint-save">Save</button>
+                <button class="btn btn-outline" type="button" data-i18n="common.duplicate" id="joint-duplicate">
+                  Duplicate
+                </button>
+                <button class="btn btn-ghost" type="button" data-i18n="common.deleteSelected" id="joint-delete">
+                  Delete selected
+                </button>
               </div>
             </article>
             <article class="card panel-pane panel-pane--aux" style="--delay: 180ms;">
@@ -513,23 +492,23 @@
                 </div>
                 <label class="form-field form-field--toggle">
                   <span data-i18n="joint.servo.direction">Reverse direction</span>
-                  <input type="checkbox" />
+                  <input type="checkbox" id="joint-servo-direction-input" />
                 </label>
                 <label class="form-field">
                   <span data-i18n="joint.servo.offset">Servo offset (deg)</span>
-                  <input type="number" value="0" />
+                  <input type="number" value="0" id="joint-servo-offset-input" />
                 </label>
                 <label class="form-field">
                   <span data-i18n="joint.servo.min">Servo min (deg)</span>
-                  <input type="number" value="-45" />
+                  <input type="number" value="-45" id="joint-servo-min-input" />
                 </label>
                 <label class="form-field">
                   <span data-i18n="joint.servo.max">Servo max (deg)</span>
-                  <input type="number" value="45" />
+                  <input type="number" value="45" id="joint-servo-max-input" />
                 </label>
               </div>
               <div class="card-actions">
-                <button class="btn btn-secondary" type="button" data-i18n="common.save">Save</button>
+                <button class="btn btn-secondary" type="button" data-i18n="common.save" id="joint-servo-save">Save</button>
               </div>
             </article>
           </div>

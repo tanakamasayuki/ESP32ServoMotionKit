@@ -98,6 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.form.description.placeholder': 'Notes for this item',
       'project.import.invalid': 'Invalid JSON file.',
       'servo.form.id.duplicate': 'Servo ID must be unique.',
+      'joint.form.id.duplicate': 'Joint ID must be unique.',
+      'joint.list.count': '{count} servos',
       'servo.title': 'Servo Settings',
       'servo.desc': 'Define range, neutral, and safety limits per servo.',
       'servo.card.list': 'Servo List',
@@ -386,6 +388,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.form.description.placeholder': 'この項目の説明',
       'project.import.invalid': 'JSONファイルを読み込めませんでした。',
       'servo.form.id.duplicate': 'サーボ ID が重複しています。',
+      'joint.form.id.duplicate': 'ジョイント ID が重複しています。',
+      'joint.list.count': '{count} サーボ',
       'servo.title': 'サーボ設定',
       'servo.desc': 'サーボごとの範囲、ニュートラル、安全リミットを設定します。',
       'servo.card.list': 'サーボ一覧',
@@ -1677,6 +1681,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const servoPwmOffsetInput = document.getElementById('servo-pwm-offset-input');
   const servoTtlAddressInput = document.getElementById('servo-ttl-address-input');
   const servoTtlBusInput = document.getElementById('servo-ttl-bus-input');
+  const jointList = document.getElementById('joint-list');
+  const jointAddButton = document.getElementById('joint-add');
+  const jointSaveButton = document.getElementById('joint-save');
+  const jointDuplicateButton = document.getElementById('joint-duplicate');
+  const jointDeleteButton = document.getElementById('joint-delete');
+  const jointIdInput = document.getElementById('joint-id-input');
+  const jointIdError = document.getElementById('joint-id-error');
+  const jointOrderInput = document.getElementById('joint-order-input');
+  const jointDescriptionInput = document.getElementById('joint-description-input');
+  const jointFilterInput = document.getElementById('joint-filter-input');
+  const jointServoList = document.getElementById('joint-servo-list');
+  const jointServoTarget = document.getElementById('joint-servo-target');
+  const jointServoDirectionInput = document.getElementById('joint-servo-direction-input');
+  const jointServoOffsetInput = document.getElementById('joint-servo-offset-input');
+  const jointServoMinInput = document.getElementById('joint-servo-min-input');
+  const jointServoMaxInput = document.getElementById('joint-servo-max-input');
+  const jointServoSaveButton = document.getElementById('joint-servo-save');
   const easingList = document.getElementById('easing-list');
   const easingAddButton = document.getElementById('easing-add');
   const easingIdInput = document.getElementById('easing-id-input');
@@ -1774,6 +1795,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     ],
+    joints: [
+      {
+        id: 'yaw',
+        displayOrder: 10,
+        description: 'Head yaw',
+        servos: [
+          { servoId: 'servo_front_left', reverse: false, offset: 0, min: -45, max: 45 },
+          { servoId: 'servo_front_right', reverse: false, offset: 0, min: -45, max: 45 }
+        ]
+      },
+      {
+        id: 'pitch',
+        displayOrder: 20,
+        description: 'Head pitch',
+        servos: [{ servoId: 'servo_front_left', reverse: false, offset: 0, min: -30, max: 30 }]
+      },
+      {
+        id: 'roll',
+        displayOrder: 30,
+        description: 'Head roll',
+        servos: [{ servoId: 'servo_tail', reverse: false, offset: 0, min: -20, max: 20 }]
+      }
+    ],
     easings: [
       { id: 'e_linear', type: 'linear', kind: 'preset', displayOrder: 10, description: '', params: [] },
       {
@@ -1798,6 +1842,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let eventState = { ...defaultState };
   let selectedEventId = null;
   let selectedServoId = null;
+  let selectedJointId = null;
+  let selectedJointServoId = null;
   let hasLoadedState = false;
 
   const loadEventState = () => {
@@ -1816,7 +1862,8 @@ document.addEventListener('DOMContentLoaded', () => {
           meta: parsed.meta || defaultState.meta,
           events: Array.isArray(parsed.events) ? parsed.events : defaultState.events,
           easings: Array.isArray(parsed.easings) ? parsed.easings : defaultState.easings,
-          servos: Array.isArray(parsed.servos) ? parsed.servos : defaultState.servos
+          servos: Array.isArray(parsed.servos) ? parsed.servos : defaultState.servos,
+          joints: Array.isArray(parsed.joints) ? parsed.joints : defaultState.joints
         };
       }
       hasLoadedState = true;
@@ -1877,6 +1924,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return item;
     });
+    const joints = eventState.joints.map((joint) => {
+      const item = {
+        id: joint.id,
+        servoRefs: (joint.servos || []).map((servo) => ({
+          servoId: servo.servoId,
+          reverse: !!servo.reverse,
+          offset: servo.offset ?? 0,
+          min: servo.min ?? 0,
+          max: servo.max ?? 0
+        }))
+      };
+      if (joint.displayOrder !== null && joint.displayOrder !== undefined && joint.displayOrder !== '') {
+        item.displayOrder = joint.displayOrder;
+      }
+      if (joint.description) {
+        item.description = joint.description;
+      }
+      return item;
+    });
     const events = eventState.events.map((event) => {
       const item = {
         id: event.id,
@@ -1914,6 +1980,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return {
       meta: eventState.meta,
       servos,
+      joints,
       events,
       easings
     };
@@ -1975,6 +2042,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const normalizeJointServo = (item) => ({
+    servoId: item?.servoId || '',
+    reverse: !!item?.reverse,
+    offset: normalizeServoNumber(item?.offset, 0),
+    min: normalizeServoNumber(item?.min, -45),
+    max: normalizeServoNumber(item?.max, 45)
+  });
+
+  const normalizeJoints = (joints) => {
+    if (!Array.isArray(joints)) {
+      return [];
+    }
+    return joints.map((item) => {
+      const servoRefs = Array.isArray(item?.servoRefs)
+        ? item.servoRefs.map(normalizeJointServo)
+        : Array.isArray(item?.servoIds)
+          ? item.servoIds.map((servoId) => normalizeJointServo({ servoId }))
+          : [];
+      return {
+        id: item?.id || 'joint_new',
+        displayOrder: item?.displayOrder ?? null,
+        description: item?.description || '',
+        servos: servoRefs
+      };
+    });
+  };
+
   const normalizeEasings = (easings) => {
     if (!Array.isArray(easings)) {
       return [];
@@ -2007,6 +2101,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const sortEasings = () => {
     eventState.easings.sort((a, b) => {
+      const orderA = a.displayOrder === null || a.displayOrder === undefined ? Number.POSITIVE_INFINITY : a.displayOrder;
+      const orderB = b.displayOrder === null || b.displayOrder === undefined ? Number.POSITIVE_INFINITY : b.displayOrder;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      return String(a.id).localeCompare(String(b.id));
+    });
+  };
+
+  const sortJoints = () => {
+    eventState.joints.sort((a, b) => {
       const orderA = a.displayOrder === null || a.displayOrder === undefined ? Number.POSITIVE_INFINITY : a.displayOrder;
       const orderB = b.displayOrder === null || b.displayOrder === undefined ? Number.POSITIVE_INFINITY : b.displayOrder;
       if (orderA !== orderB) {
@@ -2452,6 +2557,405 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const clearJointIdError = () => {
+    if (jointIdError) {
+      jointIdError.hidden = true;
+    }
+    if (jointIdInput) {
+      jointIdInput.classList.remove('is-error');
+    }
+  };
+
+  const showJointIdError = () => {
+    if (jointIdError) {
+      jointIdError.hidden = false;
+    }
+    if (jointIdInput) {
+      jointIdInput.classList.add('is-error');
+    }
+  };
+
+  const hasDuplicateJointId = (id, currentId) => {
+    return eventState.joints.some((item) => item.id === id && item.id !== currentId);
+  };
+
+  const getSelectedJoint = () => {
+    if (!selectedJointId) {
+      return null;
+    }
+    return eventState.joints.find((item) => item.id === selectedJointId) || null;
+  };
+
+  const getJointServoDefaults = (servoId) => ({
+    servoId,
+    reverse: false,
+    offset: 0,
+    min: -45,
+    max: 45
+  });
+
+  const renderJointList = () => {
+    if (!jointList) {
+      return;
+    }
+    jointList.innerHTML = '';
+    const filter = jointFilterInput?.value?.trim().toLowerCase() || '';
+    eventState.joints.forEach((joint) => {
+      if (filter && !joint.id.toLowerCase().includes(filter)) {
+        return;
+      }
+      const item = document.createElement('li');
+      item.className = 'list-item';
+      item.dataset.jointId = joint.id;
+      if (joint.id === selectedJointId) {
+        item.classList.add('is-active');
+      }
+      const name = document.createElement('span');
+      name.textContent = joint.id;
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = getTranslation('joint.list.count').replace('{count}', String(joint.servos?.length ?? 0));
+      item.appendChild(name);
+      item.appendChild(chip);
+      jointList.appendChild(item);
+    });
+  };
+
+  const renderJointServoList = (joint) => {
+    if (!jointServoList) {
+      return;
+    }
+    jointServoList.innerHTML = '';
+    const selectedIds = new Set((joint?.servos || []).map((servo) => servo.servoId));
+    eventState.servos.forEach((servo) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      row.dataset.servoRow = '';
+      row.dataset.servoId = servo.id;
+      if (servo.id === selectedJointServoId) {
+        row.classList.add('is-active');
+      }
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.servoId = servo.id;
+      checkbox.checked = selectedIds.has(servo.id);
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'mini-select';
+      button.dataset.servoSelect = servo.id;
+      button.textContent = servo.id;
+
+      const meta = document.createElement('span');
+      meta.className = 'mini-v';
+      meta.textContent = servo.type === 'ttl' ? 'TTL' : 'PWM';
+
+      row.appendChild(checkbox);
+      row.appendChild(button);
+      row.appendChild(meta);
+      jointServoList.appendChild(row);
+    });
+  };
+
+  const setActiveJointServo = (servoId) => {
+    selectedJointServoId = servoId;
+    if (jointServoTarget) {
+      jointServoTarget.textContent = servoId || '—';
+    }
+    if (jointServoList) {
+      jointServoList.querySelectorAll('.mini-row').forEach((row) => {
+        row.classList.toggle('is-active', row.dataset.servoId === servoId);
+      });
+    }
+    const joint = getSelectedJoint();
+    const entry = joint?.servos?.find((servo) => servo.servoId === servoId);
+    const data = entry || getJointServoDefaults(servoId);
+    if (jointServoDirectionInput) {
+      jointServoDirectionInput.checked = !!data.reverse;
+    }
+    if (jointServoOffsetInput) {
+      jointServoOffsetInput.value = data.offset ?? 0;
+    }
+    if (jointServoMinInput) {
+      jointServoMinInput.value = data.min ?? -45;
+    }
+    if (jointServoMaxInput) {
+      jointServoMaxInput.value = data.max ?? 45;
+    }
+  };
+
+  const populateJointEditor = (joint) => {
+    if (!joint || !jointIdInput || !jointOrderInput || !jointDescriptionInput) {
+      return;
+    }
+    jointIdInput.value = joint.id ?? '';
+    jointOrderInput.value = joint.displayOrder ?? '';
+    jointDescriptionInput.value = joint.description ?? '';
+    renderJointServoList(joint);
+    const initialServoId = joint.servos?.[0]?.servoId || eventState.servos[0]?.id || null;
+    setActiveJointServo(initialServoId);
+    clearJointIdError();
+  };
+
+  const selectJointById = (jointId) => {
+    const joint = eventState.joints.find((item) => item.id === jointId) || eventState.joints[0];
+    if (!joint) {
+      return;
+    }
+    selectedJointId = joint.id;
+    renderJointList();
+    populateJointEditor(joint);
+  };
+
+  const ensureJointSelection = () => {
+    if (!selectedJointId && eventState.joints.length > 0) {
+      selectedJointId = eventState.joints[0].id;
+    }
+  };
+
+  const addJoint = () => {
+    const base = 'joint_new';
+    let index = eventState.joints.length + 1;
+    let id = `${base}_${index}`;
+    while (eventState.joints.some((joint) => joint.id === id)) {
+      index += 1;
+      id = `${base}_${index}`;
+    }
+    const maxOrder = eventState.joints.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
+    const servoId = eventState.servos[0]?.id;
+    const joint = {
+      id,
+      displayOrder: maxOrder + 10,
+      description: '',
+      servos: servoId ? [getJointServoDefaults(servoId)] : []
+    };
+    eventState.joints.push(joint);
+    selectedJointId = joint.id;
+    sortJoints();
+    persistEventState();
+    renderJointList();
+    populateJointEditor(joint);
+    updateRichJsonOutput();
+  };
+
+  const clearJointEditor = () => {
+    if (!jointIdInput || !jointOrderInput || !jointDescriptionInput) {
+      return;
+    }
+    jointIdInput.value = '';
+    jointOrderInput.value = '';
+    jointDescriptionInput.value = '';
+    if (jointServoList) {
+      jointServoList.innerHTML = '';
+    }
+    setActiveJointServo(null);
+    clearJointIdError();
+  };
+
+  const saveJoint = () => {
+    if (!selectedJointId) {
+      return;
+    }
+    const joint = eventState.joints.find((item) => item.id === selectedJointId);
+    if (!joint) {
+      return;
+    }
+    const nextId = (jointIdInput?.value || '').trim() || joint.id;
+    if (hasDuplicateJointId(nextId, joint.id)) {
+      showJointIdError();
+      return;
+    }
+    joint.id = nextId;
+    const orderRaw = jointOrderInput?.value ?? '';
+    joint.displayOrder = orderRaw === '' ? null : parseNumber(orderRaw, joint.displayOrder ?? null);
+    joint.description = (jointDescriptionInput?.value || '').trim();
+    const selectedServoIds = [];
+    if (jointServoList) {
+      jointServoList.querySelectorAll('input[type="checkbox"][data-servo-id]').forEach((input) => {
+        if (input.checked) {
+          selectedServoIds.push(input.dataset.servoId);
+        }
+      });
+    }
+    const currentMap = new Map((joint.servos || []).map((servo) => [servo.servoId, servo]));
+    joint.servos = selectedServoIds.map((servoId) => {
+      const existing = currentMap.get(servoId);
+      return existing ? { ...existing } : getJointServoDefaults(servoId);
+    });
+    selectedJointId = joint.id;
+    clearJointIdError();
+    sortJoints();
+    persistEventState();
+    renderJointList();
+    populateJointEditor(joint);
+    updateRichJsonOutput();
+  };
+
+  const duplicateJoint = () => {
+    if (!selectedJointId) {
+      return;
+    }
+    const source = eventState.joints.find((item) => item.id === selectedJointId);
+    if (!source) {
+      return;
+    }
+    const maxOrder = eventState.joints.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
+    let index = 1;
+    let id = `${source.id}_copy`;
+    while (eventState.joints.some((item) => item.id === id)) {
+      index += 1;
+      id = `${source.id}_copy${index}`;
+    }
+    const copy = {
+      ...source,
+      id,
+      displayOrder: maxOrder + 10,
+      servos: (source.servos || []).map((servo) => ({ ...servo }))
+    };
+    eventState.joints.push(copy);
+    selectedJointId = id;
+    sortJoints();
+    persistEventState();
+    renderJointList();
+    populateJointEditor(copy);
+    updateRichJsonOutput();
+  };
+
+  const deleteJoint = () => {
+    if (!selectedJointId) {
+      return;
+    }
+    const index = eventState.joints.findIndex((item) => item.id === selectedJointId);
+    if (index === -1) {
+      return;
+    }
+    eventState.joints.splice(index, 1);
+    selectedJointId = eventState.joints[index]?.id || eventState.joints[index - 1]?.id || null;
+    persistEventState();
+    renderJointList();
+    if (selectedJointId) {
+      selectJointById(selectedJointId);
+    } else {
+      clearJointEditor();
+      updateRichJsonOutput();
+    }
+  };
+
+  const saveJointServoSettings = () => {
+    const joint = getSelectedJoint();
+    if (!joint || !selectedJointServoId) {
+      return;
+    }
+    let entry = joint.servos?.find((servo) => servo.servoId === selectedJointServoId);
+    if (!entry) {
+      entry = getJointServoDefaults(selectedJointServoId);
+      joint.servos = joint.servos || [];
+      joint.servos.push(entry);
+    }
+    entry.reverse = !!jointServoDirectionInput?.checked;
+    entry.offset = parseNumber(jointServoOffsetInput?.value, entry.offset ?? 0);
+    entry.min = parseNumber(jointServoMinInput?.value, entry.min ?? -45);
+    entry.max = parseNumber(jointServoMaxInput?.value, entry.max ?? 45);
+    sortJoints();
+    persistEventState();
+    renderJointList();
+    renderJointServoList(joint);
+    setActiveJointServo(selectedJointServoId);
+    updateRichJsonOutput();
+  };
+
+  const initJointEditor = () => {
+    if (!jointList || !jointAddButton) {
+      return;
+    }
+    loadEventState();
+    eventState.joints = normalizeJoints(eventState.joints);
+    ensureJointSelection();
+    sortJoints();
+    renderJointList();
+    if (selectedJointId) {
+      selectJointById(selectedJointId);
+    } else {
+      clearJointEditor();
+    }
+    updateRichJsonOutput();
+
+    jointList.addEventListener('click', (event) => {
+      const item = event.target.closest('.list-item');
+      if (!item || !jointList.contains(item)) {
+        return;
+      }
+      selectJointById(item.dataset.jointId);
+    });
+
+    jointAddButton.addEventListener('click', () => {
+      addJoint();
+    });
+
+    if (jointSaveButton) {
+      jointSaveButton.addEventListener('click', () => {
+        saveJoint();
+      });
+    }
+
+    if (jointDuplicateButton) {
+      jointDuplicateButton.addEventListener('click', () => {
+        duplicateJoint();
+      });
+    }
+
+    if (jointDeleteButton) {
+      jointDeleteButton.addEventListener('click', () => {
+        deleteJoint();
+      });
+    }
+
+    if (jointIdInput) {
+      jointIdInput.addEventListener('input', () => {
+        clearJointIdError();
+      });
+    }
+
+    if (jointFilterInput) {
+      jointFilterInput.addEventListener('input', () => {
+        renderJointList();
+      });
+    }
+
+    if (jointServoList) {
+      jointServoList.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-servo-select]');
+        if (!button || !jointServoList.contains(button)) {
+          return;
+        }
+        setActiveJointServo(button.dataset.servoSelect);
+      });
+      jointServoList.addEventListener('change', (event) => {
+        const checkbox = event.target.closest('input[type="checkbox"][data-servo-id]');
+        if (!checkbox || !jointServoList.contains(checkbox)) {
+          return;
+        }
+        if (!checkbox.checked && checkbox.dataset.servoId === selectedJointServoId) {
+          const fallback = jointServoList.querySelector('input[type="checkbox"][data-servo-id]:checked');
+          setActiveJointServo(fallback?.dataset.servoId || eventState.servos[0]?.id || null);
+        }
+      });
+    }
+
+    if (jointServoSaveButton) {
+      jointServoSaveButton.addEventListener('click', () => {
+        saveJointServoSettings();
+      });
+    }
+  };
+
   const clearEasingEditor = () => {
     if (!easingIdInput || !easingOrderInput || !easingDescriptionInput || !easingTypeSelect) {
       return;
@@ -2475,18 +2979,22 @@ document.addEventListener('DOMContentLoaded', () => {
       meta: next.meta || defaultState.meta,
       events: Array.isArray(next.events) ? next.events : [],
       easings: normalizeEasings(next.easings),
-      servos: normalizeServos(next.servos)
+      servos: normalizeServos(next.servos),
+      joints: normalizeJoints(next.joints)
     };
     sortEvents();
     sortEasings();
     sortServos();
+    sortJoints();
     persistEventState();
     selectedEventId = eventState.events[0]?.id || null;
     selectedEasingId = eventState.easings[0]?.id || null;
     selectedServoId = eventState.servos[0]?.id || null;
+    selectedJointId = eventState.joints[0]?.id || null;
     renderEventList();
     renderEasingList();
     renderServoList();
+    renderJointList();
     if (selectedEventId) {
       selectEventById(selectedEventId);
     } else {
@@ -2496,6 +3004,11 @@ document.addEventListener('DOMContentLoaded', () => {
       selectEasingById(selectedEasingId);
     } else {
       clearEasingEditor();
+    }
+    if (selectedJointId) {
+      selectJointById(selectedJointId);
+    } else {
+      clearJointEditor();
     }
     if (selectedServoId) {
       selectServoById(selectedServoId);
@@ -3117,11 +3630,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initSelectableLists();
   initSelectableSteps();
   initFilterClearButtons();
-  initJointServoSelection();
   initJointGroupSelection();
   initPoseAxisSelection();
   initEasingTypeToggle();
   initServoEditor();
+  initJointEditor();
   initEventEditor();
   initEasingEditor();
   initProjectImportExport();

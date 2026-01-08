@@ -2253,6 +2253,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const poseAxisRange = document.getElementById('pose-axis-range');
   const poseAxisInput = document.getElementById('pose-axis-input');
   const poseAxisRangeNote = document.getElementById('pose-axis-range-note');
+  const poseAxisNeedle = document.querySelector('#panel-pose .servo-preview-card .mini-needle');
   const poseTriggerStart = document.getElementById('pose-trigger-start');
   const poseTriggerReached = document.getElementById('pose-trigger-reached');
   const poseTriggerEnd = document.getElementById('pose-trigger-end');
@@ -4652,9 +4653,8 @@ document.addEventListener('DOMContentLoaded', () => {
         row.classList.toggle('is-active', row.dataset.poseAxis === axisId);
       });
     }
-    const needle = document.querySelector('.mini-needle');
-    if (needle) {
-      needle.style.transform = `translateX(-50%) rotate(${angle ?? 0}deg)`;
+    if (poseAxisNeedle) {
+      poseAxisNeedle.style.transform = `translateX(-50%) rotate(${angle ?? 0}deg)`;
     }
   };
 
@@ -5076,9 +5076,8 @@ document.addEventListener('DOMContentLoaded', () => {
             label.textContent = `${angle}°`;
           }
         }
-        const needle = document.querySelector('.mini-needle');
-        if (needle) {
-          needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+        if (poseAxisNeedle) {
+          poseAxisNeedle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
         }
       };
       poseAxisRange.addEventListener('input', () => onAngleChange(poseAxisRange.value));

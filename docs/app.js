@@ -1912,10 +1912,14 @@ document.addEventListener('DOMContentLoaded', () => {
       index += 1;
       id = `${base}_${index}`;
     }
+    const maxOrder = eventState.events.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
     const event = {
       id,
       number: 0,
-      displayOrder: eventState.events.length * 10,
+      displayOrder: maxOrder + 10,
       description: ''
     };
     eventState.events.push(event);
@@ -2143,11 +2147,15 @@ document.addEventListener('DOMContentLoaded', () => {
       id = `${base}_${index}`;
     }
     const type = easingTypeSelect?.value || 'warpcurve';
+    const maxOrder = eventState.easings.reduce((max, item) => {
+      const value = typeof item.displayOrder === 'number' ? item.displayOrder : max;
+      return Math.max(max, value);
+    }, 0);
     const easing = {
       id,
       type,
       kind: type === 'linear' ? 'preset' : 'custom',
-      displayOrder: eventState.easings.length * 10,
+      displayOrder: maxOrder + 10,
       description: '',
       params: getEasingParams(type)
     };

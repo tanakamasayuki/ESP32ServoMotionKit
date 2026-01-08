@@ -156,6 +156,7 @@ UI/デバイス共通のスキーマ識別子とバージョン管理に使う�
 * Jointの `servoRefs` に含まれる `min` / `max` を削除する。
 * `jointGroups` はシンプルJSONに含めない。
 * Poseでは `groupId` を削除する。
+* Sequenceの `steps` に `sequenceId` が含まれる場合、そのシーケンスの `steps` を `sequenceId` を除外して展開する（1段のみ）。
 
 #### C++ API（生成ヘッダ＆実行）
 

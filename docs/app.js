@@ -2771,6 +2771,30 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   };
 
+  const expandSequenceSteps = (steps, sequences, rootId) => {
+    const expanded = [];
+    (steps || []).forEach((step) => {
+      if (step?.sequenceId) {
+        const targetId = step.sequenceId;
+        if (targetId === rootId) {
+          return;
+        }
+        const target = sequences.find((sequence) => sequence.id === targetId);
+        if (!target) {
+          return;
+        }
+        (target.steps || []).forEach((nested) => {
+          if (!nested?.sequenceId) {
+            expanded.push({ ...nested });
+          }
+        });
+        return;
+      }
+      expanded.push({ ...step });
+    });
+    return expanded;
+  };
+
   const buildSimpleJson = () => {
     const richJson = buildRichJson();
     const simpleJson = JSON.parse(JSON.stringify(richJson));
@@ -2804,6 +2828,9 @@ document.addEventListener('DOMContentLoaded', () => {
         delete servoRef.min;
         delete servoRef.max;
       });
+    });
+    (simpleJson.sequences || []).forEach((sequence) => {
+      sequence.steps = expandSequenceSteps(sequence.steps, simpleJson.sequences || [], sequence.id);
     });
     return simpleJson;
   };

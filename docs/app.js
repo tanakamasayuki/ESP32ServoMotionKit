@@ -168,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'joint.servo.offset': 'Servo offset (deg)',
       'joint.servo.min': 'Servo min (deg)',
       'joint.servo.max': 'Servo max (deg)',
+      'joint.servo.rangeHint': 'Target servo range: {min}-{max} deg',
       'jointGroup.title': 'Joint Group Settings',
       'jointGroup.desc': 'Bundle joints for quick selection and batch edits.',
       'jointGroup.card.list': 'Group List',
@@ -485,6 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'joint.servo.offset': 'サーボオフセット (deg)',
       'joint.servo.min': 'サーボ最小 (deg)',
       'joint.servo.max': 'サーボ最大 (deg)',
+      'joint.servo.rangeHint': '対象サーボ範囲: {min}-{max} deg',
       'jointGroup.title': 'ジョイントグループ設定',
       'jointGroup.desc': 'ジョイントをまとめて選択し、一括編集できます。',
       'jointGroup.card.list': 'グループ一覧',
@@ -1097,6 +1099,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPoseUsage?.();
     renderJointGroupUsage?.();
     renderJointUsage?.();
+    updateJointServoRangeLimits?.(selectedJointServoId);
     updatePoseTriggerOptions?.();
     updatePoseControlOptions?.();
     renderPoseControlAxisEasing?.();
@@ -2189,6 +2192,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const jointServoOffsetInput = document.getElementById('joint-servo-offset-input');
   const jointServoMinInput = document.getElementById('joint-servo-min-input');
   const jointServoMaxInput = document.getElementById('joint-servo-max-input');
+  const jointServoMinHint = document.getElementById('joint-servo-min-hint');
+  const jointServoMaxHint = document.getElementById('joint-servo-max-hint');
   const jointServoSaveButton = document.getElementById('joint-servo-save');
   const jointUsageList = document.getElementById('joint-usage-list');
   const jointGroupList = document.getElementById('joint-group-list');
@@ -3467,6 +3472,49 @@ document.addEventListener('DOMContentLoaded', () => {
     max: 180
   });
 
+  const getServoAngleRange = (servoId) => {
+    const servo = eventState.servos.find((item) => item.id === servoId);
+    const min = Number(servo?.pwm?.angleMin ?? 0);
+    const max = Number(servo?.pwm?.angleMax ?? 180);
+    return {
+      min: Number.isFinite(min) ? min : 0,
+      max: Number.isFinite(max) ? max : 180
+    };
+  };
+
+  const updateJointServoRangeLimits = (servoId) => {
+    if (!jointServoMinInput || !jointServoMaxInput) {
+      return;
+    }
+    if (!servoId) {
+      jointServoMinInput.removeAttribute('min');
+      jointServoMinInput.removeAttribute('max');
+      jointServoMaxInput.removeAttribute('min');
+      jointServoMaxInput.removeAttribute('max');
+      if (jointServoMinHint) {
+        jointServoMinHint.textContent = '';
+      }
+      if (jointServoMaxHint) {
+        jointServoMaxHint.textContent = '';
+      }
+      return;
+    }
+    const range = getServoAngleRange(servoId);
+    jointServoMinInput.min = String(range.min);
+    jointServoMinInput.max = String(range.max);
+    jointServoMaxInput.min = String(range.min);
+    jointServoMaxInput.max = String(range.max);
+    const hint = getTranslation('joint.servo.rangeHint')
+      .replace('{min}', String(range.min))
+      .replace('{max}', String(range.max));
+    if (jointServoMinHint) {
+      jointServoMinHint.textContent = hint;
+    }
+    if (jointServoMaxHint) {
+      jointServoMaxHint.textContent = hint;
+    }
+  };
+
   const getJointServoSelection = (joint) => {
     if (!joint) {
       return [];
@@ -3582,6 +3630,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (jointServoTarget) {
       jointServoTarget.textContent = servoId || '—';
     }
+    updateJointServoRangeLimits(servoId);
     if (jointServoList) {
       jointServoList.querySelectorAll('.mini-row').forEach((row) => {
         row.classList.toggle('is-active', row.dataset.servoId === servoId);
@@ -3596,11 +3645,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (jointServoOffsetInput) {
       jointServoOffsetInput.value = data.offset ?? 0;
     }
+    const range = servoId ? getServoAngleRange(servoId) : null;
     if (jointServoMinInput) {
-      jointServoMinInput.value = data.min ?? 0;
+      const value = data.min ?? 0;
+      jointServoMinInput.value = range
+        ? Math.min(Math.max(value, range.min), range.max)
+        : value;
     }
     if (jointServoMaxInput) {
-      jointServoMaxInput.value = data.max ?? 180;
+      const value = data.max ?? 180;
+      jointServoMaxInput.value = range
+        ? Math.min(Math.max(value, range.min), range.max)
+        : value;
     }
   };
 
@@ -3805,8 +3861,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     entry.reverse = !!jointServoDirectionInput?.checked;
     entry.offset = parseNumber(jointServoOffsetInput?.value, entry.offset ?? 0);
-    entry.min = parseNumber(jointServoMinInput?.value, entry.min ?? 0);
-    entry.max = parseNumber(jointServoMaxInput?.value, entry.max ?? 180);
+    const range = getServoAngleRange(selectedJointServoId);
+    const minValue = parseNumber(jointServoMinInput?.value, entry.min ?? 0);
+    const maxValue = parseNumber(jointServoMaxInput?.value, entry.max ?? 180);
+    entry.min = Math.min(Math.max(minValue, range.min), range.max);
+    entry.max = Math.min(Math.max(maxValue, range.min), range.max);
+    if (jointServoMinInput) {
+      jointServoMinInput.value = entry.min;
+    }
+    if (jointServoMaxInput) {
+      jointServoMaxInput.value = entry.max;
+    }
     sortJoints();
     persistEventState();
     renderJointList();

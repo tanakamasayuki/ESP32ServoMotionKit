@@ -1283,6 +1283,12 @@ a {
   color: var(--ink-muted);
 }
 
+#pose-axis-list .mini-v {
+  width: 56px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .mini-row input[type="checkbox"] {
   accent-color: var(--accent);
 }

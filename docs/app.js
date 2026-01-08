@@ -4346,6 +4346,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const isPose = type === 'pose';
       group.hidden = !isPose;
       group.setAttribute('aria-hidden', String(!isPose));
+      group.style.display = isPose ? '' : 'none';
     });
   };
 
@@ -4725,7 +4726,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const type = sequenceTargetType?.value || 'pose';
     step.type = type;
-    step.targetId = sequenceTargetId?.value || '';
+    step.targetId = sequenceTargetId?.value || sequenceTargetId?.options?.[0]?.value || '';
     if (type === 'pose') {
       step.moveMs = parseNumber(sequencePoseDuration?.value, step.moveMs ?? 500);
       step.easingId = sequencePoseEasing?.value || step.easingId || 'e_linear';

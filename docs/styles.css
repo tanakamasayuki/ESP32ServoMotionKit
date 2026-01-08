@@ -795,6 +795,36 @@ a {
   margin-top: 12px;
 }
 
+.panel-pill {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: rgba(11, 139, 123, 0.06);
+  border: 1px solid rgba(11, 139, 123, 0.2);
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.panel-pill .form-grid {
+  min-width: 0;
+}
+
+.panel-pill .form-field,
+.panel-pill .form-field select,
+.panel-pill .form-field input,
+.panel-pill .mini-select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.panel-pill h4 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
 .preview-note {
   margin-top: 12px;
 }

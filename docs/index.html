@@ -748,6 +748,59 @@
                   </label>
                 </div>
               </div>
+              <div class="panel-pill">
+                <h4 data-i18n="pose.control.title">Control</h4>
+                <label class="form-field">
+                  <span data-i18n="pose.control.startPose">Start pose</span>
+                  <select>
+                    <option value="p_home">p_home</option>
+                    <option value="p_ready">p_ready</option>
+                    <option value="p_wave">p_wave</option>
+                  </select>
+                </label>
+                <div class="form-grid">
+                  <label class="form-field">
+                    <span data-i18n="pose.control.duration">Move duration (ms)</span>
+                    <input type="number" value="500" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="pose.control.easing">Base easing</span>
+                    <select>
+                      <option value="e_linear">e_linear</option>
+                      <option value="e_smooth">e_smooth</option>
+                      <option value="e_scurve_strong">e_scurve_strong</option>
+                    </select>
+                  </label>
+                </div>
+                <h4 class="card-subtitle" data-i18n="pose.control.axisEasing">Axis easing overrides</h4>
+                <div class="mini-list">
+                  <div class="mini-row">
+                    <span class="mini-k">yaw</span>
+                    <select class="mini-select">
+                      <option value="base" data-i18n="pose.control.axisDefault">Use base easing</option>
+                      <option value="e_linear">e_linear</option>
+                      <option value="e_smooth">e_smooth</option>
+                    </select>
+                  </div>
+                  <div class="mini-row">
+                    <span class="mini-k">pitch</span>
+                    <select class="mini-select">
+                      <option value="base" data-i18n="pose.control.axisDefault">Use base easing</option>
+                      <option value="e_linear">e_linear</option>
+                      <option value="e_smooth">e_smooth</option>
+                    </select>
+                  </div>
+                  <div class="mini-row">
+                    <span class="mini-k">roll</span>
+                    <select class="mini-select">
+                      <option value="base" data-i18n="pose.control.axisDefault">Use base easing</option>
+                      <option value="e_linear">e_linear</option>
+                      <option value="e_smooth">e_smooth</option>
+                    </select>
+                  </div>
+                </div>
+                <button class="btn btn-secondary" type="button" data-i18n="pose.control.go">Move to target</button>
+              </div>
             </article>
           </div>
         </section>
@@ -903,6 +956,59 @@
                     <option value="e_smooth">e_smooth</option>
                   </select>
                 </div>
+              </div>
+              <div class="panel-pill">
+                <h4 data-i18n="sequence.control.title">Control</h4>
+                <label class="form-field">
+                  <span data-i18n="sequence.control.startPose">Start pose</span>
+                  <select>
+                    <option value="p_home">p_home</option>
+                    <option value="p_ready">p_ready</option>
+                    <option value="p_wave">p_wave</option>
+                  </select>
+                </label>
+                <div class="form-grid">
+                  <label class="form-field">
+                    <span data-i18n="sequence.pose.duration">Move duration (ms)</span>
+                    <input type="number" value="500" />
+                  </label>
+                  <label class="form-field">
+                    <span data-i18n="sequence.pose.easing">Base easing</span>
+                    <select>
+                      <option value="e_linear">e_linear</option>
+                      <option value="e_smooth">e_smooth</option>
+                      <option value="e_scurve_strong">e_scurve_strong</option>
+                    </select>
+                  </label>
+                </div>
+                <h4 class="card-subtitle" data-i18n="sequence.pose.axisEasing">Axis easing overrides</h4>
+                <div class="mini-list">
+                  <div class="mini-row">
+                    <span class="mini-k">yaw</span>
+                    <select class="mini-select">
+                      <option value="base" data-i18n="sequence.pose.axisDefault">Use base easing</option>
+                      <option value="e_linear">e_linear</option>
+                      <option value="e_smooth">e_smooth</option>
+                    </select>
+                  </div>
+                  <div class="mini-row">
+                    <span class="mini-k">pitch</span>
+                    <select class="mini-select">
+                      <option value="base" data-i18n="sequence.pose.axisDefault">Use base easing</option>
+                      <option value="e_linear">e_linear</option>
+                      <option value="e_smooth">e_smooth</option>
+                    </select>
+                  </div>
+                  <div class="mini-row">
+                    <span class="mini-k">roll</span>
+                    <select class="mini-select">
+                      <option value="base" data-i18n="sequence.pose.axisDefault">Use base easing</option>
+                      <option value="e_linear">e_linear</option>
+                      <option value="e_smooth">e_smooth</option>
+                    </select>
+                  </div>
+                </div>
+                <button class="btn btn-secondary" type="button" data-i18n="sequence.control.go">Move to target</button>
               </div>
             </article>
           </div>

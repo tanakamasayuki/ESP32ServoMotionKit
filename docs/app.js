@@ -83,6 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'tabs.easing.note': 'Curves & presets',
       'tabs.event': 'Event Settings',
       'tabs.event.note': 'Triggers & cues',
+      'tabs.data': 'Data',
+      'tabs.data.note': 'JSON & API export',
       'common.import': 'Import',
       'common.save': 'Save',
       'common.duplicate': 'Duplicate',
@@ -274,7 +276,12 @@ document.addEventListener('DOMContentLoaded', () => {
       'event.usage.poseEnd': 'Pose end',
       'event.usage.sequenceList': 'Sequence usage',
       'event.usage.sequenceStart': 'Sequence start',
-      'event.usage.sequenceEnd': 'Sequence end'
+      'event.usage.sequenceEnd': 'Sequence end',
+      'data.title': 'Data Export',
+      'data.desc': 'Review internal JSON and generated C++ API output.',
+      'data.tabs.rich': 'Rich UI JSON',
+      'data.tabs.simple': 'Simple JSON',
+      'data.tabs.cpp': 'C++ API'
     },
     ja: {
       'app.meta.title': 'ESP32 サーボモーションスタジオ',
@@ -359,6 +366,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'tabs.easing.note': 'カーブ/プリセット',
       'tabs.event': 'イベント設定',
       'tabs.event.note': 'トリガー/通知',
+      'tabs.data': 'データ',
+      'tabs.data.note': 'JSON/C++ API出力',
       'common.import': 'インポート',
       'common.save': '保存',
       'common.duplicate': '複製',
@@ -550,7 +559,12 @@ document.addEventListener('DOMContentLoaded', () => {
       'event.usage.poseEnd': 'ポーズ終了',
       'event.usage.sequenceList': 'シーケンス一覧',
       'event.usage.sequenceStart': 'シーケンス開始',
-      'event.usage.sequenceEnd': 'シーケンス完了'
+      'event.usage.sequenceEnd': 'シーケンス完了',
+      'data.title': 'データ出力',
+      'data.desc': '内部JSONとC++ API出力を確認できます。',
+      'data.tabs.rich': 'リッチUI JSON',
+      'data.tabs.simple': 'シンプルJSON',
+      'data.tabs.cpp': 'C++ API'
     }
   };
 
@@ -1559,6 +1573,38 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', setHeroPanelsHeight);
   };
 
+  const initDataTabs = () => {
+    const dataTabs = Array.from(document.querySelectorAll('.data-tab'));
+    const dataPanels = Array.from(document.querySelectorAll('.data-panel'));
+    if (dataTabs.length === 0 || dataPanels.length === 0) {
+      return;
+    }
+
+    const setActive = (tab) => {
+      dataTabs.forEach((button) => {
+        const isActive = button.dataset.dataTab === tab;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-selected', String(isActive));
+        button.setAttribute('tabindex', isActive ? '0' : '-1');
+      });
+
+      dataPanels.forEach((panel) => {
+        const isActive = panel.dataset.dataPanel === tab;
+        panel.classList.toggle('is-active', isActive);
+        panel.setAttribute('aria-hidden', String(!isActive));
+      });
+    };
+
+    dataTabs.forEach((button) => {
+      button.addEventListener('click', () => setActive(button.dataset.dataTab));
+    });
+
+    const initial = dataTabs.find((button) => button.classList.contains('is-active')) || dataTabs[0];
+    if (initial) {
+      setActive(initial.dataset.dataTab);
+    }
+  };
+
   languageSelect.addEventListener('change', () => {
     const next = languageSelect.value;
     localStorage.setItem(storageKey, next);
@@ -1622,6 +1668,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initTabs();
   initHeroTabs();
+  initDataTabs();
   initSelectableLists();
   initSelectableSteps();
   initJointServoSelection();

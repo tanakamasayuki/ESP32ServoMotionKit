@@ -239,6 +239,10 @@
           <span class="tab-title" data-i18n="tabs.event">Event Settings</span>
           <span class="tab-note" data-i18n="tabs.event.note">Triggers & cues</span>
         </button>
+        <button class="tab-button" data-tab="data" role="tab" aria-selected="false" aria-controls="panel-data">
+          <span class="tab-title" data-i18n="tabs.data">Data</span>
+          <span class="tab-note" data-i18n="tabs.data.note">JSON & API export</span>
+        </button>
       </aside>
 
       <section class="tab-panels">
@@ -1193,6 +1197,50 @@
                 </div>
               </div>
             </article>
+          </div>
+        </section>
+
+        <section class="tab-panel" id="panel-data" data-panel="data" role="tabpanel" aria-label="Data">
+          <header class="panel-header">
+            <h2 data-i18n="data.title">Data Export</h2>
+            <p class="panel-note" data-i18n="data.desc">Review internal JSON and generated C++ API output.</p>
+          </header>
+          <div class="data-tabs" data-data-tabs>
+            <div class="data-tablist" role="tablist" aria-label="Data export tabs">
+              <button class="data-tab is-active" role="tab" data-data-tab="rich" aria-selected="true"
+                aria-controls="data-rich" data-i18n="data.tabs.rich">
+                Rich UI JSON
+              </button>
+              <button class="data-tab" role="tab" data-data-tab="simple" aria-selected="false" aria-controls="data-simple"
+                data-i18n="data.tabs.simple">
+                Simple JSON
+              </button>
+              <button class="data-tab" role="tab" data-data-tab="cpp" aria-selected="false" aria-controls="data-cpp"
+                data-i18n="data.tabs.cpp">
+                C++ API
+              </button>
+            </div>
+            <section class="data-panel is-active" id="data-rich" data-data-panel="rich" role="tabpanel"
+              aria-label="Rich UI JSON">
+              <textarea class="data-output" rows="16" spellcheck="false" aria-label="Rich UI JSON">{
+  "servos": [],
+  "joints": [],
+  "poses": [],
+  "sequences": []
+}</textarea>
+            </section>
+            <section class="data-panel" id="data-simple" data-data-panel="simple" role="tabpanel"
+              aria-label="Simple JSON">
+              <textarea class="data-output" rows="16" spellcheck="false" aria-label="Simple JSON">{
+  "poses": [],
+  "sequences": []
+}</textarea>
+            </section>
+            <section class="data-panel" id="data-cpp" data-data-panel="cpp" role="tabpanel" aria-label="C++ API">
+              <textarea class="data-output" rows="16" spellcheck="false" aria-label="C++ API">auto kit = ServoMotionKit();
+auto seq = kit.sequence("seq_demo");
+</textarea>
+            </section>
           </div>
         </section>
       </section>

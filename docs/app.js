@@ -256,6 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'easing.form.preset.curve': 'S-curve',
       'easing.form.param': 'Strength',
       'easing.card.preview': 'Timing Curves',
+      'easing.card.usage': 'Usage',
       'easing.form.type': 'Type',
       'easing.form.type.warpcurve': 'WarpCurve',
       'easing.editor.note': 'Preset entries are read-only. Custom entries adjust parameters based on a preset.',
@@ -555,6 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'easing.form.preset.curve': 'S カーブ',
       'easing.form.param': '強さ',
       'easing.card.preview': 'タイミングカーブ',
+      'easing.card.usage': '利用元',
       'easing.form.type': '種別',
       'easing.form.type.warpcurve': '時間変形曲線',
       'easing.editor.note': 'プリセットは編集不可です。カスタムはプリセットを元にパラメーターを調整します。',
@@ -735,6 +737,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const renderEasingUsage = () => {
+    if (!easingUsageList) {
+      return;
+    }
+    easingUsageList.innerHTML = '';
+    if (!selectedEasingId) {
+      return;
+    }
+    const usage = [];
+    eventState.sequences.forEach((sequence) => {
+      const used = (sequence.steps || []).some((step) => {
+        if (step.type !== 'pose') {
+          return false;
+        }
+        if (step.easingId === selectedEasingId) {
+          return true;
+        }
+        if (step.axisEasing) {
+          return Object.values(step.axisEasing).some((value) => value === selectedEasingId);
+        }
+        return false;
+      });
+      if (used) {
+        usage.push(sequence.id);
+      }
+    });
+    if (usage.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = '—';
+      empty.appendChild(label);
+      easingUsageList.appendChild(empty);
+      return;
+    }
+    usage.forEach((name) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      const key = document.createElement('span');
+      key.className = 'mini-k';
+      key.textContent = name;
+      row.appendChild(key);
+      easingUsageList.appendChild(row);
+    });
+  };
+
   const getEventUsageCount = (eventId) => {
     let count = 0;
     eventState.poses.forEach((pose) => {
@@ -794,6 +843,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSequenceList?.();
     renderEasingList?.();
     renderEventUsage?.();
+    renderEasingUsage?.();
     updatePoseTriggerOptions?.();
     updatePoseControlOptions?.();
     renderPoseControlAxisEasing?.();
@@ -1943,6 +1993,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sequenceAxisEasing = document.getElementById('sequence-axis-easing');
   const sequenceControlStart = document.getElementById('sequence-control-start');
   const eventUsageList = document.getElementById('event-usage-list');
+  const easingUsageList = document.getElementById('easing-usage-list');
   const easingList = document.getElementById('easing-list');
   const easingAddButton = document.getElementById('easing-add');
   const easingIdInput = document.getElementById('easing-id-input');
@@ -4745,6 +4796,7 @@ document.addEventListener('DOMContentLoaded', () => {
     populateSequenceEditor(sequence);
     updateSequenceTargetOptions();
     renderEventUsage();
+    renderEasingUsage();
     updateRichJsonOutput();
   };
 
@@ -4790,6 +4842,7 @@ document.addEventListener('DOMContentLoaded', () => {
     populateSequenceEditor(sequence);
     updateSequenceTargetOptions();
     renderEventUsage();
+    renderEasingUsage();
     updateRichJsonOutput();
   };
 
@@ -4826,6 +4879,7 @@ document.addEventListener('DOMContentLoaded', () => {
     populateSequenceEditor(copy);
     updateSequenceTargetOptions();
     renderEventUsage();
+    renderEasingUsage();
     updateRichJsonOutput();
   };
 
@@ -4849,6 +4903,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateSequenceTargetOptions();
     renderEventUsage();
+    renderEasingUsage();
   };
 
   const addSequenceStep = () => {
@@ -4901,6 +4956,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     renderSequenceSteps(sequence);
     populateSequenceTargetEditor();
+    renderEasingUsage();
   };
 
   const updateSequenceAxisEasing = (axisId, value) => {
@@ -4915,6 +4971,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       step.axisEasing[axisId] = value;
     }
+    renderEasingUsage();
   };
 
   const initSequenceEditor = () => {
@@ -5094,6 +5151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPoseList();
     renderSequenceList();
     renderEventUsage();
+    renderEasingUsage();
     if (selectedEventId) {
       selectEventById(selectedEventId);
     } else {
@@ -5569,6 +5627,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedEasingId = easing.id;
     renderEasingList();
     populateEasingEditor(easing);
+    renderEasingUsage();
   };
 
   const ensureEasingSelection = () => {
@@ -5608,6 +5667,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPoseControlAxisEasing();
     updateSequenceEasingOptions();
     renderSequenceAxisEasing();
+    renderEasingUsage();
     updateRichJsonOutput();
   };
 
@@ -5635,6 +5695,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceEasingOptions();
     renderSequenceAxisEasing();
     setEasingEditorLocked(easing.kind === 'preset');
+    renderEasingUsage();
     updateRichJsonOutput();
   };
 
@@ -5672,6 +5733,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPoseControlAxisEasing();
     updateSequenceEasingOptions();
     renderSequenceAxisEasing();
+    renderEasingUsage();
     updateRichJsonOutput();
   };
 
@@ -5707,6 +5769,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPoseControlAxisEasing();
     updateSequenceEasingOptions();
     renderSequenceAxisEasing();
+    renderEasingUsage();
     updateRichJsonOutput();
   };
 

@@ -2748,6 +2748,10 @@ document.addEventListener('DOMContentLoaded', () => {
         delete item.description;
       });
     });
+    delete simpleJson.jointGroups;
+    (simpleJson.poses || []).forEach((pose) => {
+      delete pose.groupId;
+    });
     (simpleJson.servos || []).forEach((servo) => {
       delete servo.previewOffset;
       delete servo.previewDirection;

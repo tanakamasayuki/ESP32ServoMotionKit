@@ -237,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'easing.list.preset': 'Preset',
       'easing.list.custom': 'Custom',
       'easing.list.add': 'Add easing',
+      'easing.delete.confirm': 'Delete "{id}"?',
       'easing.card.editor': 'Curve Editor',
       'easing.form.id': 'Easing ID',
       'easing.form.preset': 'Preset',
@@ -246,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'easing.form.param': 'Strength',
       'easing.card.preview': 'Timing Curves',
       'easing.form.type': 'Type',
-      'easing.form.type.warpcurve': '時間変形曲線',
+      'easing.form.type.warpcurve': 'WarpCurve',
       'easing.editor.note': 'Preset entries are read-only. Custom entries adjust parameters based on a preset.',
       'easing.param.shape': 'Shape (0-255)',
       'easing.param.shape.note': '0=Linear, 120=Soft, 180=Normal, 230=Hard',
@@ -522,6 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'easing.list.preset': 'プリセット',
       'easing.list.custom': 'カスタム',
       'easing.list.add': 'イージング追加',
+      'easing.delete.confirm': '「{id}」を削除しますか？',
       'easing.card.editor': 'カーブ編集',
       'easing.form.id': 'イージング ID',
       'easing.form.preset': 'プリセット',
@@ -1647,6 +1649,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const eventDescriptionInput = document.getElementById('event-description-input');
   const dataRichOutput = document.getElementById('data-rich-output');
   const eventFilterInput = document.getElementById('event-filter-input');
+  const easingList = document.getElementById('easing-list');
+  const easingAddButton = document.getElementById('easing-add');
+  const easingIdInput = document.getElementById('easing-id-input');
+  const easingOrderInput = document.getElementById('easing-order-input');
+  const easingDescriptionInput = document.getElementById('easing-description-input');
+  const easingTypeSelect = document.getElementById('easing-type-select');
+  const easingFilterInput = document.getElementById('easing-filter-input');
 
   const defaultState = {
     meta: {
@@ -1656,6 +1665,25 @@ document.addEventListener('DOMContentLoaded', () => {
     events: [
       { id: 'event_sound_a', number: 100, displayOrder: 10, description: 'Play sound A' },
       { id: 'event_led_flash', number: 210, displayOrder: 20, description: 'Flash LED' }
+    ],
+    easings: [
+      { id: 'e_linear', type: 'linear', kind: 'preset', displayOrder: 10, description: '', params: [] },
+      {
+        id: 'e_smooth',
+        type: 'warpcurve',
+        kind: 'custom',
+        displayOrder: 20,
+        description: 'Smooth easing for demo',
+        params: [180, 128, 128, 0, 170, 160]
+      },
+      {
+        id: 'e_scurve_strong',
+        type: 'warpcurve',
+        kind: 'custom',
+        displayOrder: 30,
+        description: 'Strong S-curve',
+        params: [230, 128, 128, 0, 170, 160]
+      }
     ]
   };
 
@@ -1669,8 +1697,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       const parsed = JSON.parse(raw);
-      if (parsed && parsed.meta && Array.isArray(parsed.events)) {
-        eventState = parsed;
+      if (parsed && parsed.meta) {
+        eventState = {
+          meta: parsed.meta || defaultState.meta,
+          events: Array.isArray(parsed.events) ? parsed.events : defaultState.events,
+          easings: Array.isArray(parsed.easings) ? parsed.easings : defaultState.easings
+        };
       }
     } catch (error) {
       // Ignore malformed storage.
@@ -1699,9 +1731,31 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       return item;
     });
+    const easings = eventState.easings.map((easing) => {
+      const item = {
+        id: easing.id,
+        type: easing.kind,
+        preset: easing.type
+      };
+      if (easing.displayOrder !== null && easing.displayOrder !== undefined && easing.displayOrder !== '') {
+        item.displayOrder = easing.displayOrder;
+      }
+      if (easing.description) {
+        item.description = easing.description;
+      }
+      if (Array.isArray(easing.params) && easing.params.length > 0) {
+        const params = {};
+        easing.params.forEach((value, index) => {
+          params[`param${index}`] = value;
+        });
+        item.params = params;
+      }
+      return item;
+    });
     return {
       meta: eventState.meta,
-      events
+      events,
+      easings
     };
   };
 
@@ -1713,6 +1767,45 @@ document.addEventListener('DOMContentLoaded', () => {
         return orderA - orderB;
       }
       return String(a.id).localeCompare(String(b.id));
+    });
+  };
+
+  const sortEasings = () => {
+    eventState.easings.sort((a, b) => {
+      const orderA = a.displayOrder === null || a.displayOrder === undefined ? Number.POSITIVE_INFINITY : a.displayOrder;
+      const orderB = b.displayOrder === null || b.displayOrder === undefined ? Number.POSITIVE_INFINITY : b.displayOrder;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      return String(a.id).localeCompare(String(b.id));
+    });
+  };
+
+  const easingParamOrder = {
+    warpcurve: ['shape', 'bias', 'symmetry', 'overshoot', 'overshootTiming', 'overshootDamping'],
+    linear: []
+  };
+
+  const getEasingParams = (type) => {
+    const keys = easingParamOrder[type] || [];
+    return keys.map((key) => {
+      const input = document.querySelector(`[data-easing-param="${key}"]`);
+      if (!input) {
+        return 0;
+      }
+      return Math.max(0, Math.min(255, Number(input.value) || 0));
+    });
+  };
+
+  const applyEasingParams = (type, params) => {
+    const keys = easingParamOrder[type] || [];
+    keys.forEach((key, index) => {
+      const input = document.querySelector(`[data-easing-param="${key}"]`);
+      if (!input) {
+        return;
+      }
+      const value = params?.[index];
+      input.value = value !== undefined ? value : input.value;
     });
   };
 
@@ -1983,6 +2076,215 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  let selectedEasingId = null;
+
+  const renderEasingList = () => {
+    if (!easingList) {
+      return;
+    }
+    easingList.innerHTML = '';
+    const filter = easingFilterInput?.value?.trim().toLowerCase() || '';
+    eventState.easings.forEach((easing) => {
+      if (filter && !easing.id.toLowerCase().includes(filter)) {
+        return;
+      }
+      const item = document.createElement('li');
+      item.className = 'list-item';
+      item.dataset.easingId = easing.id;
+      if (easing.id === selectedEasingId) {
+        item.classList.add('is-active');
+      }
+      const name = document.createElement('span');
+      name.textContent = easing.id;
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = getTranslation(easing.kind === 'preset' ? 'easing.list.preset' : 'easing.list.custom');
+      item.appendChild(name);
+      item.appendChild(chip);
+      easingList.appendChild(item);
+    });
+  };
+
+  const populateEasingEditor = (easing) => {
+    if (!easing || !easingIdInput || !easingOrderInput || !easingDescriptionInput || !easingTypeSelect) {
+      return;
+    }
+    easingIdInput.value = easing.id ?? '';
+    easingOrderInput.value = easing.displayOrder ?? '';
+    easingDescriptionInput.value = easing.description ?? '';
+    easingTypeSelect.value = easing.type;
+    easingTypeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    applyEasingParams(easing.type, easing.params || []);
+    renderEasingGraphs();
+  };
+
+  const selectEasingById = (easingId) => {
+    const easing = eventState.easings.find((item) => item.id === easingId) || eventState.easings[0];
+    if (!easing) {
+      return;
+    }
+    selectedEasingId = easing.id;
+    renderEasingList();
+    populateEasingEditor(easing);
+  };
+
+  const ensureEasingSelection = () => {
+    if (!selectedEasingId && eventState.easings.length > 0) {
+      selectedEasingId = eventState.easings[0].id;
+    }
+  };
+
+  const addEasing = () => {
+    const base = 'e_new';
+    let index = eventState.easings.length + 1;
+    let id = `${base}_${index}`;
+    while (eventState.easings.some((item) => item.id === id)) {
+      index += 1;
+      id = `${base}_${index}`;
+    }
+    const type = easingTypeSelect?.value || 'warpcurve';
+    const easing = {
+      id,
+      type,
+      kind: type === 'linear' ? 'preset' : 'custom',
+      displayOrder: eventState.easings.length * 10,
+      description: '',
+      params: getEasingParams(type)
+    };
+    eventState.easings.push(easing);
+    selectedEasingId = easing.id;
+    sortEasings();
+    persistEventState();
+    renderEasingList();
+    populateEasingEditor(easing);
+    updateRichJsonOutput();
+  };
+
+  const saveEasing = () => {
+    if (!selectedEasingId) {
+      return;
+    }
+    const easing = eventState.easings.find((item) => item.id === selectedEasingId);
+    if (!easing) {
+      return;
+    }
+    easing.id = (easingIdInput?.value || '').trim() || easing.id;
+    const orderRaw = easingOrderInput?.value ?? '';
+    easing.displayOrder = orderRaw === '' ? null : parseNumber(orderRaw, easing.displayOrder ?? null);
+    easing.description = (easingDescriptionInput?.value || '').trim();
+    easing.type = easingTypeSelect?.value || easing.type;
+    easing.kind = easing.type === 'linear' ? 'preset' : 'custom';
+    easing.params = getEasingParams(easing.type);
+    selectedEasingId = easing.id;
+    sortEasings();
+    persistEventState();
+    renderEasingList();
+    updateRichJsonOutput();
+  };
+
+  const duplicateEasing = () => {
+    if (!selectedEasingId) {
+      return;
+    }
+    const source = eventState.easings.find((item) => item.id === selectedEasingId);
+    if (!source) {
+      return;
+    }
+    let index = 1;
+    let id = `${source.id}_copy`;
+    while (eventState.easings.some((item) => item.id === id)) {
+      index += 1;
+      id = `${source.id}_copy${index}`;
+    }
+    const copy = {
+      ...source,
+      id
+    };
+    eventState.easings.push(copy);
+    selectedEasingId = id;
+    sortEasings();
+    persistEventState();
+    renderEasingList();
+    populateEasingEditor(copy);
+    updateRichJsonOutput();
+  };
+
+  const deleteEasing = () => {
+    if (!selectedEasingId) {
+      return;
+    }
+    const label = selectedEasingId;
+    const confirmText = getTranslation('easing.delete.confirm').replace('{id}', label);
+    if (!window.confirm(confirmText)) {
+      return;
+    }
+    const index = eventState.easings.findIndex((item) => item.id === selectedEasingId);
+    if (index === -1) {
+      return;
+    }
+    eventState.easings.splice(index, 1);
+    selectedEasingId = eventState.easings[index]?.id || eventState.easings[index - 1]?.id || null;
+    persistEventState();
+    renderEasingList();
+    if (selectedEasingId) {
+      selectEasingById(selectedEasingId);
+    } else if (easingIdInput) {
+      easingIdInput.value = '';
+      easingOrderInput.value = '';
+      easingDescriptionInput.value = '';
+    }
+    updateRichJsonOutput();
+  };
+
+  const initEasingEditor = () => {
+    if (!easingList || !easingAddButton) {
+      return;
+    }
+    ensureEasingSelection();
+    sortEasings();
+    renderEasingList();
+    selectEasingById(selectedEasingId);
+
+    easingList.addEventListener('click', (event) => {
+      const item = event.target.closest('.list-item');
+      if (!item || !easingList.contains(item)) {
+        return;
+      }
+      selectEasingById(item.dataset.easingId);
+    });
+
+    easingAddButton.addEventListener('click', () => {
+      addEasing();
+    });
+
+    if (easingFilterInput) {
+      easingFilterInput.addEventListener('input', () => {
+        renderEasingList();
+      });
+    }
+
+    const saveButton = document.querySelector('#panel-easing .card-actions .btn.btn-secondary');
+    if (saveButton) {
+      saveButton.addEventListener('click', () => {
+        saveEasing();
+      });
+    }
+
+    const duplicateButton = document.querySelector('#panel-easing .card-actions .btn.btn-outline');
+    if (duplicateButton) {
+      duplicateButton.addEventListener('click', () => {
+        duplicateEasing();
+      });
+    }
+
+    const deleteButton = document.querySelector('#panel-easing .card-actions .btn.btn-ghost');
+    if (deleteButton) {
+      deleteButton.addEventListener('click', () => {
+        deleteEasing();
+      });
+    }
+  };
+
   languageSelect.addEventListener('change', () => {
     const next = languageSelect.value;
     localStorage.setItem(storageKey, next);
@@ -2055,6 +2357,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initPoseAxisSelection();
   initEasingTypeToggle();
   initEventEditor();
+  initEasingEditor();
   renderEasingGraphs();
   initServoTypeToggle();
   initServoPreviewAngle();

@@ -1023,7 +1023,7 @@
               <div class="list-header">
                 <h3 data-i18n="easing.card.list">Easing List</h3>
                 <div class="list-actions">
-                  <button class="btn btn-outline" type="button" data-i18n="common.add">Add</button>
+                  <button class="btn btn-outline" type="button" data-i18n="common.add" id="easing-add">Add</button>
                 </div>
               </div>
               <label class="form-field list-filter">
@@ -1036,7 +1036,7 @@
                   </button>
                 </div>
               </label>
-              <ul class="list">
+              <ul class="list" id="easing-list">
                 <li class="list-item is-active">
                   <span>e_smooth</span>
                   <span class="chip" data-i18n="easing.list.preset">Preset</span>
@@ -1056,21 +1056,21 @@
               <div class="form-grid">
                 <label class="form-field">
                   <span data-i18n="easing.form.id">Easing ID</span>
-                  <input type="text" value="e_smooth" />
+                  <input type="text" value="e_smooth" id="easing-id-input" />
                 </label>
                 <label class="form-field">
                   <span data-i18n="common.form.displayOrder">Display order</span>
                   <input type="number" value="10" min="0" data-i18n-placeholder="common.form.displayOrder.placeholder"
-                    placeholder="10" />
+                    placeholder="10" id="easing-order-input" />
                 </label>
                 <label class="form-field form-field--full">
                   <span data-i18n="common.form.description">Description</span>
                   <textarea rows="2" data-i18n-placeholder="common.form.description.placeholder"
-                    placeholder="Smooth easing for demo"></textarea>
+                    placeholder="Smooth easing for demo" id="easing-description-input"></textarea>
                 </label>
                 <label class="form-field form-field--full">
                   <span data-i18n="easing.form.type">Type</span>
-                  <select data-easing-type-select>
+                  <select data-easing-type-select id="easing-type-select">
                     <option value="warpcurve" data-i18n="easing.form.type.warpcurve">WarpCurve</option>
                     <option value="linear" data-i18n="easing.form.preset.linear">Linear</option>
                   </select>

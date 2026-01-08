@@ -1289,6 +1289,14 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
+#pose-control-axis-easing .mini-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+#pose-control-axis-easing .mini-select {
+  width: 160px;
+}
+
 .mini-row input[type="checkbox"] {
   accent-color: var(--accent);
 }

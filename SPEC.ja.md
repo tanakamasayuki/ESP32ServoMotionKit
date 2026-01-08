@@ -162,8 +162,31 @@ UI/デバイス共通のスキーマ識別子とバージョン管理に使う�
 #### C++ API（生成ヘッダ＆実行）
 
 ```cpp
-#define MOTIONKIT_SCHEMA "motionkit"
-#define MOTIONKIT_VERSION "0.1.0"
+#pragma once
+#include "ESP32ServoMotionKit.h"
+
+namespace motionkit::assets {
+inline void Load(motionkit::MotionKit& kit) {
+  // サーボ/ジョイント/ポーズ/シーケンス等の初期化をここに展開する。
+}
+}
+
+namespace motionkit::assets {
+inline constexpr const char* ServoId_Example = "servo_front_left";
+inline constexpr const char* JointId_Example = "yaw";
+inline constexpr const char* PoseId_Example = "p_home";
+inline constexpr const char* SequenceId_Example = "seq_demo";
+}
+```
+
+```cpp
+#include "motionkit_assets.h"
+
+motionkit::MotionKit kit;
+
+void setup() {
+  motionkit::preset::Load(kit);
+}
 ```
 
 ---

@@ -5254,6 +5254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderEventList();
     populateEventEditor(event);
+    renderEventUsage();
     updatePoseTriggerOptions();
     updateSequenceTriggerOptions();
     updateRichJsonOutput();
@@ -5346,6 +5347,7 @@ document.addEventListener('DOMContentLoaded', () => {
     persistEventState();
     renderEventList();
     populateEventEditor(copy);
+    renderEventUsage();
     updatePoseTriggerOptions();
     updateSequenceTriggerOptions();
     updateRichJsonOutput();

@@ -191,18 +191,21 @@ document.addEventListener('DOMContentLoaded', () => {
       'sequence.desc': 'Compose steps, triggers, and reusable sequences for header export.',
       'sequence.card.list': 'Sequence List',
       'sequence.card.steps': 'Sequence Steps',
-      'sequence.steps.step1': 'Step 1: p_home',
-      'sequence.steps.step2': 'Step 2: p_wave',
-      'sequence.steps.step3': 'Step 3: call seq_intro',
+      'sequence.steps.step1': '1: p_home',
+      'sequence.steps.step2': '2: p_wave',
+      'sequence.steps.step3': '3: call seq_intro',
       'sequence.steps.inline': 'Inline on header export',
       'sequence.steps.add': 'Add step',
+      'sequence.steps.moveUp': 'Move up',
+      'sequence.steps.moveDown': 'Move down',
       'sequence.card.rules': 'Loop & Trigger',
       'sequence.form.id': 'Sequence ID',
-      'sequence.form.loop': 'Loop playback',
-      'sequence.form.trigger': 'Trigger',
-      'sequence.form.trigger.option.start': 'On sequence start',
-      'sequence.form.trigger.option.end': 'On sequence end',
-      'sequence.form.eventId': 'Event ID',
+      'sequence.triggers.title': 'Trigger Settings',
+      'sequence.triggers.start': 'Sequence start',
+      'sequence.triggers.end': 'Sequence end',
+      'sequence.triggers.event.none': 'No event',
+      'sequence.triggers.event.sound': '100 - event_sound_a',
+      'sequence.triggers.event.led': '210 - event_led_flash',
       'sequence.card.axis': 'Axis Easing',
       'sequence.axis.note': 'Override per axis when needed.',
       'sequence.axis.edit': 'Edit overrides',
@@ -444,18 +447,21 @@ document.addEventListener('DOMContentLoaded', () => {
       'sequence.desc': 'ステップ/トリガー/再利用シーケンスを構成し、ヘッダ出力に反映します。',
       'sequence.card.list': 'シーケンス一覧',
       'sequence.card.steps': 'シーケンスステップ',
-      'sequence.steps.step1': 'ステップ 1: p_home',
-      'sequence.steps.step2': 'ステップ 2: p_wave',
-      'sequence.steps.step3': 'ステップ 3: seq_intro を呼び出し',
+      'sequence.steps.step1': '1: p_home',
+      'sequence.steps.step2': '2: p_wave',
+      'sequence.steps.step3': '3: seq_intro を呼び出し',
       'sequence.steps.inline': 'ヘッダ出力時に展開',
       'sequence.steps.add': 'ステップ追加',
+      'sequence.steps.moveUp': '上へ移動',
+      'sequence.steps.moveDown': '下へ移動',
       'sequence.card.rules': 'ループとトリガー',
       'sequence.form.id': 'シーケンス ID',
-      'sequence.form.loop': 'ループ再生',
-      'sequence.form.trigger': 'トリガー',
-      'sequence.form.trigger.option.start': 'シーケンス開始時',
-      'sequence.form.trigger.option.end': 'シーケンス終了時',
-      'sequence.form.eventId': 'イベント ID',
+      'sequence.triggers.title': 'トリガー設定',
+      'sequence.triggers.start': 'シーケンス開始',
+      'sequence.triggers.end': 'シーケンス終了',
+      'sequence.triggers.event.none': 'イベントなし',
+      'sequence.triggers.event.sound': '100 - event_sound_a',
+      'sequence.triggers.event.led': '210 - event_led_flash',
       'sequence.card.axis': '軸別イージング',
       'sequence.axis.note': '必要に応じて軸ごとに上書きします。',
       'sequence.axis.edit': '上書きを編集',
@@ -1024,6 +1030,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const initSelectableSteps = () => {
+    const stepLists = Array.from(document.querySelectorAll('.step-list'));
+    stepLists.forEach((list) => {
+      list.addEventListener('click', (event) => {
+        const item = event.target.closest('li');
+        if (!item || !list.contains(item)) {
+          return;
+        }
+        list.querySelectorAll('li').forEach((node) => {
+          node.classList.remove('is-active');
+        });
+        item.classList.add('is-active');
+      });
+    });
+  };
+
   const initJointServoSelection = () => {
     const targetLabel = document.querySelector('#joint-servo-target');
     const servoButtons = Array.from(document.querySelectorAll('[data-servo-select]'));
@@ -1561,6 +1583,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   initHeroTabs();
   initSelectableLists();
+  initSelectableSteps();
   initJointServoSelection();
   initJointGroupSelection();
   initPoseAxisSelection();

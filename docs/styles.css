@@ -1030,6 +1030,26 @@ a {
   background: rgba(27, 31, 35, 0.05);
 }
 
+.step-list li.is-active {
+  border: 1px solid rgba(11, 139, 123, 0.4);
+  background: rgba(11, 139, 123, 0.08);
+}
+
+.step-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.step-move {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .step-title {
   font-weight: 600;
 }

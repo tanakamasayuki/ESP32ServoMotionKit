@@ -2867,8 +2867,28 @@ document.addEventListener('DOMContentLoaded', () => {
     return source;
   };
 
+  const reservedCppWords = new Set([
+    'alignas', 'alignof', 'and', 'and_eq', 'asm', 'auto', 'bitand', 'bitor',
+    'bool', 'break', 'case', 'catch', 'char', 'char16_t', 'char32_t', 'class',
+    'compl', 'const', 'constexpr', 'const_cast', 'continue', 'decltype',
+    'default', 'delete', 'do', 'double', 'dynamic_cast', 'else', 'enum',
+    'explicit', 'export', 'extern', 'false', 'float', 'for', 'friend', 'goto',
+    'if', 'inline', 'int', 'long', 'mutable', 'namespace', 'new', 'noexcept',
+    'not', 'not_eq', 'nullptr', 'operator', 'or', 'or_eq', 'private',
+    'protected', 'public', 'register', 'reinterpret_cast', 'return', 'short',
+    'signed', 'sizeof', 'static', 'static_assert', 'static_cast', 'struct',
+    'switch', 'template', 'this', 'thread_local', 'throw', 'true', 'try',
+    'typedef', 'typeid', 'typename', 'union', 'unsigned', 'using', 'virtual',
+    'void', 'volatile', 'wchar_t', 'while', 'xor', 'xor_eq',
+    '_Alignas', '_Alignof', '_Atomic', '_Bool', '_Complex', '_Generic',
+    '_Imaginary', '_Noreturn', '_Static_assert', '_Thread_local'
+  ]);
+
   const makeIdSymbol = (type, id, existing) => {
     const base = toCppIdentifier('', stripDefaultPrefix(type, id)) || 'id';
+    if (reservedCppWords.has(base)) {
+      existing.add(base);
+    }
     if (!existing.has(base)) {
       existing.add(base);
       return base;

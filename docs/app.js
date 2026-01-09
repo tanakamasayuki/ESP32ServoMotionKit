@@ -2982,6 +2982,21 @@ document.addEventListener('DOMContentLoaded', () => {
     lines.push('#pragma once');
     lines.push('#include "ESP32ServoMotionKit.h"');
     lines.push('');
+    lines.push('/*');
+    lines.push('#include "motionkit_assets.h"');
+    lines.push('');
+    lines.push('motionkit::MotionKit kit;');
+    lines.push('');
+    lines.push('void setup()');
+    lines.push('{');
+    lines.push('  motionkit::assets::Load(kit);');
+    lines.push('}');
+    lines.push('');
+    lines.push('void loop()');
+    lines.push('{');
+    lines.push('}');
+    lines.push('*/');
+    lines.push('');
     const idSymbols = {
       servo: new Map(),
       joint: new Map(),

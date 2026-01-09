@@ -106,8 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
       'joint.form.rangeMax': 'Servo max (deg) [auto]',
       'joint.list.count': '{count} servos',
       'joint.usage.title': 'Usage',
+      'joint.usage.groupList': 'Joint groups',
+      'joint.usage.poseList': 'Poses',
       'joint.delete.confirm': 'Delete "{id}"?',
-      'joint.delete.inUse': 'This joint is used by joint groups.',
+      'joint.delete.inUse': 'This joint is used by joint groups or poses.',
       'jointGroup.form.id.duplicate': 'Group ID must be unique.',
       'jointGroup.list.count': '{count} joints',
       'jointGroup.usage.title': 'Usage',
@@ -431,8 +433,10 @@ document.addEventListener('DOMContentLoaded', () => {
       'joint.form.rangeMax': 'サーボ最大 (deg) ※自動',
       'joint.list.count': '{count} サーボ',
       'joint.usage.title': '利用元',
+      'joint.usage.groupList': 'ジョイントグループ',
+      'joint.usage.poseList': 'ポーズ',
       'joint.delete.confirm': '「{id}」を削除しますか？',
-      'joint.delete.inUse': 'このジョイントはジョイントグループで使用中です。',
+      'joint.delete.inUse': 'このジョイントはジョイントグループまたはポーズで使用中です。',
       'jointGroup.form.id.duplicate': 'グループ ID が重複しています。',
       'jointGroup.list.count': '{count} ジョイント',
       'jointGroup.usage.title': '利用元',
@@ -939,20 +943,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!selectedJointId) {
       return;
     }
-    const usage = eventState.jointGroups
-      .filter((group) => (group.jointIds || []).includes(selectedJointId))
-      .map((group) => group.id);
-    if (usage.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'mini-row';
+    const getPoseSelectedJointIds = (pose) => {
+      if (!pose) {
+        return [];
+      }
+      if (pose.id === selectedPoseId && poseAxisList) {
+        const selectedIds = [];
+        poseAxisList.querySelectorAll('input[type="checkbox"][data-pose-axis]').forEach((input) => {
+          if (input.checked) {
+            selectedIds.push(input.dataset.poseAxis);
+          }
+        });
+        return selectedIds;
+      }
+      return (pose.jointTargets || []).map((target) => target.jointId);
+    };
+    const addHeader = (labelKey) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row mini-row--header';
       const label = document.createElement('span');
       label.className = 'mini-k';
-      label.textContent = '—';
-      empty.appendChild(label);
-      jointUsageList.appendChild(empty);
-      return;
-    }
-    usage.forEach((name) => {
+      label.textContent = getTranslation(labelKey);
+      row.appendChild(label);
+      jointUsageList.appendChild(row);
+    };
+
+    const addItem = (name) => {
       const row = document.createElement('div');
       row.className = 'mini-row';
       const key = document.createElement('span');
@@ -960,7 +976,41 @@ document.addEventListener('DOMContentLoaded', () => {
       key.textContent = name;
       row.appendChild(key);
       jointUsageList.appendChild(row);
-    });
+    };
+
+    const groupUsage = eventState.jointGroups
+      .filter((group) => (group.jointIds || []).includes(selectedJointId))
+      .map((group) => group.id);
+
+    const poseUsage = eventState.poses
+      .filter((pose) => getPoseSelectedJointIds(pose).includes(selectedJointId))
+      .map((pose) => pose.id);
+
+    addHeader('joint.usage.groupList');
+    if (groupUsage.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = '—';
+      empty.appendChild(label);
+      jointUsageList.appendChild(empty);
+    } else {
+      groupUsage.forEach((name) => addItem(name));
+    }
+
+    addHeader('joint.usage.poseList');
+    if (poseUsage.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = '—';
+      empty.appendChild(label);
+      jointUsageList.appendChild(empty);
+    } else {
+      poseUsage.forEach((name) => addItem(name));
+    }
   };
 
   const renderJointGroupUsage = () => {
@@ -1022,6 +1072,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let count = 0;
     eventState.jointGroups.forEach((group) => {
       if ((group.jointIds || []).includes(jointId)) {
+        count += 1;
+      }
+    });
+    eventState.poses.forEach((pose) => {
+      const targetIds = pose.id === selectedPoseId && poseAxisList
+        ? Array.from(poseAxisList.querySelectorAll('input[type="checkbox"][data-pose-axis]'))
+          .filter((input) => input.checked)
+          .map((input) => input.dataset.poseAxis)
+        : (pose.jointTargets || []).map((target) => target.jointId);
+      if (targetIds.includes(jointId)) {
         count += 1;
       }
     });

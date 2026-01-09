@@ -2932,70 +2932,55 @@ document.addEventListener('DOMContentLoaded', () => {
     lines.push('');
     lines.push('    // Servos');
     (simpleJson.servos || []).forEach((servo) => {
-      const varName = toCppIdentifier('servo_', servo.id);
       const idName = `motionkit::assets::servo::${getIdSymbol('servo', servo.id)}`;
-      const mode = servo.mode === 'wheel' ? '.wheel()' : '.position()';
       if (servo.type === 'pwm') {
         const pin = formatCppValue(servo.pin ?? servo.pwm?.pin);
-        lines.push(`    auto ${varName} = kit.servo(${idName}).pwm(${pin})${mode};`);
+        const mode = servo.mode === 'wheel' ? '.wheel()' : '.position()';
         const pwm = servo.pwm || {};
-        if (pwm.freq !== undefined) {
-          lines.push(`    ${varName}.pwmFreq(${formatCppValue(pwm.freq)});`);
-        }
-        if (pwm.pulseMin !== undefined) {
-          lines.push(`    ${varName}.pulseMin(${formatCppValue(pwm.pulseMin)});`);
-        }
-        if (pwm.pulseMax !== undefined) {
-          lines.push(`    ${varName}.pulseMax(${formatCppValue(pwm.pulseMax)});`);
-        }
-        if (pwm.center !== undefined) {
-          lines.push(`    ${varName}.pulseCenter(${formatCppValue(pwm.center)});`);
-        }
-        if (pwm.deadband !== undefined) {
-          lines.push(`    ${varName}.deadband(${formatCppValue(pwm.deadband)});`);
-        }
-        if (pwm.speed !== undefined) {
-          lines.push(`    ${varName}.speedLimit(${formatCppValue(pwm.speed)});`);
-        }
-        if (pwm.angleMin !== undefined) {
-          lines.push(`    ${varName}.angleMin(${formatCppValue(pwm.angleMin)});`);
-        }
-        if (pwm.angleMax !== undefined) {
-          lines.push(`    ${varName}.angleMax(${formatCppValue(pwm.angleMax)});`);
-        }
-        if (pwm.offset !== undefined) {
-          lines.push(`    ${varName}.offset(${formatCppValue(pwm.offset)});`);
-        }
+        const chain = [
+          `.pwm(${pin})`,
+          mode,
+          pwm.freq !== undefined ? `.pwmFreq(${formatCppValue(pwm.freq)})` : '',
+          pwm.pulseMin !== undefined ? `.pulseMin(${formatCppValue(pwm.pulseMin)})` : '',
+          pwm.pulseMax !== undefined ? `.pulseMax(${formatCppValue(pwm.pulseMax)})` : '',
+          pwm.center !== undefined ? `.pulseCenter(${formatCppValue(pwm.center)})` : '',
+          pwm.deadband !== undefined ? `.deadband(${formatCppValue(pwm.deadband)})` : '',
+          pwm.speed !== undefined ? `.speedLimit(${formatCppValue(pwm.speed)})` : '',
+          pwm.angleMin !== undefined ? `.angleMin(${formatCppValue(pwm.angleMin)})` : '',
+          pwm.angleMax !== undefined ? `.angleMax(${formatCppValue(pwm.angleMax)})` : '',
+          pwm.offset !== undefined ? `.offset(${formatCppValue(pwm.offset)})` : ''
+        ]
+          .filter(Boolean)
+          .join('');
+        lines.push(`    kit.servo(${idName})${chain};`);
       } else if (servo.type === 'ttl') {
         const ttl = servo.ttl || {};
         const address = formatCppValue(ttl.address ?? 0);
         const bus = ttl.bus ? `"${ttl.bus}"` : '"UART0"';
-        lines.push(`    auto ${varName} = kit.servo(${idName}).ttl(${address}, ${bus})${mode};`);
-        if (ttl.speed !== undefined) {
-          lines.push(`    ${varName}.speedLimit(${formatCppValue(ttl.speed)});`);
-        }
-        if (ttl.angleMin !== undefined) {
-          lines.push(`    ${varName}.angleMin(${formatCppValue(ttl.angleMin)});`);
-        }
-        if (ttl.angleMax !== undefined) {
-          lines.push(`    ${varName}.angleMax(${formatCppValue(ttl.angleMax)});`);
-        }
-        if (ttl.offset !== undefined) {
-          lines.push(`    ${varName}.offset(${formatCppValue(ttl.offset)});`);
-        }
+        const mode = servo.mode === 'wheel' ? '.wheel()' : '.position()';
+        const chain = [
+          `.ttl(${address}, ${bus})`,
+          mode,
+          ttl.speed !== undefined ? `.speedLimit(${formatCppValue(ttl.speed)})` : '',
+          ttl.angleMin !== undefined ? `.angleMin(${formatCppValue(ttl.angleMin)})` : '',
+          ttl.angleMax !== undefined ? `.angleMax(${formatCppValue(ttl.angleMax)})` : '',
+          ttl.offset !== undefined ? `.offset(${formatCppValue(ttl.offset)})` : ''
+        ]
+          .filter(Boolean)
+          .join('');
+        lines.push(`    kit.servo(${idName})${chain};`);
       } else {
-        lines.push(`    auto ${varName} = kit.servo(${idName})${mode};`);
+        const mode = servo.mode === 'wheel' ? '.wheel()' : '.position()';
+        lines.push(`    kit.servo(${idName})${mode};`);
       }
     });
     lines.push('');
     lines.push('    // Joints');
     (simpleJson.joints || []).forEach((joint) => {
-      const varName = toCppIdentifier('joint_', joint.id);
       const idName = `motionkit::assets::joint::${getIdSymbol('joint', joint.id)}`;
-      lines.push(`    auto ${varName} = kit.joint(${idName});`);
       (joint.servoRefs || []).forEach((ref) => {
         const servoConst = `motionkit::assets::servo::${getIdSymbol('servo', ref.servoId)}`;
-        let line = `    ${varName}.servo(${servoConst})`;
+        let line = `    kit.joint(${idName}).servo(${servoConst})`;
         if (ref.reverse !== undefined) {
           line += `.reverse(${ref.reverse ? 'true' : 'false'})`;
         }
@@ -3006,56 +2991,50 @@ document.addEventListener('DOMContentLoaded', () => {
         lines.push(line);
       });
       if (joint.rangeMin !== undefined && joint.rangeMin !== null) {
-        lines.push(`    ${varName}.rangeMin(${formatCppValue(joint.rangeMin)});`);
+        lines.push(`    kit.joint(${idName}).rangeMin(${formatCppValue(joint.rangeMin)});`);
       }
       if (joint.rangeMax !== undefined && joint.rangeMax !== null) {
-        lines.push(`    ${varName}.rangeMax(${formatCppValue(joint.rangeMax)});`);
+        lines.push(`    kit.joint(${idName}).rangeMax(${formatCppValue(joint.rangeMax)});`);
       }
     });
     lines.push('');
     lines.push('    // Easings');
     (simpleJson.easings || []).forEach((easing) => {
-      const varName = toCppIdentifier('easing_', easing.id);
       const idName = `motionkit::assets::easing::${getIdSymbol('easing', easing.id)}`;
+      const chain = [];
       if (easing.preset) {
-        lines.push(`    auto ${varName} = kit.easing(${idName}).preset("${easing.preset}");`);
-      } else {
-        lines.push(`    auto ${varName} = kit.easing(${idName});`);
+        chain.push(`.preset("${easing.preset}")`);
       }
       if (easing.params) {
         Object.entries(easing.params).forEach(([key, value]) => {
-          lines.push(`    ${varName}.param("${key}", ${formatCppValue(value)});`);
+          chain.push(`.param("${key}", ${formatCppValue(value)})`);
         });
       }
+      lines.push(`    kit.easing(${idName})${chain.join('')};`);
     });
     lines.push('');
     lines.push('    // Events');
     (simpleJson.events || []).forEach((event) => {
-      const varName = toCppIdentifier('event_', event.id);
       const idName = `motionkit::assets::event::${getIdSymbol('event', event.id)}`;
-      lines.push(`    auto ${varName} = kit.event(${idName}).number(${formatCppValue(event.number)});`);
+      lines.push(`    kit.event(${idName}).number(${formatCppValue(event.number)});`);
     });
     lines.push('');
     lines.push('    // Poses');
     (simpleJson.poses || []).forEach((pose) => {
-      const varName = toCppIdentifier('pose_', pose.id);
       const idName = `motionkit::assets::pose::${getIdSymbol('pose', pose.id)}`;
-      lines.push(`    auto ${varName} = kit.pose(${idName});`);
       (pose.jointTargets || []).forEach((target) => {
         const jointConst = `motionkit::assets::joint::${getIdSymbol('joint', target.jointId)}`;
-        lines.push(`    ${varName}.target(${jointConst}, ${formatCppValue(target.deg)});`);
+        lines.push(`    kit.pose(${idName}).target(${jointConst}, ${formatCppValue(target.deg)});`);
       });
       (pose.triggers || []).forEach((trigger) => {
         const eventConst = `motionkit::assets::event::${getIdSymbol('event', trigger.eventId)}`;
-        lines.push(`    ${varName}.trigger("${trigger.at}", ${eventConst});`);
+        lines.push(`    kit.pose(${idName}).trigger("${trigger.at}", ${eventConst});`);
       });
     });
     lines.push('');
     lines.push('    // Sequences');
     (simpleJson.sequences || []).forEach((sequence) => {
-      const varName = toCppIdentifier('sequence_', sequence.id);
       const idName = `motionkit::assets::sequence::${getIdSymbol('sequence', sequence.id)}`;
-      lines.push(`    auto ${varName} = kit.sequence(${idName});`);
       (sequence.steps || []).forEach((step) => {
         const poseConst = `motionkit::assets::pose::${getIdSymbol('pose', step.poseId)}`;
         const easingConst = `motionkit::assets::easing::${getIdSymbol('easing', step.easingId)}`;
@@ -3068,15 +3047,17 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .join('');
           lines.push(
-            `    ${varName}.step(${poseConst}, ${formatCppValue(step.moveMs)}, ${easingConst}, kit.easingOverride()${overrides});`
+            `    kit.sequence(${idName}).step(${poseConst}, ${formatCppValue(step.moveMs)}, ${easingConst}, kit.easingOverride()${overrides});`
           );
         } else {
-          lines.push(`    ${varName}.step(${poseConst}, ${formatCppValue(step.moveMs)}, ${easingConst});`);
+          lines.push(
+            `    kit.sequence(${idName}).step(${poseConst}, ${formatCppValue(step.moveMs)}, ${easingConst});`
+          );
         }
       });
       (sequence.triggers || []).forEach((trigger) => {
         const eventConst = `motionkit::assets::event::${getIdSymbol('event', trigger.eventId)}`;
-        lines.push(`    ${varName}.trigger("${trigger.at}", ${eventConst});`);
+        lines.push(`    kit.sequence(${idName}).trigger("${trigger.at}", ${eventConst});`);
       });
     });
     lines.push('  }');

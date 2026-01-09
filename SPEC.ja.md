@@ -195,6 +195,44 @@ void setup() {
 }
 ```
 
+**C++ API 変換ルール（拡張予定）**
+
+* シンプルJSONの `meta` 以外の全項目を C++ API で再現できることを目標とする。
+* Servo
+  * PWM: `pin` 以外に `pwm.freq` / `pulseMin` / `pulseMax` / `center` / `deadband` / `speed` / `angleMin` / `angleMax` / `offset`
+  * TTL: `ttl.address` / `ttl.bus` / `ttl.speed` / `ttl.angleMin` / `ttl.angleMax` / `ttl.offset`
+* Joint
+  * `servoRefs[*].reverse` / `servoRefs[*].offset`
+  * `rangeMin` / `rangeMax`
+* Pose
+  * `triggers`（`at` / `eventId`）
+* Sequence
+  * `triggers`（`sequence_start` / `sequence_end`）
+* Event
+  * `number` の登録
+
+**C++ API 仕様案（ドラフト）**
+
+* Servo（PWM）
+  * `kit.servo(id).pwm(pin)` を基本とし、以下のパラメータをチェーンで指定できる想定。
+  * `.pwmFreq(hz)` / `.pulseMin(us)` / `.pulseMax(us)` / `.pulseCenter(us)` / `.deadband(us)`
+  * `.speedLimit(deg_per_s)` / `.angleMin(deg)` / `.angleMax(deg)` / `.offset(deg)`
+* Servo（TTL）
+  * `kit.servo(id).ttl(address, bus)` を基本とし、以下を指定できる想定。
+  * `.speedLimit(deg_per_s)` / `.angleMin(deg)` / `.angleMax(deg)` / `.offset(deg)`
+* Joint
+  * `kit.joint(id).servo(servoId)` に加え、サーボ参照ごとの拡張を想定。
+  * `.servo(servoId).reverse(bool)` / `.servo(servoId).offset(deg)`
+  * `.rangeMin(deg)` / `.rangeMax(deg)`
+* Pose
+  * `kit.pose(id).target(jointId, deg)` に加え、トリガー設定を想定。
+  * `.trigger(at, eventId)`（例: `at = "start" / "reached" / "end" / "overrun"`）
+* Sequence
+  * `kit.sequence(id).step(poseId, moveMs, easingId, axisEasing)` に加え、トリガー設定を想定。
+  * `.trigger(at, eventId)`（例: `at = "sequence_start" / "sequence_end"`）
+* Event
+  * `kit.event(id).number(u16)` を想定。
+
 ---
 
 ### Servo（共通）

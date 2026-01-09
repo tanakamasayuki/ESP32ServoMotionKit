@@ -6537,7 +6537,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const addEasing = () => {
-    const base = 'e_new';
+    const base = 'easing_new';
     let index = eventState.easings.length + 1;
     let id = `${base}_${index}`;
     while (eventState.easings.some((item) => item.id === id)) {

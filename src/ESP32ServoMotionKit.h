@@ -1,6 +1,8 @@
 #pragma once
 
-namespace motionkit {
-class MotionKit {
-};
+namespace motionkit
+{
+    class MotionKit
+    {
+    };
 }

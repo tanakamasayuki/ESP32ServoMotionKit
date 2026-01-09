@@ -6375,12 +6375,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (projectSaveButton) {
       projectSaveButton.addEventListener('click', () => {
-        const richJson = buildRichJson();
-        const blob = new Blob([JSON.stringify(richJson, null, 2)], { type: 'application/json' });
+        const cppOutput = buildCppOutput();
+        const blob = new Blob([cppOutput], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement('a');
         anchor.href = url;
-        anchor.download = 'motionkit-richui.json';
+        anchor.download = 'motionkit_assets.h';
         document.body.appendChild(anchor);
         anchor.click();
         anchor.remove();
@@ -6400,7 +6400,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         try {
           const text = await file.text();
-          const parsed = JSON.parse(text);
+          const markerStart = '/* MK_RICH_UI_JSON_BEGIN';
+          const markerEnd = 'MK_RICH_UI_JSON_END */';
+          const startIndex = text.indexOf(markerStart);
+          const endIndex = text.indexOf(markerEnd);
+          let payloadText = text;
+          if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+            payloadText = text.slice(startIndex + markerStart.length, endIndex).trim();
+          }
+          const parsed = JSON.parse(payloadText);
           applyImportedState(parsed);
         } catch (error) {
           window.alert(getTranslation('project.import.invalid'));

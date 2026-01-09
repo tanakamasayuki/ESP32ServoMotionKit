@@ -2843,7 +2843,9 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const toCppIdentifier = (prefix, id) => {
-    const safe = String(id || 'id').replace(/[^a-zA-Z0-9_]/g, '_');
+    const source = String(id || 'id');
+    const safe = source
+      .replace(/[^a-zA-Z0-9_一-龯ぁ-ゖァ-ヺㄱ-힣]/g, '_');
     const normalized = /^\d/.test(safe) ? `_${safe}` : safe;
     return `${prefix}${normalized}`;
   };

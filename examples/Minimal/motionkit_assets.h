@@ -11,7 +11,7 @@ namespace motionkit::assets::servo
   inline constexpr const char *new_8 = "servo_new_8";
   inline constexpr const char *new_8_copy = "servo_new_8_copy";
   inline constexpr const char *new_8_copy_copy = "servo_new_8_copy_copy";
-  inline constexpr const char *_12servo____123_123 = "12servo_サーボ123-123";
+  inline constexpr const char *_12servo_サ_ボ123_123 = "12servo_サーボ123-123";
 }
 
 namespace motionkit::assets::joint
@@ -84,7 +84,7 @@ namespace motionkit::assets
     kit.servo(motionkit::assets::servo::new_8).pwm(18).position().pwmFreq(50).pulseMin(500).pulseMax(2400).pulseCenter(1500).deadband(5).speedLimit(300).angleMin(1).angleMax(179).offset(0);
     kit.servo(motionkit::assets::servo::new_8_copy).pwm(18).position().pwmFreq(50).pulseMin(500).pulseMax(2400).pulseCenter(1500).deadband(5).speedLimit(300).angleMin(1).angleMax(179).offset(0);
     kit.servo(motionkit::assets::servo::new_8_copy_copy).pwm(18).position().pwmFreq(50).pulseMin(500).pulseMax(2400).pulseCenter(1500).deadband(5).speedLimit(300).angleMin(1).angleMax(179).offset(0);
-    kit.servo(motionkit::assets::servo::_12servo____123_123).pwm(18).position().pwmFreq(50).pulseMin(500).pulseMax(2400).pulseCenter(1500).deadband(5).speedLimit(300).angleMin(1).angleMax(179).offset(0);
+    kit.servo(motionkit::assets::servo::_12servo_サ_ボ123_123).pwm(18).position().pwmFreq(50).pulseMin(500).pulseMax(2400).pulseCenter(1500).deadband(5).speedLimit(300).angleMin(1).angleMax(179).offset(0);
 
     // Joints
     kit.joint(motionkit::assets::joint::yaw).servo(motionkit::assets::servo::front_left).reverse(false).offset(0);

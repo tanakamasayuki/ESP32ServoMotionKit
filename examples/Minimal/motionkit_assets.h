@@ -67,6 +67,7 @@ namespace motionkit::assets::event
   inline constexpr const char *new_6 = "event_new_6";
   inline constexpr const char *new_7 = "event_new_7";
   inline constexpr const char *new_8 = "event_new_8";
+  inline constexpr const char *new_8_2 = "event_new-8";
 }
 
 namespace motionkit::assets
@@ -131,6 +132,7 @@ namespace motionkit::assets
     kit.event(motionkit::assets::event::new_6).number(420);
     kit.event(motionkit::assets::event::new_7).number(430);
     kit.event(motionkit::assets::event::new_8).number(440);
+    kit.event(motionkit::assets::event::new_8_2).number(450);
 
     // Poses
     kit.pose(motionkit::assets::pose::p_home).target(motionkit::assets::joint::yaw, 50);

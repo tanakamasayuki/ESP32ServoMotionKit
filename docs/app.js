@@ -96,6 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.form.displayOrder.placeholder': '10',
       'common.form.description': 'Description',
       'common.form.description.placeholder': 'Notes for this item',
+      'project.new': 'New workspace',
+      'project.new.confirm': 'Clear the current workspace and start a new one?',
       'project.import.invalid': 'Invalid JSON file.',
       'servo.form.id.duplicate': 'Servo ID must be unique.',
       'servo.usage.title': 'Usage',
@@ -423,6 +425,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.form.displayOrder.placeholder': '10',
       'common.form.description': '説明',
       'common.form.description.placeholder': 'この項目の説明',
+      'project.new': '新規ワークスペース',
+      'project.new.confirm': '現在のワークスペースを消去して新規作成しますか？',
       'project.import.invalid': 'JSONファイルを読み込めませんでした。',
       'servo.form.id.duplicate': 'サーボ ID が重複しています。',
       'servo.usage.title': '利用元',
@@ -689,6 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const servoPreviewNeedle = document.querySelector('.dial-needle');
   const servoPreviewOffsetInput = document.querySelector('[data-preview-offset-input]');
   const servoPreviewDirectionSelect = document.querySelector('[data-preview-direction-select]');
+  const projectNewButton = document.getElementById('project-new-button');
 
   let updateFirmwareLocale = () => { };
   let updateHeroPanels = () => { };
@@ -6339,6 +6344,16 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const initProjectImportExport = () => {
+    if (projectNewButton) {
+      projectNewButton.addEventListener('click', () => {
+        const confirmText = getTranslation('project.new.confirm');
+        if (!window.confirm(confirmText)) {
+          return;
+        }
+        applyImportedState(defaultState);
+      });
+    }
+
     if (projectSaveButton) {
       projectSaveButton.addEventListener('click', () => {
         const richJson = buildRichJson();

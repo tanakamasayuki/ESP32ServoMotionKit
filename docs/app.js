@@ -3744,10 +3744,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!servo) {
       return;
     }
+    const prevId = servo.id;
     const nextId = (servoIdInput?.value || '').trim() || servo.id;
     if (hasDuplicateServoId(nextId, servo.id)) {
       showServoIdError();
       return;
+    }
+    if (prevId !== nextId) {
+      renameServoReferences(prevId, nextId);
     }
     servo.id = nextId;
     const orderRaw = servoOrderInput?.value ?? '';
@@ -3784,6 +3788,15 @@ document.addEventListener('DOMContentLoaded', () => {
     renderServoList();
     populateServoEditor(servo);
     renderServoUsage();
+    renderJointList();
+    const joint = getSelectedJoint();
+    if (joint) {
+      renderJointServoList(joint);
+      if (selectedJointServoId) {
+        setActiveJointServo(selectedJointServoId);
+      }
+      updateJointRangeSummary(joint);
+    }
     updateRichJsonOutput();
   };
 
@@ -4249,10 +4262,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!joint) {
       return;
     }
+    const prevId = joint.id;
     const nextId = (jointIdInput?.value || '').trim() || joint.id;
     if (hasDuplicateJointId(nextId, joint.id)) {
       showJointIdError();
       return;
+    }
+    if (prevId !== nextId) {
+      renameJointReferences(prevId, nextId);
     }
     joint.id = nextId;
     const orderRaw = jointOrderInput?.value ?? '';
@@ -4284,6 +4301,29 @@ document.addEventListener('DOMContentLoaded', () => {
     populateJointEditor(joint);
     renderJointUsage();
     renderServoUsage();
+    renderJointGroupList();
+    const group = selectedJointGroupId
+      ? eventState.jointGroups.find((item) => item.id === selectedJointGroupId)
+      : null;
+    if (group) {
+      renderJointGroupJointList(group);
+      if (selectedJointGroupJointId) {
+        setActiveJointGroupJoint(selectedJointGroupJointId);
+      }
+    }
+    renderPoseList();
+    const pose = getSelectedPose();
+    if (pose) {
+      renderPoseAxisList(pose);
+      const target = pose.jointTargets?.find((item) => item.jointId === selectedPoseAxisId);
+      setActivePoseAxis(selectedPoseAxisId, target?.deg ?? 0);
+      renderPoseControlAxisEasing();
+    }
+    const sequence = getSelectedSequence();
+    if (sequence) {
+      renderSequenceSteps(sequence);
+      renderSequenceAxisEasing();
+    }
     updateRichJsonOutput();
   };
 
@@ -4659,10 +4699,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!group) {
       return;
     }
+    const prevId = group.id;
     const nextId = (jointGroupIdInput?.value || '').trim() || group.id;
     if (hasDuplicateJointGroupId(nextId, group.id)) {
       showJointGroupIdError();
       return;
+    }
+    if (prevId !== nextId) {
+      renameJointGroupReferences(prevId, nextId);
     }
     group.id = nextId;
     const orderRaw = jointGroupOrderInput?.value ?? '';
@@ -4685,6 +4729,13 @@ document.addEventListener('DOMContentLoaded', () => {
     populateJointGroupEditor(group);
     renderJointGroupUsage();
     renderJointUsage();
+    renderPoseList();
+    const pose = getSelectedPose();
+    if (pose) {
+      updatePoseGroupOptions(pose.groupId);
+      renderPoseAxisList(pose);
+      renderPoseControlAxisEasing();
+    }
     updateRichJsonOutput();
   };
 
@@ -5214,10 +5265,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!pose) {
       return;
     }
+    const prevId = pose.id;
     const nextId = (poseIdInput?.value || '').trim() || pose.id;
     if (hasDuplicatePoseId(nextId, pose.id)) {
       showPoseIdError();
       return;
+    }
+    if (prevId !== nextId) {
+      renamePoseReferences(prevId, nextId);
     }
     pose.id = nextId;
     const orderRaw = poseOrderInput?.value ?? '';
@@ -5258,6 +5313,10 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceControlOptions();
     renderSequenceAxisEasing();
     renderEventUsage();
+    const sequence = getSelectedSequence();
+    if (sequence) {
+      renderSequenceSteps(sequence);
+    }
     renderJointGroupUsage();
     updateRichJsonOutput();
   };
@@ -5822,10 +5881,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!sequence) {
       return;
     }
+    const prevId = sequence.id;
     const nextId = (sequenceIdInput?.value || '').trim() || sequence.id;
     if (hasDuplicateSequenceId(nextId, sequence.id)) {
       showSequenceIdError();
       return;
+    }
+    if (prevId !== nextId) {
+      renameSequenceReferences(prevId, nextId);
     }
     sequence.id = nextId;
     const orderRaw = sequenceOrderInput?.value ?? '';
@@ -6414,6 +6477,190 @@ document.addEventListener('DOMContentLoaded', () => {
     return Number.isFinite(numeric) ? numeric : fallback;
   };
 
+  const renameServoReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.joints.forEach((joint) => {
+      (joint.servos || []).forEach((servo) => {
+        if (servo.servoId === oldId) {
+          servo.servoId = nextId;
+        }
+      });
+    });
+    if (selectedJointServoId === oldId) {
+      selectedJointServoId = nextId;
+    }
+  };
+
+  const renameJointReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.jointGroups.forEach((group) => {
+      if (Array.isArray(group.jointIds)) {
+        group.jointIds = group.jointIds.map((jointId) => (jointId === oldId ? nextId : jointId));
+      }
+    });
+    eventState.poses.forEach((pose) => {
+      (pose.jointTargets || []).forEach((target) => {
+        if (target.jointId === oldId) {
+          target.jointId = nextId;
+        }
+      });
+    });
+    eventState.sequences.forEach((sequence) => {
+      (sequence.steps || []).forEach((step) => {
+        if (!step.axisEasing || typeof step.axisEasing !== 'object') {
+          return;
+        }
+        if (Object.prototype.hasOwnProperty.call(step.axisEasing, oldId)) {
+          if (!Object.prototype.hasOwnProperty.call(step.axisEasing, nextId)) {
+            step.axisEasing[nextId] = step.axisEasing[oldId];
+          }
+          delete step.axisEasing[oldId];
+        }
+      });
+    });
+    if (selectedJointGroupJointId === oldId) {
+      selectedJointGroupJointId = nextId;
+    }
+    if (selectedPoseAxisId === oldId) {
+      selectedPoseAxisId = nextId;
+    }
+  };
+
+  const renameJointGroupReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.poses.forEach((pose) => {
+      if (pose.groupId === oldId) {
+        pose.groupId = nextId;
+      }
+    });
+    if (poseGroupSelect?.value === oldId) {
+      poseGroupSelect.value = nextId;
+    }
+  };
+
+  const renamePoseReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.sequences.forEach((sequence) => {
+      (sequence.steps || []).forEach((step) => {
+        if (step.type === 'pose' && step.targetId === oldId) {
+          step.targetId = nextId;
+        }
+      });
+    });
+    if (poseControlStart?.value === oldId) {
+      poseControlStart.value = nextId;
+    }
+    if (sequenceControlStart?.value === oldId) {
+      sequenceControlStart.value = nextId;
+    }
+    if (sequenceTargetType?.value === 'pose' && sequenceTargetId?.value === oldId) {
+      sequenceTargetId.value = nextId;
+    }
+  };
+
+  const renameSequenceReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.sequences.forEach((sequence) => {
+      (sequence.steps || []).forEach((step) => {
+        if (step.type === 'sequence' && step.targetId === oldId) {
+          step.targetId = nextId;
+        }
+      });
+    });
+    if (sequenceTargetType?.value === 'sequence' && sequenceTargetId?.value === oldId) {
+      sequenceTargetId.value = nextId;
+    }
+  };
+
+  const renameEasingReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.sequences.forEach((sequence) => {
+      (sequence.steps || []).forEach((step) => {
+        if (step.type !== 'pose') {
+          return;
+        }
+        if (step.easingId === oldId) {
+          step.easingId = nextId;
+        }
+        if (step.axisEasing) {
+          Object.entries(step.axisEasing).forEach(([axisId, easingId]) => {
+            if (easingId === oldId) {
+              step.axisEasing[axisId] = nextId;
+            }
+          });
+        }
+      });
+    });
+    if (poseControlEasing?.value === oldId) {
+      poseControlEasing.value = nextId;
+    }
+    if (sequencePoseEasing?.value === oldId) {
+      sequencePoseEasing.value = nextId;
+    }
+  };
+
+  const renameEventReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.poses.forEach((pose) => {
+      const triggers = pose.triggers || {};
+      if (triggers.start === oldId) {
+        triggers.start = nextId;
+      }
+      if (triggers.reached === oldId) {
+        triggers.reached = nextId;
+      }
+      if (triggers.end === oldId) {
+        triggers.end = nextId;
+      }
+      if (triggers.overrun === oldId) {
+        triggers.overrun = nextId;
+      }
+      pose.triggers = triggers;
+    });
+    eventState.sequences.forEach((sequence) => {
+      const triggers = sequence.triggers || {};
+      if (triggers.start === oldId) {
+        triggers.start = nextId;
+      }
+      if (triggers.end === oldId) {
+        triggers.end = nextId;
+      }
+      sequence.triggers = triggers;
+    });
+    if (poseTriggerStart?.value === oldId) {
+      poseTriggerStart.value = nextId;
+    }
+    if (poseTriggerReached?.value === oldId) {
+      poseTriggerReached.value = nextId;
+    }
+    if (poseTriggerEnd?.value === oldId) {
+      poseTriggerEnd.value = nextId;
+    }
+    if (poseTriggerOverrun?.value === oldId) {
+      poseTriggerOverrun.value = nextId;
+    }
+    if (sequenceTriggerStart?.value === oldId) {
+      sequenceTriggerStart.value = nextId;
+    }
+    if (sequenceTriggerEnd?.value === oldId) {
+      sequenceTriggerEnd.value = nextId;
+    }
+  };
+
   const saveEvent = () => {
     if (!selectedEventId) {
       return;
@@ -6422,10 +6669,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!event) {
       return;
     }
+    const prevId = event.id;
     const nextId = (eventIdInput?.value || '').trim() || event.id;
     if (hasDuplicateId(nextId, event.id)) {
       showEventIdError();
       return;
+    }
+    if (prevId !== nextId) {
+      renameEventReferences(prevId, nextId);
     }
     event.id = nextId;
     const nextNumber = clampUint16(eventNumberInput?.value);
@@ -6448,6 +6699,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEventList();
     updatePoseTriggerOptions();
     updateSequenceTriggerOptions();
+    renderEventUsage();
     updateRichJsonOutput();
   };
 
@@ -6704,7 +6956,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!easing) {
       return;
     }
-    easing.id = (easingIdInput?.value || '').trim() || easing.id;
+    const prevId = easing.id;
+    const nextId = (easingIdInput?.value || '').trim() || easing.id;
+    if (prevId !== nextId) {
+      renameEasingReferences(prevId, nextId);
+    }
+    easing.id = nextId;
     const orderRaw = easingOrderInput?.value ?? '';
     easing.displayOrder = orderRaw === '' ? null : parseNumber(orderRaw, easing.displayOrder ?? null);
     easing.description = (easingDescriptionInput?.value || '').trim();

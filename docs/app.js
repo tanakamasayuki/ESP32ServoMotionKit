@@ -2154,6 +2154,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tab === 'simple') {
         updateSimpleJsonOutput();
       }
+      if (tab === 'cpp') {
+        updateCppOutput();
+      }
     };
 
     dataTabs.forEach((button) => {
@@ -2179,6 +2182,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const eventDescriptionInput = document.getElementById('event-description-input');
   const dataRichOutput = document.getElementById('data-rich-output');
   const dataSimpleOutput = document.getElementById('data-simple-output');
+  const dataCppOutput = document.getElementById('data-cpp-output');
   const eventFilterInput = document.getElementById('event-filter-input');
   const servoList = document.getElementById('servo-list');
   const servoAddButton = document.getElementById('servo-add');
@@ -2838,6 +2842,142 @@ document.addEventListener('DOMContentLoaded', () => {
     return simpleJson;
   };
 
+  const toCppIdentifier = (prefix, id) => {
+    const safe = String(id || 'id').replace(/[^a-zA-Z0-9_]/g, '_');
+    const normalized = /^\d/.test(safe) ? `_${safe}` : safe;
+    return `${prefix}${normalized}`;
+  };
+
+  const formatCppValue = (value) => {
+    if (value === null || value === undefined) {
+      return '0';
+    }
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? String(numeric) : '0';
+  };
+
+  const buildCppOutput = () => {
+    const simpleJson = buildSimpleJson();
+    const lines = [];
+    lines.push('#pragma once');
+    lines.push('#include "ESP32ServoMotionKit.h"');
+    lines.push('');
+    lines.push('namespace motionkit::preset::servo {');
+    (simpleJson.servos || []).forEach((servo) => {
+      lines.push(`inline constexpr const char* ${toCppIdentifier('', servo.id)} = "${servo.id}";`);
+    });
+    lines.push('}');
+    lines.push('namespace motionkit::preset::joint {');
+    (simpleJson.joints || []).forEach((joint) => {
+      lines.push(`inline constexpr const char* ${toCppIdentifier('', joint.id)} = "${joint.id}";`);
+    });
+    lines.push('}');
+    lines.push('namespace motionkit::preset::pose {');
+    (simpleJson.poses || []).forEach((pose) => {
+      lines.push(`inline constexpr const char* ${toCppIdentifier('', pose.id)} = "${pose.id}";`);
+    });
+    lines.push('}');
+    lines.push('namespace motionkit::preset::sequence {');
+    (simpleJson.sequences || []).forEach((sequence) => {
+      lines.push(`inline constexpr const char* ${toCppIdentifier('', sequence.id)} = "${sequence.id}";`);
+    });
+    lines.push('}');
+    lines.push('namespace motionkit::preset::easing {');
+    (simpleJson.easings || []).forEach((easing) => {
+      lines.push(`inline constexpr const char* ${toCppIdentifier('', easing.id)} = "${easing.id}";`);
+    });
+    lines.push('}');
+    lines.push('namespace motionkit::preset::event {');
+    (simpleJson.events || []).forEach((event) => {
+      lines.push(`inline constexpr const char* ${toCppIdentifier('', event.id)} = "${event.id}";`);
+    });
+    lines.push('}');
+    lines.push('');
+    lines.push('namespace motionkit::preset {');
+    lines.push('inline void Load(motionkit::MotionKit& kit) {');
+    lines.push('');
+    lines.push('  // Servos');
+    (simpleJson.servos || []).forEach((servo) => {
+      const varName = toCppIdentifier('servo_', servo.id);
+      const idName = `servo::${toCppIdentifier('', servo.id)}`;
+      if (servo.type === 'pwm') {
+        const pin = formatCppValue(servo.pin ?? servo.pwm?.pin);
+        const mode = servo.mode === 'wheel' ? '.wheel()' : '.position()';
+        lines.push(`  auto ${varName} = kit.servo(${idName}).pwm(${pin})${mode};`);
+      } else {
+        lines.push(`  auto ${varName} = kit.servo(${idName});`);
+      }
+    });
+    lines.push('');
+    lines.push('  // Joints');
+    (simpleJson.joints || []).forEach((joint) => {
+      const varName = toCppIdentifier('joint_', joint.id);
+      const idName = `joint::${toCppIdentifier('', joint.id)}`;
+      lines.push(`  auto ${varName} = kit.joint(${idName});`);
+      (joint.servoRefs || []).forEach((ref) => {
+        const servoConst = `servo::${toCppIdentifier('', ref.servoId)}`;
+        lines.push(`  ${varName}.servo(${servoConst});`);
+      });
+    });
+    lines.push('');
+    lines.push('  // Easings');
+    (simpleJson.easings || []).forEach((easing) => {
+      const varName = toCppIdentifier('easing_', easing.id);
+      const idName = `easing::${toCppIdentifier('', easing.id)}`;
+      if (easing.preset) {
+        lines.push(`  auto ${varName} = kit.easing(${idName}).preset("${easing.preset}");`);
+      } else {
+        lines.push(`  auto ${varName} = kit.easing(${idName});`);
+      }
+      if (easing.params) {
+        Object.entries(easing.params).forEach(([key, value]) => {
+          lines.push(`  ${varName}.param("${key}", ${formatCppValue(value)});`);
+        });
+      }
+    });
+    lines.push('');
+    lines.push('  // Poses');
+    (simpleJson.poses || []).forEach((pose) => {
+      const varName = toCppIdentifier('pose_', pose.id);
+      const idName = `pose::${toCppIdentifier('', pose.id)}`;
+      let line = `  auto ${varName} = kit.pose(${idName})`;
+      (pose.jointTargets || []).forEach((target) => {
+        const jointConst = `joint::${toCppIdentifier('', target.jointId)}`;
+        line += `.target(${jointConst}, ${formatCppValue(target.deg)})`;
+      });
+      line += ';';
+      lines.push(line);
+    });
+    lines.push('');
+    lines.push('  // Sequences');
+    (simpleJson.sequences || []).forEach((sequence) => {
+      const varName = toCppIdentifier('sequence_', sequence.id);
+      const idName = `sequence::${toCppIdentifier('', sequence.id)}`;
+      let line = `  auto ${varName} = kit.sequence(${idName})`;
+      (sequence.steps || []).forEach((step) => {
+        const poseConst = `pose::${toCppIdentifier('', step.poseId)}`;
+        const easingConst = `easing::${toCppIdentifier('', step.easingId)}`;
+        if (step.axisEasing && Object.keys(step.axisEasing).length > 0) {
+          const overrides = Object.entries(step.axisEasing)
+            .map(([jointId, easingId]) => {
+              const jointConst = `joint::${toCppIdentifier('', jointId)}`;
+              const easingOverride = `easing::${toCppIdentifier('', easingId)}`;
+              return `.set(${jointConst}, ${easingOverride})`;
+            })
+            .join('');
+          line += `.step(${poseConst}, ${formatCppValue(step.moveMs)}, ${easingConst}, kit.easingOverride()${overrides})`;
+        } else {
+          line += `.step(${poseConst}, ${formatCppValue(step.moveMs)}, ${easingConst})`;
+        }
+      });
+      line += ';';
+      lines.push(line);
+    });
+    lines.push('}');
+    lines.push('}');
+    return lines.join('\n');
+  };
+
   const normalizeServoNumber = (value, fallback) => {
     const numeric = Number(value);
     return Number.isFinite(numeric) ? numeric : fallback;
@@ -3161,6 +3301,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const richJson = buildRichJson();
     dataRichOutput.value = JSON.stringify(richJson, null, 2);
     updateSimpleJsonOutput();
+    updateCppOutput();
   };
 
   const updateSimpleJsonOutput = () => {
@@ -3169,6 +3310,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const simpleJson = buildSimpleJson();
     dataSimpleOutput.value = JSON.stringify(simpleJson, null, 2);
+  };
+
+  const updateCppOutput = () => {
+    if (!dataCppOutput) {
+      return;
+    }
+    dataCppOutput.value = buildCppOutput();
   };
 
   const clearServoIdError = () => {

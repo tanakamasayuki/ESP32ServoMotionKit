@@ -165,17 +165,23 @@ UI/デバイス共通のスキーマ識別子とバージョン管理に使う�
 #pragma once
 #include "ESP32ServoMotionKit.h"
 
-namespace motionkit::assets {
+namespace motionkit::preset {
 inline void Load(motionkit::MotionKit& kit) {
   // サーボ/ジョイント/ポーズ/シーケンス等の初期化をここに展開する。
 }
 }
 
-namespace motionkit::assets {
-inline constexpr const char* ServoId_Example = "servo_front_left";
-inline constexpr const char* JointId_Example = "yaw";
-inline constexpr const char* PoseId_Example = "p_home";
-inline constexpr const char* SequenceId_Example = "seq_demo";
+namespace motionkit::preset::servo {
+inline constexpr const char* Example = "servo_front_left";
+}
+namespace motionkit::preset::joint {
+inline constexpr const char* Example = "yaw";
+}
+namespace motionkit::preset::pose {
+inline constexpr const char* Example = "p_home";
+}
+namespace motionkit::preset::sequence {
+inline constexpr const char* Example = "seq_demo";
 }
 ```
 

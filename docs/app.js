@@ -3201,6 +3201,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     lines.push('  }');
     lines.push('}');
+    lines.push('');
+    lines.push('/* MK_RICH_UI_JSON_BEGIN');
+    lines.push(JSON.stringify(buildRichJson(), null, 2));
+    lines.push('MK_RICH_UI_JSON_END */');
     return lines.join('\n');
   };
 

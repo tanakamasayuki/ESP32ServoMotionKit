@@ -2934,12 +2934,57 @@ document.addEventListener('DOMContentLoaded', () => {
     (simpleJson.servos || []).forEach((servo) => {
       const varName = toCppIdentifier('servo_', servo.id);
       const idName = `motionkit::assets::servo::${getIdSymbol('servo', servo.id)}`;
+      const mode = servo.mode === 'wheel' ? '.wheel()' : '.position()';
       if (servo.type === 'pwm') {
         const pin = formatCppValue(servo.pin ?? servo.pwm?.pin);
-        const mode = servo.mode === 'wheel' ? '.wheel()' : '.position()';
         lines.push(`    auto ${varName} = kit.servo(${idName}).pwm(${pin})${mode};`);
+        const pwm = servo.pwm || {};
+        if (pwm.freq !== undefined) {
+          lines.push(`    ${varName}.pwmFreq(${formatCppValue(pwm.freq)});`);
+        }
+        if (pwm.pulseMin !== undefined) {
+          lines.push(`    ${varName}.pulseMin(${formatCppValue(pwm.pulseMin)});`);
+        }
+        if (pwm.pulseMax !== undefined) {
+          lines.push(`    ${varName}.pulseMax(${formatCppValue(pwm.pulseMax)});`);
+        }
+        if (pwm.center !== undefined) {
+          lines.push(`    ${varName}.pulseCenter(${formatCppValue(pwm.center)});`);
+        }
+        if (pwm.deadband !== undefined) {
+          lines.push(`    ${varName}.deadband(${formatCppValue(pwm.deadband)});`);
+        }
+        if (pwm.speed !== undefined) {
+          lines.push(`    ${varName}.speedLimit(${formatCppValue(pwm.speed)});`);
+        }
+        if (pwm.angleMin !== undefined) {
+          lines.push(`    ${varName}.angleMin(${formatCppValue(pwm.angleMin)});`);
+        }
+        if (pwm.angleMax !== undefined) {
+          lines.push(`    ${varName}.angleMax(${formatCppValue(pwm.angleMax)});`);
+        }
+        if (pwm.offset !== undefined) {
+          lines.push(`    ${varName}.offset(${formatCppValue(pwm.offset)});`);
+        }
+      } else if (servo.type === 'ttl') {
+        const ttl = servo.ttl || {};
+        const address = formatCppValue(ttl.address ?? 0);
+        const bus = ttl.bus ? `"${ttl.bus}"` : '"UART0"';
+        lines.push(`    auto ${varName} = kit.servo(${idName}).ttl(${address}, ${bus})${mode};`);
+        if (ttl.speed !== undefined) {
+          lines.push(`    ${varName}.speedLimit(${formatCppValue(ttl.speed)});`);
+        }
+        if (ttl.angleMin !== undefined) {
+          lines.push(`    ${varName}.angleMin(${formatCppValue(ttl.angleMin)});`);
+        }
+        if (ttl.angleMax !== undefined) {
+          lines.push(`    ${varName}.angleMax(${formatCppValue(ttl.angleMax)});`);
+        }
+        if (ttl.offset !== undefined) {
+          lines.push(`    ${varName}.offset(${formatCppValue(ttl.offset)});`);
+        }
       } else {
-        lines.push(`    auto ${varName} = kit.servo(${idName});`);
+        lines.push(`    auto ${varName} = kit.servo(${idName})${mode};`);
       }
     });
     lines.push('');
@@ -2950,8 +2995,22 @@ document.addEventListener('DOMContentLoaded', () => {
       lines.push(`    auto ${varName} = kit.joint(${idName});`);
       (joint.servoRefs || []).forEach((ref) => {
         const servoConst = `motionkit::assets::servo::${getIdSymbol('servo', ref.servoId)}`;
-        lines.push(`    ${varName}.servo(${servoConst});`);
+        let line = `    ${varName}.servo(${servoConst})`;
+        if (ref.reverse !== undefined) {
+          line += `.reverse(${ref.reverse ? 'true' : 'false'})`;
+        }
+        if (ref.offset !== undefined) {
+          line += `.offset(${formatCppValue(ref.offset)})`;
+        }
+        line += ';';
+        lines.push(line);
       });
+      if (joint.rangeMin !== undefined && joint.rangeMin !== null) {
+        lines.push(`    ${varName}.rangeMin(${formatCppValue(joint.rangeMin)});`);
+      }
+      if (joint.rangeMax !== undefined && joint.rangeMax !== null) {
+        lines.push(`    ${varName}.rangeMax(${formatCppValue(joint.rangeMax)});`);
+      }
     });
     lines.push('');
     lines.push('    // Easings');
@@ -2970,24 +3029,33 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     lines.push('');
+    lines.push('    // Events');
+    (simpleJson.events || []).forEach((event) => {
+      const varName = toCppIdentifier('event_', event.id);
+      const idName = `motionkit::assets::event::${getIdSymbol('event', event.id)}`;
+      lines.push(`    auto ${varName} = kit.event(${idName}).number(${formatCppValue(event.number)});`);
+    });
+    lines.push('');
     lines.push('    // Poses');
     (simpleJson.poses || []).forEach((pose) => {
       const varName = toCppIdentifier('pose_', pose.id);
       const idName = `motionkit::assets::pose::${getIdSymbol('pose', pose.id)}`;
-      let line = `    auto ${varName} = kit.pose(${idName})`;
+      lines.push(`    auto ${varName} = kit.pose(${idName});`);
       (pose.jointTargets || []).forEach((target) => {
         const jointConst = `motionkit::assets::joint::${getIdSymbol('joint', target.jointId)}`;
-        line += `.target(${jointConst}, ${formatCppValue(target.deg)})`;
+        lines.push(`    ${varName}.target(${jointConst}, ${formatCppValue(target.deg)});`);
       });
-      line += ';';
-      lines.push(line);
+      (pose.triggers || []).forEach((trigger) => {
+        const eventConst = `motionkit::assets::event::${getIdSymbol('event', trigger.eventId)}`;
+        lines.push(`    ${varName}.trigger("${trigger.at}", ${eventConst});`);
+      });
     });
     lines.push('');
     lines.push('    // Sequences');
     (simpleJson.sequences || []).forEach((sequence) => {
       const varName = toCppIdentifier('sequence_', sequence.id);
       const idName = `motionkit::assets::sequence::${getIdSymbol('sequence', sequence.id)}`;
-      let line = `    auto ${varName} = kit.sequence(${idName})`;
+      lines.push(`    auto ${varName} = kit.sequence(${idName});`);
       (sequence.steps || []).forEach((step) => {
         const poseConst = `motionkit::assets::pose::${getIdSymbol('pose', step.poseId)}`;
         const easingConst = `motionkit::assets::easing::${getIdSymbol('easing', step.easingId)}`;
@@ -2999,13 +3067,17 @@ document.addEventListener('DOMContentLoaded', () => {
               return `.set(${jointConst}, ${easingOverride})`;
             })
             .join('');
-          line += `.step(${poseConst}, ${formatCppValue(step.moveMs)}, ${easingConst}, kit.easingOverride()${overrides})`;
+          lines.push(
+            `    ${varName}.step(${poseConst}, ${formatCppValue(step.moveMs)}, ${easingConst}, kit.easingOverride()${overrides});`
+          );
         } else {
-          line += `.step(${poseConst}, ${formatCppValue(step.moveMs)}, ${easingConst})`;
+          lines.push(`    ${varName}.step(${poseConst}, ${formatCppValue(step.moveMs)}, ${easingConst});`);
         }
       });
-      line += ';';
-      lines.push(line);
+      (sequence.triggers || []).forEach((trigger) => {
+        const eventConst = `motionkit::assets::event::${getIdSymbol('event', trigger.eventId)}`;
+        lines.push(`    ${varName}.trigger("${trigger.at}", ${eventConst});`);
+      });
     });
     lines.push('  }');
     lines.push('}');

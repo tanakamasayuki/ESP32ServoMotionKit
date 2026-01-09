@@ -1,10 +1,12 @@
-#include <ESP32ServoMotionKit.h>
+#include "motionkit_assets.h"
 
 motionkit::MotionKit kit;
 
-void setup() {
-  (void)kit;
+void setup()
+{
+  motionkit::assets::Load(kit);
 }
 
-void loop() {
+void loop()
+{
 }

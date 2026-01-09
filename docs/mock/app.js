@@ -96,6 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.form.displayOrder.placeholder': '10',
       'common.form.description': 'Description',
       'common.form.description.placeholder': 'Notes for this item',
+      'project.new': 'New workspace',
+      'project.new.confirm': 'Clear the current workspace and start a new one?',
       'project.import.invalid': 'Invalid JSON file.',
       'servo.form.id.duplicate': 'Servo ID must be unique.',
       'servo.usage.title': 'Usage',
@@ -106,8 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
       'joint.form.rangeMax': 'Servo max (deg) [auto]',
       'joint.list.count': '{count} servos',
       'joint.usage.title': 'Usage',
+      'joint.usage.groupList': 'Joint groups',
+      'joint.usage.poseList': 'Poses',
       'joint.delete.confirm': 'Delete "{id}"?',
-      'joint.delete.inUse': 'This joint is used by joint groups.',
+      'joint.delete.inUse': 'This joint is used by joint groups or poses.',
       'jointGroup.form.id.duplicate': 'Group ID must be unique.',
       'jointGroup.list.count': '{count} joints',
       'jointGroup.usage.title': 'Usage',
@@ -421,6 +425,8 @@ document.addEventListener('DOMContentLoaded', () => {
       'common.form.displayOrder.placeholder': '10',
       'common.form.description': '説明',
       'common.form.description.placeholder': 'この項目の説明',
+      'project.new': '新規ワークスペース',
+      'project.new.confirm': '現在のワークスペースを消去して新規作成しますか？',
       'project.import.invalid': 'JSONファイルを読み込めませんでした。',
       'servo.form.id.duplicate': 'サーボ ID が重複しています。',
       'servo.usage.title': '利用元',
@@ -431,8 +437,10 @@ document.addEventListener('DOMContentLoaded', () => {
       'joint.form.rangeMax': 'サーボ最大 (deg) ※自動',
       'joint.list.count': '{count} サーボ',
       'joint.usage.title': '利用元',
+      'joint.usage.groupList': 'ジョイントグループ',
+      'joint.usage.poseList': 'ポーズ',
       'joint.delete.confirm': '「{id}」を削除しますか？',
-      'joint.delete.inUse': 'このジョイントはジョイントグループで使用中です。',
+      'joint.delete.inUse': 'このジョイントはジョイントグループまたはポーズで使用中です。',
       'jointGroup.form.id.duplicate': 'グループ ID が重複しています。',
       'jointGroup.list.count': '{count} ジョイント',
       'jointGroup.usage.title': '利用元',
@@ -685,6 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const servoPreviewNeedle = document.querySelector('.dial-needle');
   const servoPreviewOffsetInput = document.querySelector('[data-preview-offset-input]');
   const servoPreviewDirectionSelect = document.querySelector('[data-preview-direction-select]');
+  const projectNewButton = document.getElementById('project-new-button');
 
   let updateFirmwareLocale = () => { };
   let updateHeroPanels = () => { };
@@ -939,20 +948,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!selectedJointId) {
       return;
     }
-    const usage = eventState.jointGroups
-      .filter((group) => (group.jointIds || []).includes(selectedJointId))
-      .map((group) => group.id);
-    if (usage.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'mini-row';
+    const getPoseSelectedJointIds = (pose) => {
+      if (!pose) {
+        return [];
+      }
+      if (pose.id === selectedPoseId && poseAxisList) {
+        const selectedIds = [];
+        poseAxisList.querySelectorAll('input[type="checkbox"][data-pose-axis]').forEach((input) => {
+          if (input.checked) {
+            selectedIds.push(input.dataset.poseAxis);
+          }
+        });
+        return selectedIds;
+      }
+      return (pose.jointTargets || []).map((target) => target.jointId);
+    };
+    const addHeader = (labelKey) => {
+      const row = document.createElement('div');
+      row.className = 'mini-row mini-row--header';
       const label = document.createElement('span');
       label.className = 'mini-k';
-      label.textContent = '—';
-      empty.appendChild(label);
-      jointUsageList.appendChild(empty);
-      return;
-    }
-    usage.forEach((name) => {
+      label.textContent = getTranslation(labelKey);
+      row.appendChild(label);
+      jointUsageList.appendChild(row);
+    };
+
+    const addItem = (name) => {
       const row = document.createElement('div');
       row.className = 'mini-row';
       const key = document.createElement('span');
@@ -960,7 +981,41 @@ document.addEventListener('DOMContentLoaded', () => {
       key.textContent = name;
       row.appendChild(key);
       jointUsageList.appendChild(row);
-    });
+    };
+
+    const groupUsage = eventState.jointGroups
+      .filter((group) => (group.jointIds || []).includes(selectedJointId))
+      .map((group) => group.id);
+
+    const poseUsage = eventState.poses
+      .filter((pose) => getPoseSelectedJointIds(pose).includes(selectedJointId))
+      .map((pose) => pose.id);
+
+    addHeader('joint.usage.groupList');
+    if (groupUsage.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = '—';
+      empty.appendChild(label);
+      jointUsageList.appendChild(empty);
+    } else {
+      groupUsage.forEach((name) => addItem(name));
+    }
+
+    addHeader('joint.usage.poseList');
+    if (poseUsage.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'mini-row';
+      const label = document.createElement('span');
+      label.className = 'mini-k';
+      label.textContent = '—';
+      empty.appendChild(label);
+      jointUsageList.appendChild(empty);
+    } else {
+      poseUsage.forEach((name) => addItem(name));
+    }
   };
 
   const renderJointGroupUsage = () => {
@@ -1022,6 +1077,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let count = 0;
     eventState.jointGroups.forEach((group) => {
       if ((group.jointIds || []).includes(jointId)) {
+        count += 1;
+      }
+    });
+    eventState.poses.forEach((pose) => {
+      const targetIds = pose.id === selectedPoseId && poseAxisList
+        ? Array.from(poseAxisList.querySelectorAll('input[type="checkbox"][data-pose-axis]'))
+          .filter((input) => input.checked)
+          .map((input) => input.dataset.poseAxis)
+        : (pose.jointTargets || []).map((target) => target.jointId);
+      if (targetIds.includes(jointId)) {
         count += 1;
       }
     });
@@ -2154,6 +2219,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tab === 'simple') {
         updateSimpleJsonOutput();
       }
+      if (tab === 'cpp') {
+        updateCppOutput();
+      }
     };
 
     dataTabs.forEach((button) => {
@@ -2179,6 +2247,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const eventDescriptionInput = document.getElementById('event-description-input');
   const dataRichOutput = document.getElementById('data-rich-output');
   const dataSimpleOutput = document.getElementById('data-simple-output');
+  const dataCppOutput = document.getElementById('data-cpp-output');
   const eventFilterInput = document.getElementById('event-filter-input');
   const servoList = document.getElementById('servo-list');
   const servoAddButton = document.getElementById('servo-add');
@@ -2838,6 +2907,307 @@ document.addEventListener('DOMContentLoaded', () => {
     return simpleJson;
   };
 
+  const toCppIdentifier = (prefix, id) => {
+    const source = String(id || 'id');
+    const safe = source
+      .replace(/[^a-zA-Z0-9_一-龯ぁ-ゖァ-ヺㄱ-힣]/g, '_');
+    const normalized = /^\d/.test(safe) ? `_${safe}` : safe;
+    return `${prefix}${normalized}`;
+  };
+
+  const stripDefaultPrefix = (type, id) => {
+    const source = String(id || '');
+    const prefixMap = {
+      servo: 'servo_',
+      joint: 'joint_',
+      pose: 'pose_',
+      easing: 'easing_',
+      event: 'event_',
+      sequence: 'seq_'
+    };
+    const prefix = prefixMap[type];
+    if (prefix && source.startsWith(prefix)) {
+      return source.slice(prefix.length) || source;
+    }
+    return source;
+  };
+
+  const reservedCppWords = new Set([
+    'alignas', 'alignof', 'and', 'and_eq', 'asm', 'auto', 'bitand', 'bitor',
+    'bool', 'break', 'case', 'catch', 'char', 'char16_t', 'char32_t', 'class',
+    'compl', 'const', 'constexpr', 'const_cast', 'continue', 'decltype',
+    'default', 'delete', 'do', 'double', 'dynamic_cast', 'else', 'enum',
+    'explicit', 'export', 'extern', 'false', 'float', 'for', 'friend', 'goto',
+    'if', 'inline', 'int', 'long', 'mutable', 'namespace', 'new', 'noexcept',
+    'not', 'not_eq', 'nullptr', 'operator', 'or', 'or_eq', 'private',
+    'protected', 'public', 'register', 'reinterpret_cast', 'return', 'short',
+    'signed', 'sizeof', 'static', 'static_assert', 'static_cast', 'struct',
+    'switch', 'template', 'this', 'thread_local', 'throw', 'true', 'try',
+    'typedef', 'typeid', 'typename', 'union', 'unsigned', 'using', 'virtual',
+    'void', 'volatile', 'wchar_t', 'while', 'xor', 'xor_eq',
+    '_Alignas', '_Alignof', '_Atomic', '_Bool', '_Complex', '_Generic',
+    '_Imaginary', '_Noreturn', '_Static_assert', '_Thread_local'
+  ]);
+
+  const makeIdSymbol = (type, id, existing) => {
+    const base = toCppIdentifier('', stripDefaultPrefix(type, id)) || 'id';
+    if (reservedCppWords.has(base)) {
+      existing.add(base);
+    }
+    if (!existing.has(base)) {
+      existing.add(base);
+      return base;
+    }
+    let index = 2;
+    let candidate = `${base}_${index}`;
+    while (existing.has(candidate)) {
+      index += 1;
+      candidate = `${base}_${index}`;
+    }
+    existing.add(candidate);
+    return candidate;
+  };
+
+  const formatCppValue = (value) => {
+    if (value === null || value === undefined) {
+      return '0';
+    }
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? String(numeric) : '0';
+  };
+
+  const buildCppOutput = () => {
+    const simpleJson = buildSimpleJson();
+    const lines = [];
+    lines.push('#pragma once');
+    lines.push('#include "ESP32ServoMotionKit.h"');
+    lines.push('');
+    lines.push('/*');
+    lines.push('#include "motionkit_assets.h"');
+    lines.push('');
+    lines.push('motionkit::MotionKit kit;');
+    lines.push('');
+    lines.push('void setup()');
+    lines.push('{');
+    lines.push('  motionkit::assets::Load(kit);');
+    lines.push('}');
+    lines.push('');
+    lines.push('void loop()');
+    lines.push('{');
+    lines.push('}');
+    lines.push('*/');
+    lines.push('');
+    const idSymbols = {
+      servo: new Map(),
+      joint: new Map(),
+      pose: new Map(),
+      sequence: new Map(),
+      easing: new Map(),
+      event: new Map()
+    };
+    const registerSymbols = (type, items) => {
+      const used = new Set();
+      items.forEach((item) => {
+        const symbol = makeIdSymbol(type, item.id, used);
+        idSymbols[type].set(item.id, symbol);
+      });
+    };
+    registerSymbols('servo', simpleJson.servos || []);
+    registerSymbols('joint', simpleJson.joints || []);
+    registerSymbols('pose', simpleJson.poses || []);
+    registerSymbols('sequence', simpleJson.sequences || []);
+    registerSymbols('easing', simpleJson.easings || []);
+    registerSymbols('event', simpleJson.events || []);
+    const getSymbol = (type, id) => {
+      return idSymbols[type]?.get(id) || makeIdSymbol(type, id, new Set());
+    };
+
+    lines.push('namespace motionkit::assets::servo');
+    lines.push('{');
+    (simpleJson.servos || []).forEach((servo) => {
+      lines.push(`  inline constexpr const char *${getSymbol('servo', servo.id)} = "${servo.id}";`);
+    });
+    lines.push('}');
+    lines.push('');
+    lines.push('namespace motionkit::assets::joint');
+    lines.push('{');
+    (simpleJson.joints || []).forEach((joint) => {
+      lines.push(`  inline constexpr const char *${getSymbol('joint', joint.id)} = "${joint.id}";`);
+    });
+    lines.push('}');
+    lines.push('');
+    lines.push('namespace motionkit::assets::pose');
+    lines.push('{');
+    (simpleJson.poses || []).forEach((pose) => {
+      lines.push(`  inline constexpr const char *${getSymbol('pose', pose.id)} = "${pose.id}";`);
+    });
+    lines.push('}');
+    lines.push('');
+    lines.push('namespace motionkit::assets::sequence');
+    lines.push('{');
+    (simpleJson.sequences || []).forEach((sequence) => {
+      lines.push(`  inline constexpr const char *${getSymbol('sequence', sequence.id)} = "${sequence.id}";`);
+    });
+    lines.push('}');
+    lines.push('');
+    lines.push('namespace motionkit::assets::easing');
+    lines.push('{');
+    (simpleJson.easings || []).forEach((easing) => {
+      lines.push(`  inline constexpr const char *${getSymbol('easing', easing.id)} = "${easing.id}";`);
+    });
+    lines.push('}');
+    lines.push('');
+    lines.push('namespace motionkit::assets::event');
+    lines.push('{');
+    (simpleJson.events || []).forEach((event) => {
+      lines.push(`  inline constexpr const char *${getSymbol('event', event.id)} = "${event.id}";`);
+    });
+    lines.push('}');
+    lines.push('');
+    lines.push('namespace motionkit::assets');
+    lines.push('{');
+    lines.push('  inline void Load(motionkit::MotionKit &kit)');
+    lines.push('  {');
+    lines.push('');
+    lines.push('    // Servos');
+    (simpleJson.servos || []).forEach((servo) => {
+      const idName = `motionkit::assets::servo::${getSymbol('servo', servo.id)}`;
+      if (servo.type === 'pwm') {
+        const pin = formatCppValue(servo.pin ?? servo.pwm?.pin);
+        const mode = servo.mode === 'wheel' ? '.wheel()' : '.position()';
+        const pwm = servo.pwm || {};
+        const chain = [
+          `.pwm(${pin})`,
+          mode,
+          pwm.freq !== undefined ? `.pwmFreq(${formatCppValue(pwm.freq)})` : '',
+          pwm.pulseMin !== undefined ? `.pulseMin(${formatCppValue(pwm.pulseMin)})` : '',
+          pwm.pulseMax !== undefined ? `.pulseMax(${formatCppValue(pwm.pulseMax)})` : '',
+          pwm.center !== undefined ? `.pulseCenter(${formatCppValue(pwm.center)})` : '',
+          pwm.deadband !== undefined ? `.deadband(${formatCppValue(pwm.deadband)})` : '',
+          pwm.speed !== undefined ? `.speedLimit(${formatCppValue(pwm.speed)})` : '',
+          pwm.angleMin !== undefined ? `.angleMin(${formatCppValue(pwm.angleMin)})` : '',
+          pwm.angleMax !== undefined ? `.angleMax(${formatCppValue(pwm.angleMax)})` : '',
+          pwm.offset !== undefined ? `.offset(${formatCppValue(pwm.offset)})` : ''
+        ]
+          .filter(Boolean)
+          .join('');
+        lines.push(`    kit.servo(${idName})${chain};`);
+      } else if (servo.type === 'ttl') {
+        const ttl = servo.ttl || {};
+        const address = formatCppValue(ttl.address ?? 0);
+        const bus = ttl.bus ? `"${ttl.bus}"` : '"UART0"';
+        const mode = servo.mode === 'wheel' ? '.wheel()' : '.position()';
+        const chain = [
+          `.ttl(${address}, ${bus})`,
+          mode,
+          ttl.speed !== undefined ? `.speedLimit(${formatCppValue(ttl.speed)})` : '',
+          ttl.angleMin !== undefined ? `.angleMin(${formatCppValue(ttl.angleMin)})` : '',
+          ttl.angleMax !== undefined ? `.angleMax(${formatCppValue(ttl.angleMax)})` : '',
+          ttl.offset !== undefined ? `.offset(${formatCppValue(ttl.offset)})` : ''
+        ]
+          .filter(Boolean)
+          .join('');
+        lines.push(`    kit.servo(${idName})${chain};`);
+      } else {
+        const mode = servo.mode === 'wheel' ? '.wheel()' : '.position()';
+        lines.push(`    kit.servo(${idName})${mode};`);
+      }
+    });
+    lines.push('');
+    lines.push('    // Joints');
+    (simpleJson.joints || []).forEach((joint) => {
+      const idName = `motionkit::assets::joint::${getSymbol('joint', joint.id)}`;
+      (joint.servoRefs || []).forEach((ref) => {
+        const servoConst = `motionkit::assets::servo::${getSymbol('servo', ref.servoId)}`;
+        let line = `    kit.joint(${idName}).servo(${servoConst})`;
+        if (ref.reverse !== undefined) {
+          line += `.reverse(${ref.reverse ? 'true' : 'false'})`;
+        }
+        if (ref.offset !== undefined) {
+          line += `.offset(${formatCppValue(ref.offset)})`;
+        }
+        line += ';';
+        lines.push(line);
+      });
+      if (joint.rangeMin !== undefined && joint.rangeMin !== null) {
+        lines.push(`    kit.joint(${idName}).rangeMin(${formatCppValue(joint.rangeMin)});`);
+      }
+      if (joint.rangeMax !== undefined && joint.rangeMax !== null) {
+        lines.push(`    kit.joint(${idName}).rangeMax(${formatCppValue(joint.rangeMax)});`);
+      }
+    });
+    lines.push('');
+    lines.push('    // Easings');
+    (simpleJson.easings || []).forEach((easing) => {
+      const idName = `motionkit::assets::easing::${getSymbol('easing', easing.id)}`;
+      const chain = [];
+      if (easing.preset) {
+        chain.push(`.preset("${easing.preset}")`);
+      }
+      if (easing.params) {
+        Object.entries(easing.params).forEach(([key, value]) => {
+          chain.push(`.param("${key}", ${formatCppValue(value)})`);
+        });
+      }
+      lines.push(`    kit.easing(${idName})${chain.join('')};`);
+    });
+    lines.push('');
+    lines.push('    // Events');
+    (simpleJson.events || []).forEach((event) => {
+      const idName = `motionkit::assets::event::${getSymbol('event', event.id)}`;
+      lines.push(`    kit.event(${idName}).number(${formatCppValue(event.number)});`);
+    });
+    lines.push('');
+    lines.push('    // Poses');
+    (simpleJson.poses || []).forEach((pose) => {
+      const idName = `motionkit::assets::pose::${getSymbol('pose', pose.id)}`;
+      (pose.jointTargets || []).forEach((target) => {
+        const jointConst = `motionkit::assets::joint::${getSymbol('joint', target.jointId)}`;
+        lines.push(`    kit.pose(${idName}).target(${jointConst}, ${formatCppValue(target.deg)});`);
+      });
+      (pose.triggers || []).forEach((trigger) => {
+        const eventConst = `motionkit::assets::event::${getSymbol('event', trigger.eventId)}`;
+        lines.push(`    kit.pose(${idName}).trigger("${trigger.at}", ${eventConst});`);
+      });
+    });
+    lines.push('');
+    lines.push('    // Sequences');
+    (simpleJson.sequences || []).forEach((sequence) => {
+      const idName = `motionkit::assets::sequence::${getSymbol('sequence', sequence.id)}`;
+      (sequence.steps || []).forEach((step) => {
+        const poseConst = `motionkit::assets::pose::${getSymbol('pose', step.poseId)}`;
+        const easingConst = `motionkit::assets::easing::${getSymbol('easing', step.easingId)}`;
+        if (step.axisEasing && Object.keys(step.axisEasing).length > 0) {
+          const overrides = Object.entries(step.axisEasing)
+            .map(([jointId, easingId]) => {
+              const jointConst = `motionkit::assets::joint::${getSymbol('joint', jointId)}`;
+              const easingOverride = `motionkit::assets::easing::${getSymbol('easing', easingId)}`;
+              return `.set(${jointConst}, ${easingOverride})`;
+            })
+            .join('');
+          lines.push(
+            `    kit.sequence(${idName}).step(${poseConst}, ${formatCppValue(step.moveMs)}, ${easingConst}, kit.easingOverride()${overrides});`
+          );
+        } else {
+          lines.push(
+            `    kit.sequence(${idName}).step(${poseConst}, ${formatCppValue(step.moveMs)}, ${easingConst});`
+          );
+        }
+      });
+      (sequence.triggers || []).forEach((trigger) => {
+        const eventConst = `motionkit::assets::event::${getSymbol('event', trigger.eventId)}`;
+        lines.push(`    kit.sequence(${idName}).trigger("${trigger.at}", ${eventConst});`);
+      });
+    });
+    lines.push('  }');
+    lines.push('}');
+    lines.push('');
+    lines.push('/* MK_RICH_UI_JSON_BEGIN');
+    lines.push(JSON.stringify(buildRichJson(), null, 2));
+    lines.push('MK_RICH_UI_JSON_END */');
+    return lines.join('\n');
+  };
+
   const normalizeServoNumber = (value, fallback) => {
     const numeric = Number(value);
     return Number.isFinite(numeric) ? numeric : fallback;
@@ -3161,6 +3531,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const richJson = buildRichJson();
     dataRichOutput.value = JSON.stringify(richJson, null, 2);
     updateSimpleJsonOutput();
+    updateCppOutput();
   };
 
   const updateSimpleJsonOutput = () => {
@@ -3169,6 +3540,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const simpleJson = buildSimpleJson();
     dataSimpleOutput.value = JSON.stringify(simpleJson, null, 2);
+  };
+
+  const updateCppOutput = () => {
+    if (!dataCppOutput) {
+      return;
+    }
+    dataCppOutput.value = buildCppOutput();
   };
 
   const clearServoIdError = () => {
@@ -3450,10 +3828,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!servo) {
       return;
     }
+    const prevId = servo.id;
     const nextId = (servoIdInput?.value || '').trim() || servo.id;
     if (hasDuplicateServoId(nextId, servo.id)) {
       showServoIdError();
       return;
+    }
+    if (prevId !== nextId) {
+      renameServoReferences(prevId, nextId);
     }
     servo.id = nextId;
     const orderRaw = servoOrderInput?.value ?? '';
@@ -3490,6 +3872,15 @@ document.addEventListener('DOMContentLoaded', () => {
     renderServoList();
     populateServoEditor(servo);
     renderServoUsage();
+    renderJointList();
+    const joint = getSelectedJoint();
+    if (joint) {
+      renderJointServoList(joint);
+      if (selectedJointServoId) {
+        setActiveJointServo(selectedJointServoId);
+      }
+      updateJointRangeSummary(joint);
+    }
     updateRichJsonOutput();
   };
 
@@ -3955,10 +4346,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!joint) {
       return;
     }
+    const prevId = joint.id;
     const nextId = (jointIdInput?.value || '').trim() || joint.id;
     if (hasDuplicateJointId(nextId, joint.id)) {
       showJointIdError();
       return;
+    }
+    if (prevId !== nextId) {
+      renameJointReferences(prevId, nextId);
     }
     joint.id = nextId;
     const orderRaw = jointOrderInput?.value ?? '';
@@ -3990,6 +4385,29 @@ document.addEventListener('DOMContentLoaded', () => {
     populateJointEditor(joint);
     renderJointUsage();
     renderServoUsage();
+    renderJointGroupList();
+    const group = selectedJointGroupId
+      ? eventState.jointGroups.find((item) => item.id === selectedJointGroupId)
+      : null;
+    if (group) {
+      renderJointGroupJointList(group);
+      if (selectedJointGroupJointId) {
+        setActiveJointGroupJoint(selectedJointGroupJointId);
+      }
+    }
+    renderPoseList();
+    const pose = getSelectedPose();
+    if (pose) {
+      renderPoseAxisList(pose);
+      const target = pose.jointTargets?.find((item) => item.jointId === selectedPoseAxisId);
+      setActivePoseAxis(selectedPoseAxisId, target?.deg ?? 0);
+      renderPoseControlAxisEasing();
+    }
+    const sequence = getSelectedSequence();
+    if (sequence) {
+      renderSequenceSteps(sequence);
+      renderSequenceAxisEasing();
+    }
     updateRichJsonOutput();
   };
 
@@ -4365,10 +4783,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!group) {
       return;
     }
+    const prevId = group.id;
     const nextId = (jointGroupIdInput?.value || '').trim() || group.id;
     if (hasDuplicateJointGroupId(nextId, group.id)) {
       showJointGroupIdError();
       return;
+    }
+    if (prevId !== nextId) {
+      renameJointGroupReferences(prevId, nextId);
     }
     group.id = nextId;
     const orderRaw = jointGroupOrderInput?.value ?? '';
@@ -4391,6 +4813,13 @@ document.addEventListener('DOMContentLoaded', () => {
     populateJointGroupEditor(group);
     renderJointGroupUsage();
     renderJointUsage();
+    renderPoseList();
+    const pose = getSelectedPose();
+    if (pose) {
+      updatePoseGroupOptions(pose.groupId);
+      renderPoseAxisList(pose);
+      renderPoseControlAxisEasing();
+    }
     updateRichJsonOutput();
   };
 
@@ -4920,10 +5349,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!pose) {
       return;
     }
+    const prevId = pose.id;
     const nextId = (poseIdInput?.value || '').trim() || pose.id;
     if (hasDuplicatePoseId(nextId, pose.id)) {
       showPoseIdError();
       return;
+    }
+    if (prevId !== nextId) {
+      renamePoseReferences(prevId, nextId);
     }
     pose.id = nextId;
     const orderRaw = poseOrderInput?.value ?? '';
@@ -4964,6 +5397,10 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSequenceControlOptions();
     renderSequenceAxisEasing();
     renderEventUsage();
+    const sequence = getSelectedSequence();
+    if (sequence) {
+      renderSequenceSteps(sequence);
+    }
     renderJointGroupUsage();
     updateRichJsonOutput();
   };
@@ -5528,10 +5965,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!sequence) {
       return;
     }
+    const prevId = sequence.id;
     const nextId = (sequenceIdInput?.value || '').trim() || sequence.id;
     if (hasDuplicateSequenceId(nextId, sequence.id)) {
       showSequenceIdError();
       return;
+    }
+    if (prevId !== nextId) {
+      renameSequenceReferences(prevId, nextId);
     }
     sequence.id = nextId;
     const orderRaw = sequenceOrderInput?.value ?? '';
@@ -5922,14 +6363,24 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const initProjectImportExport = () => {
+    if (projectNewButton) {
+      projectNewButton.addEventListener('click', () => {
+        const confirmText = getTranslation('project.new.confirm');
+        if (!window.confirm(confirmText)) {
+          return;
+        }
+        applyImportedState(defaultState);
+      });
+    }
+
     if (projectSaveButton) {
       projectSaveButton.addEventListener('click', () => {
-        const richJson = buildRichJson();
-        const blob = new Blob([JSON.stringify(richJson, null, 2)], { type: 'application/json' });
+        const cppOutput = buildCppOutput();
+        const blob = new Blob([cppOutput], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement('a');
         anchor.href = url;
-        anchor.download = 'motionkit-richui.json';
+        anchor.download = 'motionkit_assets.h';
         document.body.appendChild(anchor);
         anchor.click();
         anchor.remove();
@@ -5949,7 +6400,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         try {
           const text = await file.text();
-          const parsed = JSON.parse(text);
+          const markerStart = '/* MK_RICH_UI_JSON_BEGIN';
+          const markerEnd = 'MK_RICH_UI_JSON_END */';
+          const startIndex = text.indexOf(markerStart);
+          const endIndex = text.indexOf(markerEnd);
+          let payloadText = text;
+          if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+            payloadText = text.slice(startIndex + markerStart.length, endIndex).trim();
+          }
+          const parsed = JSON.parse(payloadText);
           applyImportedState(parsed);
         } catch (error) {
           window.alert(getTranslation('project.import.invalid'));
@@ -6120,6 +6579,190 @@ document.addEventListener('DOMContentLoaded', () => {
     return Number.isFinite(numeric) ? numeric : fallback;
   };
 
+  const renameServoReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.joints.forEach((joint) => {
+      (joint.servos || []).forEach((servo) => {
+        if (servo.servoId === oldId) {
+          servo.servoId = nextId;
+        }
+      });
+    });
+    if (selectedJointServoId === oldId) {
+      selectedJointServoId = nextId;
+    }
+  };
+
+  const renameJointReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.jointGroups.forEach((group) => {
+      if (Array.isArray(group.jointIds)) {
+        group.jointIds = group.jointIds.map((jointId) => (jointId === oldId ? nextId : jointId));
+      }
+    });
+    eventState.poses.forEach((pose) => {
+      (pose.jointTargets || []).forEach((target) => {
+        if (target.jointId === oldId) {
+          target.jointId = nextId;
+        }
+      });
+    });
+    eventState.sequences.forEach((sequence) => {
+      (sequence.steps || []).forEach((step) => {
+        if (!step.axisEasing || typeof step.axisEasing !== 'object') {
+          return;
+        }
+        if (Object.prototype.hasOwnProperty.call(step.axisEasing, oldId)) {
+          if (!Object.prototype.hasOwnProperty.call(step.axisEasing, nextId)) {
+            step.axisEasing[nextId] = step.axisEasing[oldId];
+          }
+          delete step.axisEasing[oldId];
+        }
+      });
+    });
+    if (selectedJointGroupJointId === oldId) {
+      selectedJointGroupJointId = nextId;
+    }
+    if (selectedPoseAxisId === oldId) {
+      selectedPoseAxisId = nextId;
+    }
+  };
+
+  const renameJointGroupReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.poses.forEach((pose) => {
+      if (pose.groupId === oldId) {
+        pose.groupId = nextId;
+      }
+    });
+    if (poseGroupSelect?.value === oldId) {
+      poseGroupSelect.value = nextId;
+    }
+  };
+
+  const renamePoseReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.sequences.forEach((sequence) => {
+      (sequence.steps || []).forEach((step) => {
+        if (step.type === 'pose' && step.targetId === oldId) {
+          step.targetId = nextId;
+        }
+      });
+    });
+    if (poseControlStart?.value === oldId) {
+      poseControlStart.value = nextId;
+    }
+    if (sequenceControlStart?.value === oldId) {
+      sequenceControlStart.value = nextId;
+    }
+    if (sequenceTargetType?.value === 'pose' && sequenceTargetId?.value === oldId) {
+      sequenceTargetId.value = nextId;
+    }
+  };
+
+  const renameSequenceReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.sequences.forEach((sequence) => {
+      (sequence.steps || []).forEach((step) => {
+        if (step.type === 'sequence' && step.targetId === oldId) {
+          step.targetId = nextId;
+        }
+      });
+    });
+    if (sequenceTargetType?.value === 'sequence' && sequenceTargetId?.value === oldId) {
+      sequenceTargetId.value = nextId;
+    }
+  };
+
+  const renameEasingReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.sequences.forEach((sequence) => {
+      (sequence.steps || []).forEach((step) => {
+        if (step.type !== 'pose') {
+          return;
+        }
+        if (step.easingId === oldId) {
+          step.easingId = nextId;
+        }
+        if (step.axisEasing) {
+          Object.entries(step.axisEasing).forEach(([axisId, easingId]) => {
+            if (easingId === oldId) {
+              step.axisEasing[axisId] = nextId;
+            }
+          });
+        }
+      });
+    });
+    if (poseControlEasing?.value === oldId) {
+      poseControlEasing.value = nextId;
+    }
+    if (sequencePoseEasing?.value === oldId) {
+      sequencePoseEasing.value = nextId;
+    }
+  };
+
+  const renameEventReferences = (oldId, nextId) => {
+    if (!oldId || !nextId || oldId === nextId) {
+      return;
+    }
+    eventState.poses.forEach((pose) => {
+      const triggers = pose.triggers || {};
+      if (triggers.start === oldId) {
+        triggers.start = nextId;
+      }
+      if (triggers.reached === oldId) {
+        triggers.reached = nextId;
+      }
+      if (triggers.end === oldId) {
+        triggers.end = nextId;
+      }
+      if (triggers.overrun === oldId) {
+        triggers.overrun = nextId;
+      }
+      pose.triggers = triggers;
+    });
+    eventState.sequences.forEach((sequence) => {
+      const triggers = sequence.triggers || {};
+      if (triggers.start === oldId) {
+        triggers.start = nextId;
+      }
+      if (triggers.end === oldId) {
+        triggers.end = nextId;
+      }
+      sequence.triggers = triggers;
+    });
+    if (poseTriggerStart?.value === oldId) {
+      poseTriggerStart.value = nextId;
+    }
+    if (poseTriggerReached?.value === oldId) {
+      poseTriggerReached.value = nextId;
+    }
+    if (poseTriggerEnd?.value === oldId) {
+      poseTriggerEnd.value = nextId;
+    }
+    if (poseTriggerOverrun?.value === oldId) {
+      poseTriggerOverrun.value = nextId;
+    }
+    if (sequenceTriggerStart?.value === oldId) {
+      sequenceTriggerStart.value = nextId;
+    }
+    if (sequenceTriggerEnd?.value === oldId) {
+      sequenceTriggerEnd.value = nextId;
+    }
+  };
+
   const saveEvent = () => {
     if (!selectedEventId) {
       return;
@@ -6128,10 +6771,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!event) {
       return;
     }
+    const prevId = event.id;
     const nextId = (eventIdInput?.value || '').trim() || event.id;
     if (hasDuplicateId(nextId, event.id)) {
       showEventIdError();
       return;
+    }
+    if (prevId !== nextId) {
+      renameEventReferences(prevId, nextId);
     }
     event.id = nextId;
     const nextNumber = clampUint16(eventNumberInput?.value);
@@ -6154,6 +6801,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderEventList();
     updatePoseTriggerOptions();
     updateSequenceTriggerOptions();
+    renderEventUsage();
     updateRichJsonOutput();
   };
 
@@ -6368,7 +7016,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const addEasing = () => {
-    const base = 'e_new';
+    const base = 'easing_new';
     let index = eventState.easings.length + 1;
     let id = `${base}_${index}`;
     while (eventState.easings.some((item) => item.id === id)) {
@@ -6410,7 +7058,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!easing) {
       return;
     }
-    easing.id = (easingIdInput?.value || '').trim() || easing.id;
+    const prevId = easing.id;
+    const nextId = (easingIdInput?.value || '').trim() || easing.id;
+    if (prevId !== nextId) {
+      renameEasingReferences(prevId, nextId);
+    }
+    easing.id = nextId;
     const orderRaw = easingOrderInput?.value ?? '';
     easing.displayOrder = orderRaw === '' ? null : parseNumber(orderRaw, easing.displayOrder ?? null);
     easing.description = (easingDescriptionInput?.value || '').trim();
